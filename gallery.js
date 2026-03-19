@@ -17,7 +17,7 @@ const mediaItems = [
   "Assets/DSC_2420 (1).jpg",
   { type: "video", src: "Assets/GIF 4.mp4" },
   "Assets/DSC_2575.jpg",
-  "Assets/DSC_2582(1).jpg",
+  "DSC_2582(1).jpg",
   { type: "video", src: "Assets/My movie 29_1_1_1_1_1.mp4" },
   "Assets/DSC_2584 (1).jpg",
   "Assets/DSC_2967.jpg",
