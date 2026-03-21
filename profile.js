@@ -46,10 +46,10 @@
   var heroImg = document.querySelector(".profile__hero-img");
   if (heroImg) {
     var heroSources = [
-      "Assets/DSC_4821.jpg",
-      "Assets/DSC_2575.jpg",
-      "Assets/DSC_2065.jpg",
-      "Assets/DSC_4623.jpg"
+      "DSC_4821.jpg",
+      "DSC_2575.jpg",
+      "DSC_2065.jpg",
+      "DSC_4623.jpg"
     ];
     var currentHeroIndex = 0;
     var FADE_MS = 420;
