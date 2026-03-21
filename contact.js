@@ -6,12 +6,12 @@
   const bgA = document.querySelector(".contact-bg__layer--a");
   const bgB = document.querySelector(".contact-bg__layer--b");
   const bgImages = [
-    "Assets/DSC_0166-2.jpg",
-    "Assets/DSC_0173.jpg",
-    "Assets/DSC_0104.jpg",
-    "Assets/DSC_0179.jpg",
-    "Assets/DSC_0128-2.jpg",
-    "Assets/DSC_0168.jpg",
+    "DSC_0166-2.jpg",
+    "DSC_0173.jpg",
+    "DSC_0104.jpg",
+    "DSC_0179.jpg",
+    "DSC_0128-2.jpg",
+    "DSC_0168.jpg",
   ];
 
   (function initCrossfade() {
