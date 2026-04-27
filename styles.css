@@ -326,7 +326,7 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: url("Assets/optimized/DSC_2961.webp");
+  background-image: url("DSC_2961.webp");
   background-size: cover;
   background-position: center calc(100% + 1.5in);
   background-repeat: no-repeat;
@@ -365,7 +365,7 @@ body::before {
   z-index: 0;
   opacity: 0.24;
   mix-blend-mode: multiply;
-  background-image: url("Assets/Canvas Texture.jpg");
+  background-image: url("Canvas Texture.jpg");
   background-repeat: repeat;
   background-size: 340px auto;
   background-position: center top;
@@ -2354,6 +2354,13 @@ body.page-profile {
 
   .gallery-row {
     height: clamp(12rem, 32vh, 18rem);
+  }
+
+  /* Mobile flow should auto-run only: no touch interactions on tiles. */
+  .gallery-row .media-item {
+    pointer-events: none;
+    touch-action: pan-y;
+    transition: none;
   }
 
   .gallery-flow-arrow {
