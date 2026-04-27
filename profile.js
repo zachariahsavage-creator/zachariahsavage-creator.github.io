@@ -19,10 +19,10 @@
   var heroImg = document.querySelector(".profile__hero-img");
   if (heroImg) {
     var heroSources = [
-      "Assets/optimized/6_4821.webp",
-      "Assets/optimized/5_2575.webp",
-      "Assets/optimized/5_2065.webp",
-      "Assets/optimized/6_4623.webp"
+      "6_4821.webp",
+      "5_2575.webp",
+      "5_2065.webp",
+      "6_4623.webp"
     ];
     var currentHeroIndex = 0;
     var FADE_MS = 420;
