@@ -22,24 +22,24 @@ const mediaItems = [
   "1_3746.webp",
   "14.webp",
   "4.webp",
-  { type: "video", src: "0.mp4" },
+  { type: "video", src: "Assets/0.mp4" },
   "6_0801.webp",
   "6_1589.webp",
-  { type: "video", src: "GIF 1.mp4" },
+  { type: "video", src: "Assets/GIF 1.mp4" },
   "6_1781 (1).webp",
   "5_2065.webp",
-  { type: "video", src: "GIF 2.mp4" },
+  { type: "video", src: "Assets/GIF 2.mp4" },
   "5_2094.webp",
-  { type: "video", src: "GIF 3.mp4" },
+  { type: "video", src: "Assets/GIF 3.mp4" },
   "6_2390 (1).webp",
   "6_2420 (1).webp",
-  { type: "video", src: "GIF 4.mp4" },
+  { type: "video", src: "Assets/GIF 4.mp4" },
   "6_2582(1).webp",
-  { type: "video", src: "My movie 29_1_1_1_1_1.mp4" },
+  { type: "video", src: "Assets/My movie 29_1_1_1_1_1.mp4" },
   "6_2967.webp",
-  { type: "video", src: "My movie 5_1_1_1.mp4" },
+  { type: "video", src: "Assets/My movie 5_1_1_1.mp4" },
   "6_3060.webp",
-  { type: "video", src: "clip 1.mp4" },
+  { type: "video", src: "Assets/clip 1.mp4" },
   "5_3353.webp",
   "5_4391.webp",
   "6_4623.webp",
@@ -54,7 +54,7 @@ const mediaItems = [
   "4_5983 (1).webp",
   "4_7165.webp",
   "4_7270.webp",
-  { type: "video", src: "My movie 18_1_1_1_1.mp4" },
+  { type: "video", src: "Assets/My movie 18_1_1_1_1.mp4" },
 ];
 
 const fullGalleryNumberedItems = [
@@ -452,7 +452,9 @@ function startFlowAnimation(rowsState) {
   });
 
   function step(now) {
-    const dt = (now - lastTime) / 1000;
+    // Clamp frame delta so scroll-induced rAF stalls on mobile don't cause
+    // huge catch-up jumps in the flow positions.
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
     const itemW = getFlowItemWidth();
     const wrapRightThreshold = window.innerWidth + itemW;
@@ -1410,7 +1412,13 @@ window.addEventListener("load", () => {
   });
 
   let resizeTimeout;
+  let lastMeasuredWidth = window.innerWidth;
   window.addEventListener("resize", () => {
+    const nextWidth = window.innerWidth;
+    // Mobile browsers fire `resize` while scrolling as chrome collapses/expands.
+    // Re-measure only when width truly changes to avoid visible flow jumps.
+    if (Math.abs(nextWidth - lastMeasuredWidth) < 2) return;
+    lastMeasuredWidth = nextWidth;
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => measureAndPosition(rowsState), 150);
   });
