@@ -326,7 +326,7 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: url("optimized/DSC_2961.webp");
+  background-image: url("DSC_2961.webp");
   background-size: cover;
   background-position: center calc(100% + 1.5in);
   background-repeat: no-repeat;
