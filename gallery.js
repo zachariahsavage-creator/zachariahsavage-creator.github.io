@@ -1,18 +1,18 @@
 // Classic portfolio gallery (thumbnail grid + lightbox)
 
 const mediaItems = [
-  "Assets/optimized/5_2065.webp",
-  "Assets/optimized/5_2094.webp",
-  "Assets/optimized/5_2575.webp",
-  "Assets/optimized/13.webp",
-  "Assets/optimized/17.webp",
-  "Assets/optimized/5_3353.webp",
-  "Assets/optimized/5_4391.webp",
-  "Assets/optimized/4_5325.webp",
-  "Assets/optimized/4_5573.webp",
-  "Assets/optimized/4_5983 (1).webp",
-  "Assets/optimized/4_7165.webp",
-  "Assets/optimized/4_7270.webp",
+  "5_2065.webp",
+  "5_2094.webp",
+  "5_2575.webp",
+  "13.webp",
+  "17.webp",
+  "5_3353.webp",
+  "5_4391.webp",
+  "4_5325.webp",
+  "4_5573.webp",
+  "4_5983 (1).webp",
+  "4_7165.webp",
+  "4_7270.webp",
 ];
 
 let lightbox;
