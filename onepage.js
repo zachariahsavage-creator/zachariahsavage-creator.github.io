@@ -151,40 +151,39 @@ function positiveModulo(value, modulus) {
 }
 
 const FLOW_BASE_ITEMS = [
-  "1_3730.webp",
-  "13.webp",
-  "2_1826.webp",
-  "DSC_7318.webp",
-  "4_5325.webp",
-  "16.webp",
-  "DSC_7326.webp",
-  "17.webp",
-  "2_2040.webp",
-  "20.webp",
-  "6.webp",
-  "1_3746.webp",
-  "5_2065.webp",
-  "5_2094.webp",
-  "5_3353.webp",
-  "5_4391.webp",
-  "4_5983 (1).webp",
-  "4_7165.webp",
-  "4_7270.webp",
+  "boston-church-scandal-the-drake-05.webp",
+  "listening-room-longboat-hall-01.webp",
+  "daphne-the-drake-01.webp",
+  "stacks-rats-nest-06.webp",
+  "angelique-the-ivy-01.webp",
+  "listening-room-longboat-hall-02.webp",
+  "stacks-rats-nest-07.webp",
+  "listening-room-longboat-hall-03.webp",
+  "daphne-the-drake-05.webp",
+  "sam-william-thomas-burdock-05.webp",
+  "sam-william-thomas-burdock-02.webp",
+  "boston-church-scandal-the-drake-03.webp",
+  "superstar-crush-the-baby-g-03.webp",
+  "superstar-crush-the-baby-g-04.webp",
+  "superstar-crush-the-baby-g-01.webp",
+  "superstar-crush-the-baby-g-02.webp",
+  "angelique-the-ivy-04.webp",
+  "angelique-the-ivy-02.webp",
+  "angelique-the-ivy-05.webp",
 ];
 
-/** Full-gallery-only: keyed paths (not `N_` filenames) get their own pinned section. */
 /** Subset of Listening Room shots that appear in the home flow carousel. */
 const FLOW_LISTENING_ROOM_ITEMS = [
-  "6.1.webp",
-  "18.webp",
+  "listening-room-longboat-hall-06.webp",
+  "listening-room-longboat-hall-04.webp",
 ];
 
-const FLOW_STACKS_RATS_NEST_ITEMS = ["DSC_7296.webp"];
+const FLOW_STACKS_RATS_NEST_ITEMS = ["stacks-rats-nest-02.webp"];
 
 const FLOW_MICO_ITEMS = [
-  "mico-4.webp",
-  "mico-12.webp",
-  "mico-2.webp",
+  "mico-hard-luck-01.webp",
+  "mico-hard-luck-09.webp",
+  "mico-hard-luck-16.webp",
 ];
 
 const FLOW_PINNED_INSERTS = [
@@ -193,25 +192,56 @@ const FLOW_PINNED_INSERTS = [
   ...FLOW_MICO_ITEMS,
 ];
 
-function getLeadingNumberGroup(src) {
+/** Explicit source lists for the numbered gallery folders (labels "1"–"5"). */
+const FULL_GALLERY_NUMBERED_SHOW_SOURCES = {
+  "1": [
+    "boston-church-scandal-the-drake-01.webp",
+    "boston-church-scandal-the-drake-02.webp",
+    "boston-church-scandal-the-drake-03.webp",
+    "boston-church-scandal-the-drake-04.webp",
+    "boston-church-scandal-the-drake-05.webp",
+    "boston-church-scandal-the-drake-06.webp",
+  ],
+  "2": [
+    "daphne-the-drake-01.webp",
+    "daphne-the-drake-02.webp",
+    "daphne-the-drake-03.webp",
+    "daphne-the-drake-04.webp",
+    "daphne-the-drake-05.webp",
+  ],
+  "3": [
+    "izzy-flores-986-bathurst-01.webp",
+    "izzy-flores-986-bathurst-02.webp",
+    "izzy-flores-986-bathurst-03.webp",
+    "izzy-flores-986-bathurst-04.webp",
+    "izzy-flores-986-bathurst-05.webp",
+    "izzy-flores-986-bathurst-06.webp",
+  ],
+  "4": [
+    "angelique-the-ivy-01.webp",
+    "angelique-the-ivy-02.webp",
+    "angelique-the-ivy-03.webp",
+    "angelique-the-ivy-04.webp",
+    "angelique-the-ivy-05.webp",
+  ],
+  "5": [
+    "superstar-crush-the-baby-g-01.webp",
+    "superstar-crush-the-baby-g-02.webp",
+    "superstar-crush-the-baby-g-03.webp",
+    "superstar-crush-the-baby-g-04.webp",
+    "superstar-crush-the-baby-g-05.webp",
+  ],
+};
+
+const numberedShowGroupByPath = new Map();
+Object.entries(FULL_GALLERY_NUMBERED_SHOW_SOURCES).forEach(([label, sources]) => {
+  sources.forEach((path) => numberedShowGroupByPath.set(path, label));
+});
+
+/** Numbered-folder label ("1"–"5") for a path, or null when it belongs to no numbered show. */
+function getNumberedShowGroup(src) {
   const filename = src.split("/").pop() || "";
-  const match = filename.match(/^(\d+)_/);
-  if (!match) return null;
-  const numeric = Number(match[1]);
-  if (!Number.isFinite(numeric)) return null;
-  return String(numeric);
-}
-
-/** Numbered show bucket removed from the site (was “Some Highlights”, `6_*` filenames). */
-const EXCLUDED_NUMBERED_SHOW_GROUPS = new Set(["6"]);
-
-function isExcludedNumberedShowAsset(path) {
-  const group = getLeadingNumberGroup(path);
-  return group !== null && EXCLUDED_NUMBERED_SHOW_GROUPS.has(group);
-}
-
-function isExcludedFromFlow(path) {
-  return isExcludedNumberedShowAsset(path);
+  return numberedShowGroupByPath.get(filename) || null;
 }
 
 const FULL_GALLERY_LISTENING_ROOM = {
@@ -219,26 +249,26 @@ const FULL_GALLERY_LISTENING_ROOM = {
   order: -2,
   title: "Listening Room @ Longboat Hall",
   sources: [
-    "13.webp",
-    "16.webp",
-    "17.webp",
-    "18.webp",
-    "33.webp",
-    "6.1.webp",
-    "11.1.webp",
-    "14.1.webp",
-    "25.1.webp",
-    "26.webp",
-    "35.webp",
-    "37.webp",
-    "4.1.webp",
-    "40.webp",
-    "41.webp",
-    "42.webp",
-    "43.webp",
-    "47.webp",
-    "7.1.webp",
-    "8.1.webp",
+    "listening-room-longboat-hall-01.webp",
+    "listening-room-longboat-hall-02.webp",
+    "listening-room-longboat-hall-03.webp",
+    "listening-room-longboat-hall-04.webp",
+    "listening-room-longboat-hall-05.webp",
+    "listening-room-longboat-hall-06.webp",
+    "listening-room-longboat-hall-07.webp",
+    "listening-room-longboat-hall-08.webp",
+    "listening-room-longboat-hall-09.webp",
+    "listening-room-longboat-hall-10.webp",
+    "listening-room-longboat-hall-11.webp",
+    "listening-room-longboat-hall-12.webp",
+    "listening-room-longboat-hall-13.webp",
+    "listening-room-longboat-hall-14.webp",
+    "listening-room-longboat-hall-15.webp",
+    "listening-room-longboat-hall-16.webp",
+    "listening-room-longboat-hall-17.webp",
+    "listening-room-longboat-hall-18.webp",
+    "listening-room-longboat-hall-19.webp",
+    "listening-room-longboat-hall-20.webp",
   ],
 };
 
@@ -247,21 +277,21 @@ const FULL_GALLERY_SUPERSTAR_CRUSH_DINAS = {
   order: -1.875,
   title: "Superstar Crush @ Dina's Tavern",
   sources: [
-    "DSC_0781.webp",
-    "DSC_0598.webp",
-    "DSC_0622.webp",
-    "DSC_0716.webp",
-    "DSC_0743.webp",
-    "DSC_0771.webp",
-    "DSC_0586.webp",
-    "DSC_0728.webp",
-    "DSC_0790.webp",
-    "DSC_0861.webp",
-    "DSC_0814.webp",
-    "DSC_0818.webp",
-    "DSC_0916.webp",
-    "DSC_0782.webp",
-    "DSC_0910.webp",
+    "superstar-crush-dinas-tavern-01.webp",
+    "superstar-crush-dinas-tavern-02.webp",
+    "superstar-crush-dinas-tavern-03.webp",
+    "superstar-crush-dinas-tavern-04.webp",
+    "superstar-crush-dinas-tavern-05.webp",
+    "superstar-crush-dinas-tavern-06.webp",
+    "superstar-crush-dinas-tavern-07.webp",
+    "superstar-crush-dinas-tavern-08.webp",
+    "superstar-crush-dinas-tavern-09.webp",
+    "superstar-crush-dinas-tavern-10.webp",
+    "superstar-crush-dinas-tavern-11.webp",
+    "superstar-crush-dinas-tavern-12.webp",
+    "superstar-crush-dinas-tavern-13.webp",
+    "superstar-crush-dinas-tavern-14.webp",
+    "superstar-crush-dinas-tavern-15.webp",
   ],
 };
 
@@ -270,13 +300,13 @@ const FULL_GALLERY_STACKS_RATS_NEST = {
   order: -1.5,
   title: "Stacks @ Rats Nest",
   sources: [
-    "DSC_7344.webp",
-    "DSC_7296.webp",
-    "DSC_7281.webp",
-    "DSC_7337.webp",
-    "DSC_7308.webp",
-    "DSC_7318.webp",
-    "DSC_7326.webp",
+    "stacks-rats-nest-01.webp",
+    "stacks-rats-nest-02.webp",
+    "stacks-rats-nest-03.webp",
+    "stacks-rats-nest-04.webp",
+    "stacks-rats-nest-05.webp",
+    "stacks-rats-nest-06.webp",
+    "stacks-rats-nest-07.webp",
   ],
 };
 
@@ -285,15 +315,15 @@ const FULL_GALLERY_PINNED_SHOW = {
   order: -1,
   title: "Sam William Thomas @ Burdock",
   sources: [
-    "9.webp",
-    "6.webp",
-    "DSC_6790.webp",
-    "7.webp",
-    "20.webp",
-    "22.webp",
-    "19.webp",
-    "DSC_6198.webp",
-    "8.webp",
+    "sam-william-thomas-burdock-01.webp",
+    "sam-william-thomas-burdock-02.webp",
+    "sam-william-thomas-burdock-03.webp",
+    "sam-william-thomas-burdock-04.webp",
+    "sam-william-thomas-burdock-05.webp",
+    "sam-william-thomas-burdock-06.webp",
+    "sam-william-thomas-burdock-07.webp",
+    "sam-william-thomas-burdock-08.webp",
+    "sam-william-thomas-burdock-09.webp",
   ],
 };
 
@@ -302,27 +332,27 @@ const FULL_GALLERY_MICO_HARD_LUCK = {
   order: -3,
   title: "MICO @ Hard Luck",
   sources: [
-    "mico-4.webp",
-    "mico-3.webp",
-    "mico-5.webp",
-    "mico-6.webp",
-    "mico-7.webp",
-    "mico-8.webp",
-    "mico-10.webp",
-    "mico-11.webp",
-    "mico-12.webp",
-    "mico-14.webp",
-    "mico-15.webp",
-    "mico-16.webp",
-    "mico-17.webp",
-    "mico-19.webp",
-    "mico-1 copy.webp",
-    "mico-2.webp",
-    "mico-9.webp",
-    "mico-20.webp",
-    "mico-21.webp",
-    "mico-13.webp",
-    "mico-18.webp",
+    "mico-hard-luck-01.webp",
+    "mico-hard-luck-02.webp",
+    "mico-hard-luck-03.webp",
+    "mico-hard-luck-04.webp",
+    "mico-hard-luck-05.webp",
+    "mico-hard-luck-06.webp",
+    "mico-hard-luck-07.webp",
+    "mico-hard-luck-08.webp",
+    "mico-hard-luck-09.webp",
+    "mico-hard-luck-10.webp",
+    "mico-hard-luck-11.webp",
+    "mico-hard-luck-12.webp",
+    "mico-hard-luck-13.webp",
+    "mico-hard-luck-14.webp",
+    "mico-hard-luck-15.webp",
+    "mico-hard-luck-16.webp",
+    "mico-hard-luck-17.webp",
+    "mico-hard-luck-18.webp",
+    "mico-hard-luck-19.webp",
+    "mico-hard-luck-20.webp",
+    "mico-hard-luck-21.webp",
   ],
 };
 
@@ -374,37 +404,37 @@ const fullGalleryNumberedItems = [
   ...FULL_GALLERY_STACKS_RATS_NEST.sources,
   ...FULL_GALLERY_PINNED_SHOW.sources,
   ...FULL_GALLERY_MICO_HARD_LUCK.sources,
-  "1_3566 (1).webp",
-  "1_3719 (1).webp",
-  "1_3746.webp",
-  "1_3714.webp",
-  "1_3730.webp",
-  "1_3697 (1).webp",
-  "2_1826.webp",
-  "2_1981.webp",
-  "2_1932.webp",
-  "2_0829.webp",
-  "2_2040.webp",
-  "3_8505.webp",
-  "3_8632.webp",
-  "3_8635.webp",
-  "3_8640.webp",
-  "3_9088.webp",
-  "3_9098.webp",
-  "4_5325.webp",
-  "4_7165.webp",
-  "4_5573.webp",
-  "4_5983 (1).webp",
-  "4_7270.webp",
-  "5_3353.webp",
-  "5_4391.webp",
-  "5_2065.webp",
-  "5_2094.webp",
-  "5_2575.webp",
+  "boston-church-scandal-the-drake-01.webp",
+  "boston-church-scandal-the-drake-02.webp",
+  "boston-church-scandal-the-drake-03.webp",
+  "boston-church-scandal-the-drake-04.webp",
+  "boston-church-scandal-the-drake-05.webp",
+  "boston-church-scandal-the-drake-06.webp",
+  "daphne-the-drake-01.webp",
+  "daphne-the-drake-02.webp",
+  "daphne-the-drake-03.webp",
+  "daphne-the-drake-04.webp",
+  "daphne-the-drake-05.webp",
+  "izzy-flores-986-bathurst-01.webp",
+  "izzy-flores-986-bathurst-02.webp",
+  "izzy-flores-986-bathurst-03.webp",
+  "izzy-flores-986-bathurst-04.webp",
+  "izzy-flores-986-bathurst-05.webp",
+  "izzy-flores-986-bathurst-06.webp",
+  "angelique-the-ivy-01.webp",
+  "angelique-the-ivy-02.webp",
+  "angelique-the-ivy-03.webp",
+  "angelique-the-ivy-04.webp",
+  "angelique-the-ivy-05.webp",
+  "superstar-crush-the-baby-g-01.webp",
+  "superstar-crush-the-baby-g-02.webp",
+  "superstar-crush-the-baby-g-03.webp",
+  "superstar-crush-the-baby-g-04.webp",
+  "superstar-crush-the-baby-g-05.webp",
 ];
 
 /** Used on full gallery page but not in the grid (e.g. page background). */
-const FULL_GALLERY_PAGE_ONLY_PATHS = ["3.webp"];
+const FULL_GALLERY_PAGE_ONLY_PATHS = ["gallery-page-backdrop.webp"];
 
 const FULL_GALLERY_PATH_SET = new Set([
   ...fullGalleryNumberedItems,
@@ -412,107 +442,108 @@ const FULL_GALLERY_PATH_SET = new Set([
 ]);
 
 const FULL_GALLERY_PATH_ASPECTS = {
-  "1_3566 (1).webp": 0.667,
-  "1_3697 (1).webp": 1.501,
-  "1_3714.webp": 1.5,
-  "1_3719 (1).webp": 0.667,
-  "1_3730.webp": 1.5,
-  "1_3746.webp": 0.667,
-  "11.1.webp": 0.667,
-  "13.webp": 0.667,
-  "14.1.webp": 1.5,
-  "16.webp": 0.667,
-  "17.webp": 0.667,
-  "1780443494761.webp": 0.481,
-  "18.webp": 0.667,
-  "19.webp": 1.5,
-  "2_0829.webp": 1.5,
-  "2_1826.webp": 0.667,
-  "2_1932.webp": 0.766,
-  "2_1981.webp": 0.667,
-  "2_2040.webp": 1.5,
-  "20.webp": 1,
-  "22.webp": 1,
-  "25.1.webp": 1.5,
-  "26.webp": 1.5,
-  "3_8505.webp": 1.5,
-  "3_8632.webp": 1.5,
-  "3_8635.webp": 1.5,
-  "3_8640.webp": 1.5,
-  "3_9088.webp": 1.5,
-  "3_9098.webp": 0.667,
-  "3.webp": 1.5,
-  "33.webp": 0.667,
-  "35.webp": 0.667,
-  "37.webp": 1.5,
-  "4_5325.webp": 0.667,
-  "4_5573.webp": 1.5,
-  "4_5983 (1).webp": 1.5,
-  "4_7165.webp": 0.667,
-  "4_7270.webp": 1.5,
-  "4.1.webp": 1.5,
-  "40.webp": 0.667,
-  "41.webp": 0.667,
-  "42.webp": 1.5,
-  "43.webp": 0.667,
-  "47.webp": 0.667,
-  "5_2065.webp": 0.667,
-  "5_2094.webp": 0.667,
-  "5_2575.webp": 0.667,
-  "5_3353.webp": 1.5,
-  "5_4391.webp": 1.5,
-  "6.1.webp": 0.667,
-  "6.webp": 1.5,
-  "7.1.webp": 1.5,
-  "7.webp": 0.667,
-  "8.1.webp": 1.5,
-  "8.webp": 1.5,
-  "9.webp": 1.5,
-  "DSC_0586.webp": 1.5,
-  "DSC_0598.webp": 0.75,
-  "DSC_0622.webp": 0.667,
-  "DSC_0716.webp": 0.667,
-  "DSC_0728.webp": 1.5,
-  "DSC_0743.webp": 0.667,
-  "DSC_0771.webp": 0.667,
-  "DSC_0781.webp": 0.667,
-  "DSC_0782.webp": 0.667,
-  "DSC_0790.webp": 1,
-  "DSC_0814.webp": 1.5,
-  "DSC_0818.webp": 1.5,
-  "DSC_0861.webp": 1,
-  "DSC_0910.webp": 0.667,
-  "DSC_0916.webp": 1.5,
-  "DSC_6198.webp": 1.5,
-  "DSC_6790.webp": 0.667,
-  "DSC_7281.webp": 1.261,
-  "DSC_7296.webp": 0.667,
-  "DSC_7308.webp": 0.667,
-  "DSC_7318.webp": 0.667,
-  "DSC_7326.webp": 0.667,
-  "DSC_7337.webp": 1.5,
-  "DSC_7344.webp": 0.667,
-  "mico-1 copy.webp": 1.333,
-  "mico-10.webp": 0.75,
-  "mico-11.webp": 0.75,
-  "mico-12.webp": 0.75,
-  "mico-13.webp": 1.5,
-  "mico-14.webp": 0.75,
-  "mico-15.webp": 0.75,
-  "mico-16.webp": 0.75,
-  "mico-17.webp": 0.75,
-  "mico-18.webp": 1.5,
-  "mico-19.webp": 0.75,
-  "mico-2.webp": 1.333,
-  "mico-20.webp": 1.333,
-  "mico-21.webp": 1.333,
-  "mico-3.webp": 0.75,
-  "mico-4.webp": 0.75,
-  "mico-5.webp": 0.75,
-  "mico-6.webp": 0.75,
-  "mico-7.webp": 0.75,
-  "mico-8.webp": 0.75,
-  "mico-9.webp": 1.333,
+  "angelique-the-ivy-01.webp": 0.667,
+  "angelique-the-ivy-02.webp": 0.667,
+  "angelique-the-ivy-03.webp": 1.5,
+  "angelique-the-ivy-04.webp": 1.5,
+  "angelique-the-ivy-05.webp": 1.5,
+  "boston-church-scandal-the-drake-01.webp": 0.667,
+  "boston-church-scandal-the-drake-02.webp": 0.667,
+  "boston-church-scandal-the-drake-03.webp": 0.667,
+  "boston-church-scandal-the-drake-04.webp": 1.5,
+  "boston-church-scandal-the-drake-05.webp": 1.5,
+  "boston-church-scandal-the-drake-06.webp": 1.501,
+  "daphne-the-drake-01.webp": 0.667,
+  "daphne-the-drake-02.webp": 0.667,
+  "daphne-the-drake-03.webp": 0.766,
+  "daphne-the-drake-04.webp": 1.5,
+  "daphne-the-drake-05.webp": 1.5,
+  "gallery-page-backdrop.webp": 1.5,
+  "home-hero-backdrop.webp": 0.481,
+  "izzy-flores-986-bathurst-01.webp": 1.5,
+  "izzy-flores-986-bathurst-02.webp": 1.5,
+  "izzy-flores-986-bathurst-03.webp": 1.5,
+  "izzy-flores-986-bathurst-04.webp": 1.5,
+  "izzy-flores-986-bathurst-05.webp": 1.5,
+  "izzy-flores-986-bathurst-06.webp": 0.667,
+  "listening-room-longboat-hall-01.webp": 0.667,
+  "listening-room-longboat-hall-02.webp": 0.667,
+  "listening-room-longboat-hall-03.webp": 0.667,
+  "listening-room-longboat-hall-04.webp": 0.667,
+  "listening-room-longboat-hall-05.webp": 0.667,
+  "listening-room-longboat-hall-06.webp": 0.667,
+  "listening-room-longboat-hall-07.webp": 0.667,
+  "listening-room-longboat-hall-08.webp": 1.5,
+  "listening-room-longboat-hall-09.webp": 1.5,
+  "listening-room-longboat-hall-10.webp": 1.5,
+  "listening-room-longboat-hall-11.webp": 0.667,
+  "listening-room-longboat-hall-12.webp": 1.5,
+  "listening-room-longboat-hall-13.webp": 1.5,
+  "listening-room-longboat-hall-14.webp": 0.667,
+  "listening-room-longboat-hall-15.webp": 0.667,
+  "listening-room-longboat-hall-16.webp": 1.5,
+  "listening-room-longboat-hall-17.webp": 0.667,
+  "listening-room-longboat-hall-18.webp": 0.667,
+  "listening-room-longboat-hall-19.webp": 1.5,
+  "listening-room-longboat-hall-20.webp": 1.5,
+  "mico-hard-luck-01.webp": 0.75,
+  "mico-hard-luck-02.webp": 0.75,
+  "mico-hard-luck-03.webp": 0.75,
+  "mico-hard-luck-04.webp": 0.75,
+  "mico-hard-luck-05.webp": 0.75,
+  "mico-hard-luck-06.webp": 0.75,
+  "mico-hard-luck-07.webp": 0.75,
+  "mico-hard-luck-08.webp": 0.75,
+  "mico-hard-luck-09.webp": 0.75,
+  "mico-hard-luck-10.webp": 0.75,
+  "mico-hard-luck-11.webp": 0.75,
+  "mico-hard-luck-12.webp": 0.75,
+  "mico-hard-luck-13.webp": 0.75,
+  "mico-hard-luck-14.webp": 0.75,
+  "mico-hard-luck-15.webp": 1.332,
+  "mico-hard-luck-16.webp": 1.333,
+  "mico-hard-luck-17.webp": 1.332,
+  "mico-hard-luck-18.webp": 1.332,
+  "mico-hard-luck-19.webp": 1.333,
+  "mico-hard-luck-20.webp": 1.5,
+  "mico-hard-luck-21.webp": 1.5,
+  "sam-william-thomas-burdock-01.webp": 1.5,
+  "sam-william-thomas-burdock-02.webp": 1.5,
+  "sam-william-thomas-burdock-03.webp": 0.667,
+  "sam-william-thomas-burdock-04.webp": 0.667,
+  "sam-william-thomas-burdock-05.webp": 1.0,
+  "sam-william-thomas-burdock-06.webp": 1.0,
+  "sam-william-thomas-burdock-07.webp": 1.5,
+  "sam-william-thomas-burdock-08.webp": 1.5,
+  "sam-william-thomas-burdock-09.webp": 1.5,
+  "stacks-rats-nest-01.webp": 0.667,
+  "stacks-rats-nest-02.webp": 0.667,
+  "stacks-rats-nest-03.webp": 1.261,
+  "stacks-rats-nest-04.webp": 1.5,
+  "stacks-rats-nest-05.webp": 0.667,
+  "stacks-rats-nest-06.webp": 0.667,
+  "stacks-rats-nest-07.webp": 0.667,
+  "superstar-crush-dinas-tavern-01.webp": 0.667,
+  "superstar-crush-dinas-tavern-02.webp": 0.75,
+  "superstar-crush-dinas-tavern-03.webp": 0.667,
+  "superstar-crush-dinas-tavern-04.webp": 0.667,
+  "superstar-crush-dinas-tavern-05.webp": 0.667,
+  "superstar-crush-dinas-tavern-06.webp": 0.667,
+  "superstar-crush-dinas-tavern-07.webp": 1.5,
+  "superstar-crush-dinas-tavern-08.webp": 1.5,
+  "superstar-crush-dinas-tavern-09.webp": 1.0,
+  "superstar-crush-dinas-tavern-10.webp": 1.0,
+  "superstar-crush-dinas-tavern-11.webp": 1.5,
+  "superstar-crush-dinas-tavern-12.webp": 1.5,
+  "superstar-crush-dinas-tavern-13.webp": 1.5,
+  "superstar-crush-dinas-tavern-14.webp": 0.667,
+  "superstar-crush-dinas-tavern-15.webp": 0.667,
+  "superstar-crush-the-baby-g-01.webp": 1.5,
+  "superstar-crush-the-baby-g-02.webp": 1.5,
+  "superstar-crush-the-baby-g-03.webp": 0.667,
+  "superstar-crush-the-baby-g-04.webp": 0.667,
+  "superstar-crush-the-baby-g-05.webp": 0.667,
+  "zach-savage-portrait.webp": 1.5,
 };
 
 function getPathAspectRatio(path) {
@@ -624,20 +655,19 @@ function isInFullGallery(path) {
 }
 
 /** Contact section background — must be full-gallery images only. */
-const CONTACT_BG_HERO_PATH = "20.webp";
+const CONTACT_BG_HERO_PATH = "sam-william-thomas-burdock-05.webp";
 const CONTACT_BG_IMAGES = [
   CONTACT_BG_HERO_PATH,
-  "DSC_7344.webp",
-  "13.webp",
-  "DSC_7281.webp",
-  "1_3730.webp",
-  "DSC_6790.webp",
+  "stacks-rats-nest-01.webp",
+  "listening-room-longboat-hall-01.webp",
+  "stacks-rats-nest-03.webp",
+  "boston-church-scandal-the-drake-05.webp",
+  "sam-william-thomas-burdock-03.webp",
 ];
 
 const mediaItems = dedupeFlowItems(
   scatterItemsIntoFlow(FLOW_BASE_ITEMS, FLOW_PINNED_INSERTS)
 )
-  .filter((path) => !isExcludedFromFlow(path))
   .filter(isInFullGallery);
 
 let activeGalleryItems = mediaItems;
@@ -655,29 +685,57 @@ const fullGallerySectionTitles = {
   "5": "Superstar Crush @ The Baby G",
 };
 
+/** Descriptive alt text for gallery photographs, keyed by asset filename. */
+const photoAltTextByPath = new Map();
+
+function registerShowAltText(title, sources) {
+  const showName = String(title).replace(" @ ", " at ");
+  sources.forEach((path, index) => {
+    photoAltTextByPath.set(
+      path,
+      `${showName} — live concert photo ${index + 1} of ${sources.length} by Zach Savage`
+    );
+  });
+}
+
+FULL_GALLERY_PINNED_SHOWS.forEach((show) => registerShowAltText(show.title, show.sources));
+Object.entries(FULL_GALLERY_NUMBERED_SHOW_SOURCES).forEach(([label, sources]) => {
+  registerShowAltText(fullGallerySectionTitles[label] || "Live show", sources);
+});
+photoAltTextByPath.set(
+  "zach-savage-portrait.webp",
+  "Portrait of Zach Savage, Toronto concert and event photographer"
+);
+
+/** Alt text for a photo path; decorative backdrops keep an empty alt. */
+function getPhotoAltText(assetPath) {
+  const key = (normalizeAssetPath(assetPath).split("/").pop() || "").trim();
+  return photoAltTextByPath.get(key) || "";
+}
+
 /** Paired preview + same-height rows (same layout rules as DAPHNE / folder "2"). */
 const FULL_GALLERY_NUMBERED_FOLDER_SOURCE_ORDER = {
   "1": [
-    "1_3566 (1).webp",
-    "1_3719 (1).webp",
-    "1_3746.webp",
-    "1_3714.webp",
-    "1_3730.webp",
-    "1_3697 (1).webp",
+    "boston-church-scandal-the-drake-01.webp",
+    "boston-church-scandal-the-drake-02.webp",
+    "boston-church-scandal-the-drake-03.webp",
+    "boston-church-scandal-the-drake-04.webp",
+    "boston-church-scandal-the-drake-05.webp",
+    "boston-church-scandal-the-drake-06.webp",
   ],
   "2": [
-    "2_1826.webp",
-    "2_1981.webp",
-    "2_1932.webp",
-    "2_0829.webp",
-    "2_2040.webp",
+    "daphne-the-drake-01.webp",
+    "daphne-the-drake-02.webp",
+    "daphne-the-drake-03.webp",
+    "daphne-the-drake-04.webp",
+    "daphne-the-drake-05.webp",
   ],
   "5": [
-    "5_3353.webp",
-    "5_4391.webp",
-    "5_2065.webp",
-    "5_2094.webp",
-    "5_2575.webp",
+    "superstar-crush-the-baby-g-01.webp",
+    "superstar-crush-the-baby-g-02.webp",
+    "superstar-crush-the-baby-g-03.webp",
+    "superstar-crush-the-baby-g-04.webp",
+    "superstar-crush-the-baby-g-05.webp",
   ],
 };
 
@@ -774,8 +832,8 @@ function getGalleryFolderPreviewAssetPaths() {
   fullGalleryNumberedItems.forEach((item) => {
     if (typeof item !== "string") return;
     if (fullGalleryCustomGroupByPath.has(item)) return;
-    const group = getLeadingNumberGroup(item);
-    if (!group || EXCLUDED_NUMBERED_SHOW_GROUPS.has(group)) return;
+    const group = getNumberedShowGroup(item);
+    if (!group) return;
     if (!byNumberGroup.has(group)) byNumberGroup.set(group, []);
     byNumberGroup.get(group).push(item);
   });
@@ -798,8 +856,8 @@ function getFullGalleryFolderDefinitions() {
   fullGalleryNumberedItems.forEach((path) => {
     if (typeof path !== "string") return;
     if (fullGalleryCustomGroupByPath.has(path)) return;
-    const group = getLeadingNumberGroup(path);
-    if (!group || EXCLUDED_NUMBERED_SHOW_GROUPS.has(group)) return;
+    const group = getNumberedShowGroup(path);
+    if (!group) return;
     if (!byNumber.has(group)) byNumber.set(group, []);
     byNumber.get(group).push(path);
   });
@@ -964,7 +1022,7 @@ async function pinGalleryFolderPreviewImages() {
 
 const FLOW_PRIORITY_PRELOAD_PATHS = buildFlowPriorityPreloadPaths();
 
-const HOME_BIO_IMAGE_PATH = "2024-06-08%20r-8.webp";
+const HOME_BIO_IMAGE_PATH = "zach-savage-portrait.webp";
 
 /** Blob + in-memory Image() refs so WebKit cannot discard decoded hero tiles. */
 const pinnedBlobUrlByPath = new Map();
@@ -983,8 +1041,8 @@ function getAllFlowImagePaths() {
   return mediaItems.filter((item) => typeof item === "string");
 }
 
-const HOME_PAGE_BG_PATH = "1780443494761.webp";
-const FULL_GALLERY_PAGE_BG_PATH = "3.webp";
+const HOME_PAGE_BG_PATH = "home-hero-backdrop.webp";
+const FULL_GALLERY_PAGE_BG_PATH = "gallery-page-backdrop.webp";
 
 function getBootImagePaths() {
   if (document.body?.classList.contains("page-full-gallery")) {
@@ -1085,7 +1143,7 @@ function appendImageMemoryKeeper(paths) {
 }
 
 function assignPinnedImageAttributes(img, assetPath) {
-  img.alt = "";
+  img.alt = getPhotoAltText(assetPath);
   img.loading = "eager";
   img.decoding = "sync";
   img.setAttribute("fetchpriority", "high");
@@ -1099,7 +1157,7 @@ function assignFlowImageAttributes(img, assetPath, { priority = false } = {}) {
     assignPinnedImageAttributes(img, assetPath);
     return;
   }
-  img.alt = "";
+  img.alt = getPhotoAltText(assetPath);
   img.loading = "lazy";
   img.decoding = "async";
   img.dataset.assetPath = assetPath;
@@ -1129,15 +1187,30 @@ function refreshPinnedImageSources(root = document) {
   });
 }
 
+/** Hard caps so a slow network can never leave the page stuck behind the boot gate. */
+const SITE_BOOT_PIN_TIMEOUT_MS = 2500;
+const SITE_BOOT_FAILSAFE_MS = 4000;
+
+let siteBootGateReleased = false;
+
 function lockSiteBootGate() {
   document.documentElement.classList.add("site-boot-locked");
 }
 
 function releaseSiteBootGate() {
+  if (siteBootGateReleased) return;
+  siteBootGateReleased = true;
   document.documentElement.classList.remove("site-boot-locked");
   document.documentElement.classList.add("site-boot-ready");
   document.getElementById("site-boot-gate")?.setAttribute("hidden", "");
   refreshPinnedImageSources();
+}
+
+function withBootTimeout(promise, ms = SITE_BOOT_PIN_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => window.setTimeout(resolve, ms)),
+  ]);
 }
 
 async function ensureDomImagesDecoded(root) {
@@ -1203,9 +1276,11 @@ async function prepareVisibleMediaBeforeUnlock() {
 function beginSiteBoot() {
   if (!document.body) return Promise.resolve();
   lockSiteBootGate();
+  // Absolute failsafe: reveal the page even if downloads or decodes stall.
+  window.setTimeout(releaseSiteBootGate, SITE_BOOT_FAILSAFE_MS);
   const paths = getBootImagePaths();
   const concurrency = document.body.classList.contains("page-full-gallery") ? 8 : 6;
-  return pinImagePaths(paths, { concurrency }).catch(() => {});
+  return withBootTimeout(pinImagePaths(paths, { concurrency })).catch(() => {});
 }
 
 const siteBootPromise = beginSiteBoot();
@@ -1465,6 +1540,7 @@ function openLightboxFromIndex(index) {
     lightboxVideo.removeAttribute("src");
     lightboxVideo.removeAttribute("data-active");
     lightboxImage.src = item;
+    lightboxImage.alt = getPhotoAltText(item);
     lightboxImage.setAttribute("data-active", "true");
   } else {
     lightboxImage.removeAttribute("src");
@@ -1966,7 +2042,7 @@ function createGridTile(item, mediaIndex) {
     tile.dataset.groupLabel = customGroup.label;
     tile.dataset.groupOrder = String(customGroup.order);
   } else {
-    const numberGroup = getLeadingNumberGroup(src);
+    const numberGroup = getNumberedShowGroup(src);
     if (numberGroup !== null) {
       tile.dataset.groupLabel = numberGroup;
       tile.dataset.groupOrder = numberGroup;
@@ -1984,7 +2060,7 @@ function createGridTile(item, mediaIndex) {
       if (isGalleryFolderPreviewPath(item)) {
         assignPinnedImageAttributes(img, item);
       } else {
-        img.alt = "";
+        img.alt = getPhotoAltText(item);
         img.loading = "lazy";
         img.decoding = "async";
         img.dataset.assetPath = item;
@@ -3407,40 +3483,59 @@ function setupHireAvailabilityPill() {
   cta.appendChild(actionBtn);
   document.body.appendChild(cta);
 
-  let shown = false;
-  let lastTop = getPageScrollTop();
+  // The pill is a shortcut TO the contact form, so it should only be useful
+  // while the visitor is still browsing above it. Show it once they've scrolled
+  // past the first screen of gallery content, and hide it again the moment the
+  // contact section itself scrolls into view (they no longer need a shortcut).
   let unregisterMobileScroll = null;
-  function getContactEntryTriggerTop() {
-    const sectionTop = contactSection.getBoundingClientRect().top + getPageScrollTop();
-    return Math.max(0, sectionTop - getFixedHeaderScrollOffset());
+  let contactInView = false;
+
+  function isDismissed() {
+    return cta.classList.contains("hire-pill-cta--dismissed");
   }
 
-  function maybeShow() {
-    if (shown) return;
-    if (cta.classList.contains("hire-pill-cta--dismissed")) return;
-    const top = getPageScrollTop();
-    const delta = top - lastTop;
-    const triggerTop = getContactEntryTriggerTop();
-    const crossedIntoContactFromAbove = delta > 0 && lastTop < triggerTop && top >= triggerTop;
-    lastTop = top;
-    if (crossedIntoContactFromAbove) {
-      shown = true;
-      // Next frame: allow CSS transition to run.
-      requestAnimationFrame(() => cta.classList.add("is-visible"));
-      if (unregisterMobileScroll) {
-        unregisterMobileScroll();
-        unregisterMobileScroll = null;
-      } else {
-        window.removeEventListener("scroll", maybeShow);
-      }
-    }
+  function setVisible(visible) {
+    if (isDismissed()) return;
+    cta.classList.toggle("is-visible", visible);
+  }
+
+  // Reveal after the visitor has committed to scrolling down through the work.
+  function getRevealTriggerTop() {
+    const viewport = window.innerHeight || document.documentElement.clientHeight || 0;
+    return viewport * 0.4;
+  }
+
+  function updatePillVisibility() {
+    if (isDismissed()) return;
+    const scrolledEnough = getPageScrollTop() > getRevealTriggerTop();
+    setVisible(scrolledEnough && !contactInView);
+  }
+
+  // IntersectionObserver reliably tells us when the contact section is on screen,
+  // regardless of which element is the scroll container on this device.
+  if (typeof IntersectionObserver === "function") {
+    const contactObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          contactInView = entry.isIntersecting;
+        });
+        updatePillVisibility();
+      },
+      // Only treat the contact section as "in view" once it has scrolled up into
+      // the upper ~45% of the viewport — i.e. the visitor has actually arrived at
+      // the form and no longer needs a shortcut to it.
+      { threshold: 0, rootMargin: "0px 0px -55% 0px" }
+    );
+    contactObserver.observe(contactSection);
   }
 
   // Listen on `window`: when `body` is not the scroll container, `body` scroll events never fire.
-  unregisterMobileScroll = registerMobileScrollHandler(maybeShow);
+  unregisterMobileScroll = registerMobileScrollHandler(updatePillVisibility);
   if (!unregisterMobileScroll) {
-    window.addEventListener("scroll", maybeShow, { passive: true });
+    window.addEventListener("scroll", updatePillVisibility, { passive: true });
   }
+  window.addEventListener("resize", updatePillVisibility, { passive: true });
+  updatePillVisibility();
 }
 
 function setupHeaderPillsScrollFade() {
@@ -3538,12 +3633,13 @@ async function waitForHomeFlowLayout(rowsState) {
   });
 }
 
-window.addEventListener("load", async () => {
-  const isHome = document.body.classList.contains("page-home");
+let onePageInitialized = false;
 
-  if (document.body.classList.contains("page-full-gallery")) {
-    return;
-  }
+async function initOnePage() {
+  if (onePageInitialized) return;
+  onePageInitialized = true;
+
+  const isHome = document.body.classList.contains("page-home");
 
   await siteBootPromise;
 
@@ -3669,7 +3765,19 @@ window.addEventListener("load", async () => {
       document.fonts.ready.then(scheduleHomeFlowHeadingFit).catch(() => {});
     }
   }
-});
+}
+
+/** Boot on DOMContentLoaded (not window.load) so image downloads never delay page setup. */
+function scheduleOnePageInit() {
+  if (document.body?.classList.contains("page-full-gallery")) return;
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initOnePage, { once: true });
+  } else {
+    initOnePage();
+  }
+}
+
+scheduleOnePageInit();
 
 let fullGalleryPageInitialized = false;
 
