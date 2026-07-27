@@ -1037,6 +1037,35 @@ function normalizeAssetPath(path) {
   }
 }
 
+const IMAGE_BASE_PATH = "assets/images/";
+
+/** Show folders under `assets/images/shows/`; every photo filename is prefixed with its slug.
+ *  Longest slug first so an added slug that extends another still matches the right folder. */
+const SHOW_IMAGE_FOLDERS = [
+  "angelique-the-ivy",
+  "boston-church-scandal-the-drake",
+  "daphne-the-drake",
+  "izzy-flores-986-bathurst",
+  "listening-room-longboat-hall",
+  "mico-hard-luck",
+  "sam-william-thomas-burdock",
+  "stacks-rats-nest",
+  "superstar-crush-dinas-tavern",
+  "superstar-crush-the-baby-g",
+].sort((a, b) => b.length - a.length);
+
+/**
+ * Asset paths stay bare filenames everywhere in this file — they double as keys into
+ * the aspect, alt-text, and gallery-membership maps. This is the only place that turns
+ * one into a URL, so the on-disk layout can change without touching those maps.
+ */
+function getAssetUrl(assetPath) {
+  const filename = normalizeAssetPath(assetPath).split("/").pop() || "";
+  if (!filename) return assetPath;
+  const folder = SHOW_IMAGE_FOLDERS.find((slug) => filename.startsWith(`${slug}-`));
+  return `${IMAGE_BASE_PATH}${folder ? `shows/${folder}` : "site"}/${filename}`;
+}
+
 function getAllFlowImagePaths() {
   return mediaItems.filter((item) => typeof item === "string");
 }
@@ -1063,7 +1092,7 @@ function getBootImagePaths() {
 
 function getPinnedImageSrc(assetPath) {
   const key = normalizeAssetPath(assetPath);
-  return pinnedBlobUrlByPath.get(key) || assetPath;
+  return pinnedBlobUrlByPath.get(key) || getAssetUrl(assetPath);
 }
 
 function loadImageElement(src) {
@@ -1091,8 +1120,9 @@ async function pinImagePath(assetPath) {
     return pinnedBlobUrlByPath.get(key) || assetPath;
   }
 
+  const assetUrl = getAssetUrl(assetPath);
   try {
-    const response = await fetch(assetPath, { cache: "force-cache" });
+    const response = await fetch(assetUrl, { cache: "force-cache" });
     if (!response.ok) throw new Error(String(response.status));
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
@@ -1101,10 +1131,10 @@ async function pinImagePath(assetPath) {
     pinnedMemoryImages.push(keeper);
     return blobUrl;
   } catch {
-    pinnedBlobUrlByPath.set(key, assetPath);
-    const keeper = await loadImageElement(assetPath);
+    pinnedBlobUrlByPath.set(key, assetUrl);
+    const keeper = await loadImageElement(assetUrl);
     pinnedMemoryImages.push(keeper);
-    return assetPath;
+    return assetUrl;
   }
 }
 
@@ -1539,7 +1569,7 @@ function openLightboxFromIndex(index) {
     lightboxVideo.pause();
     lightboxVideo.removeAttribute("src");
     lightboxVideo.removeAttribute("data-active");
-    lightboxImage.src = item;
+    lightboxImage.src = getAssetUrl(item);
     lightboxImage.alt = getPhotoAltText(item);
     lightboxImage.setAttribute("data-active", "true");
   } else {
@@ -2064,7 +2094,7 @@ function createGridTile(item, mediaIndex) {
         img.loading = "lazy";
         img.decoding = "async";
         img.dataset.assetPath = item;
-        img.src = item;
+        img.src = getAssetUrl(item);
       }
     } else {
       assignPinnedImageAttributes(img, item);
