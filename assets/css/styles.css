@@ -506,7 +506,7 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: url("home-hero-backdrop.webp");
+  background-image: url("../images/site/home-hero-backdrop.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
