@@ -2886,6 +2886,39 @@ function ensureFullGalleryFolderNav() {
   return nav;
 }
 
+/** Flag which edges of the folder index are cut off, so CSS can fade them. */
+function updateFullGalleryFolderNavFades(list) {
+  if (!list) return;
+  const overflow = list.scrollHeight - list.clientHeight;
+  const overflowing = overflow > 1;
+  list.classList.toggle("full-gallery-folder-nav__list--overflowing", overflowing);
+  list.classList.toggle(
+    "full-gallery-folder-nav__list--scrolled-from-top",
+    overflowing && list.scrollTop > 1
+  );
+  list.classList.toggle(
+    "full-gallery-folder-nav__list--scrolled-to-end",
+    overflowing && list.scrollTop >= overflow - 1
+  );
+}
+
+function setupFullGalleryFolderNavScroll(list) {
+  if (!list || list.dataset.scrollFadesBound === "true") return;
+  list.dataset.scrollFadesBound = "true";
+
+  let rafId = null;
+  const schedule = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      updateFullGalleryFolderNavFades(list);
+    });
+  };
+
+  list.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule, { passive: true });
+}
+
 function renderFullGalleryFolderNav(grid) {
   const nav = ensureFullGalleryFolderNav();
   const list = nav.querySelector(".full-gallery-folder-nav__list");
@@ -2931,6 +2964,9 @@ function renderFullGalleryFolderNav(grid) {
     li.appendChild(link);
     list.appendChild(li);
   });
+
+  setupFullGalleryFolderNavScroll(list);
+  requestAnimationFrame(() => updateFullGalleryFolderNavFades(list));
 }
 
 function renderFullGalleryFolders(grid) {
