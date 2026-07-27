@@ -3425,119 +3425,6 @@ function setupContactForm() {
   });
 }
 
-function setupHireAvailabilityPill() {
-  const isFullGalleryPage = document.body.classList.contains("page-full-gallery");
-  if (isFullGalleryPage) return;
-  const hash = (window.location.hash || "").toLowerCase();
-  if (hash === "#contact-section" || hash === "#contact-heading") return;
-
-  const contactTarget = document.getElementById("contact-heading");
-  if (!contactTarget) return;
-  const contactSection = document.getElementById("contact-section");
-  if (!contactSection) return;
-
-  const cta = document.createElement("div");
-  cta.className = "hire-pill-cta";
-
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.className = "hire-pill-cta__close";
-  closeBtn.setAttribute("aria-label", "Dismiss");
-  closeBtn.textContent = "✕";
-
-  const actionBtn = document.createElement("button");
-  actionBtn.type = "button";
-  actionBtn.className = "hire-pill-cta__action";
-  actionBtn.setAttribute("aria-label", "Go to contact section");
-  actionBtn.innerHTML =
-    'Zach is available for hire. <span class="hire-pill-cta__link">Send Inquiry!</span>';
-
-  function goToContactFromHirePill() {
-    // Same destination/offset as the header menu; always jump (no smooth scroll) so one tap feels immediate.
-    scrollToSectionWithOffset(contactTarget, { instant: true });
-  }
-
-  function onHirePillNavigate(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (cta.classList.contains("hire-pill-cta--dismissed")) return;
-    cta.classList.add("hire-pill-cta--dismissed");
-    goToContactFromHirePill();
-  }
-
-  // `pointerup`: runs as the finger lifts on mobile (before the delayed synthetic `click`).
-  // `click`: keyboard / fallback when `pointerup` did not run.
-  actionBtn.addEventListener("pointerup", (e) => {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (!e.isPrimary) return;
-    onHirePillNavigate(e);
-  });
-  actionBtn.addEventListener("click", onHirePillNavigate);
-  closeBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    cta.classList.add("hire-pill-cta--dismissed");
-  });
-
-  cta.appendChild(closeBtn);
-  cta.appendChild(actionBtn);
-  document.body.appendChild(cta);
-
-  // The pill is a shortcut TO the contact form, so it should only be useful
-  // while the visitor is still browsing above it. Show it once they've scrolled
-  // past the first screen of gallery content, and hide it again the moment the
-  // contact section itself scrolls into view (they no longer need a shortcut).
-  let unregisterMobileScroll = null;
-  let contactInView = false;
-
-  function isDismissed() {
-    return cta.classList.contains("hire-pill-cta--dismissed");
-  }
-
-  function setVisible(visible) {
-    if (isDismissed()) return;
-    cta.classList.toggle("is-visible", visible);
-  }
-
-  // Reveal after the visitor has committed to scrolling down through the work.
-  function getRevealTriggerTop() {
-    const viewport = window.innerHeight || document.documentElement.clientHeight || 0;
-    return viewport * 0.4;
-  }
-
-  function updatePillVisibility() {
-    if (isDismissed()) return;
-    const scrolledEnough = getPageScrollTop() > getRevealTriggerTop();
-    setVisible(scrolledEnough && !contactInView);
-  }
-
-  // IntersectionObserver reliably tells us when the contact section is on screen,
-  // regardless of which element is the scroll container on this device.
-  if (typeof IntersectionObserver === "function") {
-    const contactObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          contactInView = entry.isIntersecting;
-        });
-        updatePillVisibility();
-      },
-      // Only treat the contact section as "in view" once it has scrolled up into
-      // the upper ~45% of the viewport — i.e. the visitor has actually arrived at
-      // the form and no longer needs a shortcut to it.
-      { threshold: 0, rootMargin: "0px 0px -55% 0px" }
-    );
-    contactObserver.observe(contactSection);
-  }
-
-  // Listen on `window`: when `body` is not the scroll container, `body` scroll events never fire.
-  unregisterMobileScroll = registerMobileScrollHandler(updatePillVisibility);
-  if (!unregisterMobileScroll) {
-    window.addEventListener("scroll", updatePillVisibility, { passive: true });
-  }
-  window.addEventListener("resize", updatePillVisibility, { passive: true });
-  updatePillVisibility();
-}
-
 function setupHeaderPillsScrollFade() {
   const centerTitle = document.querySelector(".page-center-title");
   const menuPill = document.querySelector(".gallery-bar__brand");
@@ -3809,7 +3696,6 @@ function initSharedPageUi() {
   setupMenuAndSections();
   setupContactBackgroundCrossfade();
   setupContactForm();
-  setupHireAvailabilityPill();
   setupHeaderPillsScrollFade();
 }
 
