@@ -4,6 +4,22 @@ function isFlowMobileLayout() {
   return window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
 }
 
+/** Rendered width of the heading's text, including letter-spacing. */
+function measureHeadingTextWidth(heading) {
+  if (typeof document.createRange !== "function") return heading.scrollWidth;
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(heading);
+    const width = range.getBoundingClientRect().width;
+    return width > 0 ? width : heading.scrollWidth;
+  } catch (_e) {
+    return heading.scrollWidth;
+  }
+}
+
+/** Keep at least this much clear space between the title and each screen edge. */
+const HOME_FLOW_HEADING_EDGE_GAP_PX = 10;
+
 /** Shrink the mobile home title until the full line fits without clipping. */
 function fitHomeFlowHeading() {
   const heading = document.querySelector(".home-flow-heading");
@@ -17,16 +33,32 @@ function fitHomeFlowHeading() {
   }
 
   heading.style.removeProperty("font-size");
-  const styles = getComputedStyle(heading);
-  let size = parseFloat(styles.fontSize);
+  let size = parseFloat(getComputedStyle(heading).fontSize);
   if (!Number.isFinite(size) || size <= 0) return;
 
-  const minPx = 9;
-  const available = heading.clientWidth;
-  if (!(available > 0)) return;
+  // The title pill deliberately bleeds past both screen edges, so `clientWidth`
+  // is wider than what the reader can actually see — fitting against it lets the
+  // first and last letters fall off screen. Measure against the viewport instead,
+  // and against the text itself: `scrollWidth` never reports the left-hand
+  // overflow a centred flex line produces.
+  const viewportWidth = Math.max(
+    1,
+    document.documentElement.clientWidth || window.innerWidth || 0
+  );
 
+  const availableWidth = () => {
+    const styles = getComputedStyle(heading);
+    const padX =
+      (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+    return Math.min(
+      heading.clientWidth - padX,
+      viewportWidth - HOME_FLOW_HEADING_EDGE_GAP_PX * 2
+    );
+  };
+
+  const minPx = 9;
   heading.style.fontSize = `${size}px`;
-  while (size > minPx && heading.scrollWidth > available + 1) {
+  while (size > minPx && measureHeadingTextWidth(heading) > availableWidth() + 0.5) {
     size -= 0.5;
     heading.style.fontSize = `${size}px`;
   }
@@ -1609,8 +1641,14 @@ function applyMagneticScale() {
   // Magnetic hover scaling intentionally disabled.
 }
 
+/** Pointer travel past this is a swipe, not a tap on a tile. */
+const TILE_TAP_SLOP_PX = 10;
+
 function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   let lastActivateAt = 0;
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerDragged = false;
 
   function activateTile(e) {
     if (e) {
@@ -1630,10 +1668,47 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   wrapper.setAttribute("tabindex", "0");
   wrapper.setAttribute("aria-label", "Open image in lightbox");
 
-  wrapper.addEventListener("click", activateTile);
+  wrapper.addEventListener(
+    "pointerdown",
+    (e) => {
+      pointerStartX = e.clientX;
+      pointerStartY = e.clientY;
+      pointerDragged = false;
+    },
+    { passive: true }
+  );
+
+  wrapper.addEventListener(
+    "pointermove",
+    (e) => {
+      if (pointerDragged) return;
+      if (
+        Math.abs(e.clientX - pointerStartX) > TILE_TAP_SLOP_PX ||
+        Math.abs(e.clientY - pointerStartY) > TILE_TAP_SLOP_PX
+      ) {
+        pointerDragged = true;
+      }
+    },
+    { passive: true }
+  );
+
+  // Safari cancels the pointer stream the moment a scroll gesture takes over.
+  wrapper.addEventListener(
+    "pointercancel",
+    () => {
+      pointerDragged = true;
+    },
+    { passive: true }
+  );
+
+  wrapper.addEventListener("click", (e) => {
+    if (pointerDragged) return;
+    activateTile(e);
+  });
   wrapper.addEventListener("pointerup", (e) => {
     if (e.pointerType === "mouse") return;
     if (!e.isPrimary) return;
+    if (pointerDragged) return;
     activateTile(e);
   });
   wrapper.addEventListener("keydown", (e) => {
@@ -1920,6 +1995,78 @@ function measureAndPosition(rowsState, { forceRebuild = false } = {}) {
   refreshPinnedImageSources(document.querySelector(".gallery"));
 }
 
+/** Current translateX of a track, reading through any running animation. */
+function readTrackTranslateX(track) {
+  const value = getComputedStyle(track).transform;
+  if (!value || value === "none") return 0;
+  const parsed = value.match(/matrix(3d)?\(([^)]+)\)/);
+  if (!parsed) return 0;
+  const parts = parsed[2].split(",").map((n) => parseFloat(n));
+  const x = parsed[1] ? parts[12] : parts[4];
+  return Number.isFinite(x) ? x : 0;
+}
+
+function enableFlowManualScroll(rowState) {
+  rowState?.rowElement?.classList.add("gallery-row--manual-scroll");
+}
+
+function disableFlowManualScroll(rowState) {
+  const row = rowState?.rowElement;
+  if (!row || !row.classList.contains("gallery-row--manual-scroll")) return;
+  row.classList.remove("gallery-row--manual-scroll");
+  row.scrollLeft = 0;
+  // Re-arm the watchdog: if the marquee still refuses to run, hand the row back.
+  if (rowState.trackElement) flowStallWatchedTracks.delete(rowState.trackElement);
+}
+
+const FLOW_STALL_SAMPLE_MS = 1500;
+const flowStallWatchedTracks = new WeakSet();
+
+/**
+ * iPadOS/Safari can silently refuse to run the compositor marquee. Sample the
+ * track twice; if it never moves, hand the row over to native touch scrolling so
+ * the strip is still swipeable instead of frozen.
+ */
+function watchFlowMarqueeStall(rowState) {
+  const track = rowState?.trackElement;
+  const row = rowState?.rowElement;
+  if (!track || !row || flowStallWatchedTracks.has(track)) return;
+  flowStallWatchedTracks.add(track);
+
+  let strikes = 0;
+
+  const stillWatching = () =>
+    track.isConnected && !row.classList.contains("gallery-row--manual-scroll");
+
+  const sample = () => {
+    if (!stillWatching()) return;
+    // A hidden tab freezes animations legitimately — wait for it to come back.
+    if (document.visibilityState !== "visible") {
+      window.setTimeout(sample, FLOW_STALL_SAMPLE_MS);
+      return;
+    }
+
+    const before = readTrackTranslateX(track);
+    window.setTimeout(() => {
+      if (!stillWatching()) return;
+      if (document.visibilityState !== "visible") {
+        window.setTimeout(sample, FLOW_STALL_SAMPLE_MS);
+        return;
+      }
+      if (Math.abs(readTrackTranslateX(track) - before) > 0.5) return;
+
+      strikes += 1;
+      if (strikes < 2) {
+        window.setTimeout(sample, FLOW_STALL_SAMPLE_MS);
+        return;
+      }
+      enableFlowManualScroll(rowState);
+    }, FLOW_STALL_SAMPLE_MS);
+  };
+
+  window.setTimeout(sample, FLOW_STALL_SAMPLE_MS);
+}
+
 /** CSS marquee on the compositor thread (stable in Safari while the page scrolls). */
 function applyFlowTrackMotion(rowState, rowIndex) {
   const track = rowState.trackElement;
@@ -1927,11 +2074,12 @@ function applyFlowTrackMotion(rowState, rowIndex) {
   if (!track || !(W > 0)) return;
 
   track.style.setProperty("--flow-segment-width", `${W}px`);
-  track.classList.add("flow-marquee-active");
 
   if (getShouldReduceMotion()) {
+    track.classList.add("flow-marquee-active");
     track.style.animation = "none";
     track.style.transform = "translate3d(0, 0, 0)";
+    enableFlowManualScroll(rowState);
     return;
   }
 
@@ -1939,6 +2087,23 @@ function applyFlowTrackMotion(rowState, rowIndex) {
   const durationSec = W / speed;
   track.style.setProperty("--flow-marquee-duration", `${durationSec}s`);
   track.style.setProperty("--flow-marquee-direction", flowDirection < 0 ? "reverse" : "normal");
+  track.style.removeProperty("animation");
+  disableFlowManualScroll(rowState);
+
+  // Safari resolves the custom properties a keyframe reads when the animation is
+  // created and won't pick up later edits, so restart it whenever the loop
+  // distance changes. Every variable above is already set at this point.
+  if (
+    track.classList.contains("flow-marquee-active") &&
+    rowState.appliedSegmentWidthPx !== W
+  ) {
+    track.classList.remove("flow-marquee-active");
+    void track.offsetWidth;
+  }
+  track.classList.add("flow-marquee-active");
+  rowState.appliedSegmentWidthPx = W;
+
+  watchFlowMarqueeStall(rowState);
 }
 
 function refreshFlowTrackAnimations() {

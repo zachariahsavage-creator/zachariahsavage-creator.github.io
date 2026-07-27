@@ -1793,6 +1793,31 @@ body.page-full-gallery .onepage-section__heading {
   }
 }
 
+/* Fallback when the marquee can't run — reduced motion, or iPadOS/Safari silently
+   dropping the compositor animation. The row becomes a normal swipeable strip so
+   the photos stay reachable instead of sitting frozen. */
+.gallery-row.gallery-row--manual-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gallery-row.gallery-row--manual-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.gallery-row.gallery-row--manual-scroll .gallery-flow-track,
+.gallery-row.gallery-row--manual-scroll .gallery-flow-track.flow-marquee-active {
+  animation: none !important;
+  transform: translate3d(0, 0, 0) !important;
+  will-change: auto;
+}
+
 .gallery-row .gallery-flow-track .media-item {
   position: relative;
   top: auto;
@@ -3683,13 +3708,16 @@ body.page-profile {
   }
 
   body.page-home .onepage-section--home {
+    /* Divisor covers the title's own width (~20em in DM Sans) plus its 2.3em of
+       inline padding, so the line still fits before the webfont lands and even
+       if a wider fallback face is used. onepage.js shrinks further if needed. */
     --home-flow-heading-font: clamp(
       0.55rem,
       calc(
         (
             100vw - max(0.75rem, env(safe-area-inset-left, 0px)) -
               max(0.75rem, env(safe-area-inset-right, 0px))
-          ) / 21
+          ) / 22
       ),
       1.25rem
     );
@@ -3730,7 +3758,7 @@ body.page-profile {
         (
             100vw - max(0.75rem, env(safe-area-inset-left, 0px)) -
               max(0.75rem, env(safe-area-inset-right, 0px))
-          ) / 21
+          ) / 22
       ),
       1.25rem
     ));
