@@ -1793,6 +1793,31 @@ body.page-full-gallery .onepage-section__heading {
   }
 }
 
+/* Fallback when the marquee can't run — reduced motion, or iPadOS/Safari silently
+   dropping the compositor animation. The row becomes a normal swipeable strip so
+   the photos stay reachable instead of sitting frozen. */
+.gallery-row.gallery-row--manual-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gallery-row.gallery-row--manual-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.gallery-row.gallery-row--manual-scroll .gallery-flow-track,
+.gallery-row.gallery-row--manual-scroll .gallery-flow-track.flow-marquee-active {
+  animation: none !important;
+  transform: translate3d(0, 0, 0) !important;
+  will-change: auto;
+}
+
 .gallery-row .gallery-flow-track .media-item {
   position: relative;
   top: auto;
@@ -2260,21 +2285,101 @@ body.page-full-gallery .full-gallery-folder-nav {
     pointer-events: none;
   }
 
+  /* The index outgrows the gutter once there are enough shows, and a fixed
+     element can't be reached by scrolling the page — so it scrolls on its own.
+     A scroll container clips its overflow, and these labels are rotated well
+     outside their boxes, so the box is padded out and pulled back with matching
+     negative margins: the column of text lands exactly where it always did while
+     the slanted ends and the hover pop still have room to paint. */
   body.page-full-gallery .full-gallery-folder-nav__list {
+    /* Rotating 22deg about the left edge only throws the label downwards, by
+       measured ~0.37 × the column width, and its lower lines ~0.17 × leftwards.
+       The box grows by the same amount at the bottom, never past the gutter's
+       original bottom edge, so the tail of the last label stays on screen. */
+    --folder-nav-pad-top: 0.35rem;
+    --folder-nav-pad-bottom: calc(var(--full-gallery-nav-max-width, 8rem) * 0.38);
+    --folder-nav-pad-left: 1.5rem;
+    --folder-nav-pad-right: 3.25rem;
+
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2rem;
-    margin: 0;
-    padding: 0;
+    gap: 0;
     list-style: none;
-    pointer-events: auto;
-    overflow: visible;
+    margin: calc(-1 * var(--folder-nav-pad-top)) calc(-1 * var(--folder-nav-pad-right))
+      0 calc(-1 * var(--folder-nav-pad-left));
+    padding: var(--folder-nav-pad-top) var(--folder-nav-pad-right)
+      var(--folder-nav-pad-bottom) var(--folder-nav-pad-left);
+    max-height: calc(
+      100vh - 128px - env(safe-area-inset-top, 0px) - 2.5rem +
+        var(--folder-nav-pad-top)
+    );
+    max-height: calc(
+      100dvh - 128px - env(safe-area-inset-top, 0px) - 2.5rem +
+        var(--folder-nav-pad-top)
+    );
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Only the labels themselves take the pointer, so the padding — which hangs
+       over the gallery on the right — never steals a wheel or a click from it. */
+    pointer-events: none;
+  }
+
+  body.page-full-gallery .full-gallery-folder-nav__list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  /* Scrollbar is hidden, so fade the cut-off edge to show there is more to see.
+     The fade has to clear the rotation padding before it reaches any text.
+     onepage.js sets the flags; without JS the list simply scrolls unmasked. */
+  body.page-full-gallery .full-gallery-folder-nav__list--overflowing {
+    --folder-nav-fade-top: 0px;
+    --folder-nav-fade-bottom: calc(var(--folder-nav-pad-bottom) + 2.25rem);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--folder-nav-fade-top),
+      #000 calc(100% - var(--folder-nav-fade-bottom)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--folder-nav-fade-top),
+      #000 calc(100% - var(--folder-nav-fade-bottom)),
+      transparent 100%
+    );
+  }
+
+  body.page-full-gallery .full-gallery-folder-nav__list--scrolled-from-top {
+    --folder-nav-fade-top: calc(var(--folder-nav-pad-top) + 2.25rem);
+  }
+
+  body.page-full-gallery .full-gallery-folder-nav__list--scrolled-to-end {
+    --folder-nav-fade-bottom: 0px;
   }
 
   body.page-full-gallery .full-gallery-folder-nav__item {
     overflow: visible;
     width: 100%;
+    /* Was the list's `gap: 2rem`. Carrying it as item padding leaves no dead
+       strip between labels, so a wheel anywhere over the index scrolls it. */
+    padding-block: 1rem;
+    pointer-events: auto;
+  }
+
+  body.page-full-gallery .full-gallery-folder-nav__item:first-child {
+    padding-top: 0;
+  }
+
+  body.page-full-gallery .full-gallery-folder-nav__item:last-child {
+    padding-bottom: 0;
   }
 
   body.page-full-gallery .full-gallery-folder-nav__link {
@@ -3683,13 +3788,16 @@ body.page-profile {
   }
 
   body.page-home .onepage-section--home {
+    /* Divisor covers the title's own width (~20em in DM Sans) plus its 2.3em of
+       inline padding, so the line still fits before the webfont lands and even
+       if a wider fallback face is used. onepage.js shrinks further if needed. */
     --home-flow-heading-font: clamp(
       0.55rem,
       calc(
         (
             100vw - max(0.75rem, env(safe-area-inset-left, 0px)) -
               max(0.75rem, env(safe-area-inset-right, 0px))
-          ) / 21
+          ) / 22
       ),
       1.25rem
     );
@@ -3730,7 +3838,7 @@ body.page-profile {
         (
             100vw - max(0.75rem, env(safe-area-inset-left, 0px)) -
               max(0.75rem, env(safe-area-inset-right, 0px))
-          ) / 21
+          ) / 22
       ),
       1.25rem
     ));
