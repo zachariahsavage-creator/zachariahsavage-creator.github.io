@@ -276,6 +276,36 @@ function getNumberedShowGroup(src) {
   return numberedShowGroupByPath.get(filename) || null;
 }
 
+const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
+  id: "daniela-andrade-mod-club",
+  order: -4,
+  title: "Daniela Andrade @ Mod Club",
+  sources: [
+    "daniela-andrade-mod-club-01.webp",
+    "daniela-andrade-mod-club-02.webp",
+    "daniela-andrade-mod-club-03.webp",
+    "daniela-andrade-mod-club-04.webp",
+    "daniela-andrade-mod-club-05.webp",
+    "daniela-andrade-mod-club-06.webp",
+    "daniela-andrade-mod-club-07.webp",
+    "daniela-andrade-mod-club-08.webp",
+    "daniela-andrade-mod-club-09.webp",
+    "daniela-andrade-mod-club-10.webp",
+    "daniela-andrade-mod-club-11.webp",
+    "daniela-andrade-mod-club-12.webp",
+    "daniela-andrade-mod-club-13.webp",
+    "daniela-andrade-mod-club-14.webp",
+    "daniela-andrade-mod-club-15.webp",
+    "daniela-andrade-mod-club-16.webp",
+    "daniela-andrade-mod-club-17.webp",
+    "daniela-andrade-mod-club-18.webp",
+    "daniela-andrade-mod-club-19.webp",
+    "daniela-andrade-mod-club-20.webp",
+    "daniela-andrade-mod-club-21.webp",
+    "daniela-andrade-mod-club-22.webp",
+  ],
+};
+
 const FULL_GALLERY_LISTENING_ROOM = {
   id: "listening-room-longboat",
   order: -2,
@@ -389,6 +419,7 @@ const FULL_GALLERY_MICO_HARD_LUCK = {
 };
 
 const FULL_GALLERY_PINNED_SHOWS = [
+  FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB,
   FULL_GALLERY_LISTENING_ROOM,
   FULL_GALLERY_SUPERSTAR_CRUSH_DINAS,
   FULL_GALLERY_STACKS_RATS_NEST,
@@ -431,6 +462,7 @@ FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
 });
 
 const fullGalleryNumberedItems = [
+  ...FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
   ...FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.sources,
   ...FULL_GALLERY_STACKS_RATS_NEST.sources,
@@ -485,6 +517,28 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "boston-church-scandal-the-drake-04.webp": 1.5,
   "boston-church-scandal-the-drake-05.webp": 1.5,
   "boston-church-scandal-the-drake-06.webp": 1.501,
+  "daniela-andrade-mod-club-01.webp": 0.667,
+  "daniela-andrade-mod-club-02.webp": 0.667,
+  "daniela-andrade-mod-club-03.webp": 0.667,
+  "daniela-andrade-mod-club-04.webp": 0.667,
+  "daniela-andrade-mod-club-05.webp": 0.667,
+  "daniela-andrade-mod-club-06.webp": 0.667,
+  "daniela-andrade-mod-club-07.webp": 0.667,
+  "daniela-andrade-mod-club-08.webp": 0.667,
+  "daniela-andrade-mod-club-09.webp": 0.667,
+  "daniela-andrade-mod-club-10.webp": 0.667,
+  "daniela-andrade-mod-club-11.webp": 0.75,
+  "daniela-andrade-mod-club-12.webp": 0.75,
+  "daniela-andrade-mod-club-13.webp": 0.75,
+  "daniela-andrade-mod-club-14.webp": 0.751,
+  "daniela-andrade-mod-club-15.webp": 1.0,
+  "daniela-andrade-mod-club-16.webp": 1.332,
+  "daniela-andrade-mod-club-17.webp": 1.333,
+  "daniela-andrade-mod-club-18.webp": 1.333,
+  "daniela-andrade-mod-club-19.webp": 1.5,
+  "daniela-andrade-mod-club-20.webp": 1.5,
+  "daniela-andrade-mod-club-21.webp": 1.5,
+  "daniela-andrade-mod-club-22.webp": 1.5,
   "daphne-the-drake-01.webp": 0.667,
   "daphne-the-drake-02.webp": 0.667,
   "daphne-the-drake-03.webp": 0.766,
@@ -705,6 +759,7 @@ const mediaItems = dedupeFlowItems(
 let activeGalleryItems = mediaItems;
 const fullGalleryExpandedGroups = new Set();
 const fullGallerySectionTitles = {
+  [FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.id]: FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
   [FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.id]: FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.title,
   [FULL_GALLERY_STACKS_RATS_NEST.id]: FULL_GALLERY_STACKS_RATS_NEST.title,
@@ -1076,6 +1131,7 @@ const IMAGE_BASE_PATH = "assets/images/";
 const SHOW_IMAGE_FOLDERS = [
   "angelique-the-ivy",
   "boston-church-scandal-the-drake",
+  "daniela-andrade-mod-club",
   "daphne-the-drake",
   "izzy-flores-986-bathurst",
   "listening-room-longboat-hall",
