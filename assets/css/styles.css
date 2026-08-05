@@ -2728,6 +2728,17 @@ body.page-full-gallery .portfolio-grid .full-gallery-tile video {
   display: block;
 }
 
+/* Folder covers read as a matched set: the side-by-side pair shares one box, so
+   fill it rather than letterboxing the shallower frame. Expanded rows keep
+   `contain` — pairing there can span orientations and cropping would gut them. */
+body.page-full-gallery
+  .portfolio-grid
+  .portfolio-date-preview-grid:not(.portfolio-date-grid--stacked)
+  .full-gallery-tile:not(.full-gallery-tile--fullwidth)
+  img {
+  object-fit: cover !important;
+}
+
 body.page-full-gallery .portfolio-grid [data-gallery-folder-preview] img,
 body.page-full-gallery .portfolio-grid [data-gallery-folder-preview] video {
   content-visibility: visible;
