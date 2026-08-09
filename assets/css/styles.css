@@ -238,8 +238,6 @@ textarea,
 .gallery-bar__title,
 .gallery-flow-arrow,
 .media-item,
-.lightbox__close,
-.lightbox__arrow,
 .profile__cta-btn,
 .profile__cta-link,
 .contact__submit,
@@ -4334,8 +4332,10 @@ body.page-profile {
   align-items: center;
   justify-content: center;
   /* Disable browser double-tap-to-zoom inside the lightbox so quick taps on the
-     nav arrows advance images instead of zooming the page. */
+     photo advance images instead of zooming the page. */
   touch-action: manipulation;
+  /* Anywhere off the photo dismisses, so say so. */
+  cursor: zoom-out;
 }
 
 .lightbox[data-state="open"] {
@@ -4388,6 +4388,8 @@ body.page-profile {
   touch-action: manipulation;
   -webkit-user-select: none;
   user-select: none;
+  /* JS sharpens this to a left/right cursor depending on the half hovered. */
+  cursor: pointer;
 }
 
 .lightbox__image[data-active="true"],
@@ -4395,129 +4397,7 @@ body.page-profile {
   display: block;
 }
 
-/* Controls are anchored to the image content box (which is sized to the photo),
-   so the arrows are always perfectly centered on the image vertically and sit
-   just inside its left/right edges — on every aspect ratio and screen size. */
-.lightbox__close {
-  position: absolute;
-  top: clamp(10px, 1.4vw, 18px);
-  right: clamp(10px, 1.4vw, 18px);
-  transform: none;
-  width: clamp(44px, 3.4vw, 56px);
-  height: clamp(44px, 3.4vw, 56px);
-  border-radius: var(--radius-pill);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.4rem, 2vw, 1.85rem);
-  line-height: 1;
-  font-weight: 300;
-  color: #000000;
-  background: rgba(250, 248, 245, 0.9);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow-md);
-  z-index: 3;
-  padding: 0;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
-}
-
-.lightbox__close-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.lightbox__close:hover {
-  color: #000000;
-  background: #ffffff;
-  transform: scale(1.05);
-}
-
-.lightbox__close:active {
-  transform: scale(0.94);
-}
-
-.lightbox__arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: clamp(46px, 3.8vw, 60px);
-  height: clamp(46px, 3.8vw, 60px);
-  border-radius: var(--radius-pill);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  color: #000000;
-  background: rgba(250, 248, 245, 0.9);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow-md);
-  z-index: 3;
-  padding: 0;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
-}
-
-.lightbox__arrow--prev {
-  left: clamp(10px, 1.4vw, 20px);
-}
-
-.lightbox__arrow--next {
-  right: clamp(10px, 1.4vw, 20px);
-}
-
-.lightbox__arrow:hover {
-  background: #ffffff;
-}
-
-.lightbox__arrow:hover {
-  transform: translateY(-50%) scale(1.05);
-}
-
-.lightbox__arrow:active {
-  transform: translateY(-50%) scale(0.94);
-}
-
-/* Chevron glyph is symmetric and centered within the button (no offsets). */
-.lightbox__arrow-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.lightbox__arrow-icon svg {
-  width: 46%;
-  height: 46%;
-  flex-shrink: 0;
-  display: block;
-}
-
-/* Phones: slightly smaller controls, snug to the image edges */
+/* Phones: image snug to the screen edges */
 @media (max-width: 768px) {
   .lightbox {
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
@@ -4534,17 +4414,6 @@ body.page-profile {
   .lightbox__image,
   .lightbox__video {
     max-height: min(82dvh, 100%);
-  }
-
-  .lightbox__close {
-    width: 42px;
-    height: 42px;
-    font-size: 1.6rem;
-  }
-
-  .lightbox__arrow {
-    width: 42px;
-    height: 42px;
   }
 }
 
