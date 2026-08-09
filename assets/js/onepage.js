@@ -3671,6 +3671,15 @@ function isContactTabletLayout() {
   return vw > 768 && (vw <= 1100 || vh <= 920);
 }
 
+/**
+ * Unclipped card height. The card is `max-height: 100%` with its own scroll, so
+ * `offsetHeight` stops at the cap and can't reveal that the content overflows.
+ */
+function getContactCardContentHeight(card) {
+  if (!card) return 0;
+  return Math.max(card.scrollHeight, card.offsetHeight);
+}
+
 function updateContactSectionLayout() {
   if (contactLayoutRafId) return;
   contactLayoutRafId = requestAnimationFrame(() => {
@@ -3697,7 +3706,7 @@ function updateContactSectionLayout() {
       const maxW = Math.round(Math.min(680, Math.max(560, vw * 0.62)));
       let minH = Math.round(Math.min(Math.max(vh * 0.78, 520), 760));
       if (card) {
-        const needed = card.offsetHeight + 48;
+        const needed = getContactCardContentHeight(card) + 48;
         if (needed > minH) minH = needed;
       }
       section.style.setProperty("--contact-card-max-width", `${maxW}px`);
@@ -3709,6 +3718,16 @@ function updateContactSectionLayout() {
     section.style.removeProperty("--contact-section-min-height");
     section.style.setProperty("--contact-card-max-width", `${Math.min(720, Math.round(vw * 0.56))}px`);
     section.style.setProperty("--contact-card-offset-y", "-4in");
+
+    // Here the panel height comes from the backdrop's aspect ratio, and the card
+    // is capped to it. Grow the panel when the form needs more room, so the
+    // fields never end up behind a nested scrollbar.
+    if (card) {
+      const needed = getContactCardContentHeight(card) + 48;
+      if (needed > section.getBoundingClientRect().height) {
+        section.style.setProperty("--contact-section-min-height", `${Math.round(needed)}px`);
+      }
+    }
   });
 }
 
@@ -3774,19 +3793,269 @@ function setupContactBackgroundCrossfade() {
   scheduleContactSectionLayout();
 }
 
+/**
+ * TO GO LIVE: paste a free access key from https://web3forms.com below. They
+ * email you one — no account needed — and inquiries then arrive in that inbox.
+ *
+ * While this is empty the form still works, but it hands off to the visitor's
+ * mail app instead of submitting directly.
+ */
+const CONTACT_FORM_ACCESS_KEY = "";
+
+const CONTACT_FORM_ENDPOINT = "https://api.web3forms.com/submit";
+const CONTACT_EMAIL = "zachariahsavage@gmail.com";
+
+/** Clipboard API needs a secure context and permission, so keep a fallback. */
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      /* Fall through to the selection-based copy below. */
+    }
+  }
+  const helper = document.createElement("textarea");
+  helper.value = text;
+  helper.setAttribute("readonly", "");
+  helper.style.position = "fixed";
+  helper.style.top = "-1000px";
+  helper.style.opacity = "0";
+  document.body.appendChild(helper);
+  helper.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  }
+  helper.remove();
+  return copied;
+}
+
 function setupContactForm() {
   const form = document.getElementById("contact-form");
   if (!form) return;
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const subject = form.querySelector('[name="subject"]')?.value || "";
-    const body = form.querySelector('[name="body"]')?.value || "";
-    const mailto =
-      "mailto:zachariahsavage@gmail.com?subject=" +
-      encodeURIComponent(subject) +
-      "&body=" +
-      encodeURIComponent(body);
-    window.location.href = mailto;
+
+  const statusEl = document.getElementById("contact-status");
+  const submitBtn = form.querySelector(".contact__submit");
+  const submitLabel = form.querySelector(".contact__submit-label");
+  const submitLabelIdle = submitLabel?.textContent?.trim() || "Send inquiry";
+  const field = (name) => form.querySelector(`[name="${name}"]`);
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const validators = [
+    {
+      el: field("name"),
+      errorEl: document.getElementById("contact-name-error"),
+      validate: (value) => (value ? "" : "Please enter your name."),
+    },
+    {
+      el: field("email"),
+      errorEl: document.getElementById("contact-email-error"),
+      validate: (value) => {
+        if (!value) return "Please add your email so I can reply.";
+        return emailPattern.test(value) ? "" : "That email address doesn't look right.";
+      },
+    },
+    {
+      el: field("message"),
+      errorEl: document.getElementById("contact-message-error"),
+      validate: (value) =>
+        value.length >= 10 ? "" : "Please tell me a little more about the shoot.",
+    },
+  ].filter((entry) => entry.el);
+
+  let submitting = false;
+
+  function setFieldError(entry, message) {
+    if (message) {
+      entry.el.setAttribute("aria-invalid", "true");
+    } else {
+      entry.el.removeAttribute("aria-invalid");
+    }
+    if (!entry.errorEl) return;
+    entry.errorEl.textContent = message;
+    entry.errorEl.hidden = !message;
+  }
+
+  // Only re-check while a field is already flagged, so typing isn't nagged at.
+  validators.forEach((entry) => {
+    entry.el.addEventListener("input", () => {
+      if (!entry.el.hasAttribute("aria-invalid")) return;
+      setFieldError(entry, entry.validate(entry.el.value.trim()));
+    });
+  });
+
+  function clearStatus() {
+    if (!statusEl) return;
+    statusEl.textContent = "";
+    statusEl.hidden = true;
+    statusEl.classList.remove("contact__status--success", "contact__status--error");
+  }
+
+  function showStatus(kind, nodes) {
+    if (!statusEl) return;
+    statusEl.textContent = "";
+    statusEl.classList.remove("contact__status--success", "contact__status--error");
+    statusEl.classList.add(`contact__status--${kind}`);
+    nodes.forEach((node) => statusEl.appendChild(node));
+    statusEl.hidden = false;
+    statusEl.focus();
+    scheduleContactSectionLayout();
+  }
+
+  function statusText(text, className) {
+    const el = document.createElement("p");
+    el.className = className || "contact__status-text";
+    el.textContent = text;
+    return el;
+  }
+
+  function setBusy(busy) {
+    submitting = busy;
+    if (submitBtn) {
+      submitBtn.disabled = busy;
+      submitBtn.setAttribute("aria-busy", busy ? "true" : "false");
+    }
+    if (submitLabel) submitLabel.textContent = busy ? "Sending…" : submitLabelIdle;
+  }
+
+  function readValues() {
+    return {
+      name: field("name")?.value.trim() || "",
+      email: field("email")?.value.trim() || "",
+      eventDate: field("event_date")?.value.trim() || "",
+      message: field("message")?.value.trim() || "",
+    };
+  }
+
+  function inquiryAsText(values) {
+    const lines = [`Name: ${values.name}`, `Email: ${values.email}`];
+    if (values.eventDate) lines.push(`Event date: ${values.eventDate}`);
+    lines.push("", values.message);
+    return lines.join("\n");
+  }
+
+  function mailtoHref(values) {
+    const subject = `Photography inquiry — ${values.name}`;
+    return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(inquiryAsText(values))}`;
+  }
+
+  function openMailClient(values) {
+    try {
+      window.location.href = mailtoHref(values);
+    } catch {
+      /* No registered mail handler — the on-screen fallback covers it. */
+    }
+  }
+
+  function showSuccess(values) {
+    form.hidden = true;
+    const firstName = values.name.split(" ")[0];
+    showStatus("success", [
+      statusText(
+        `Thanks${firstName ? `, ${firstName}` : ""} — your inquiry is on its way.`,
+        "contact__status-heading"
+      ),
+      statusText("I'll get back to you within a couple of days."),
+    ]);
+  }
+
+  /**
+   * A mailto can open nothing at all on a device with no mail app configured,
+   * which is how a hand-off silently eats an inquiry. Always leave the message
+   * on screen with a way to copy it so nothing typed here is ever lost.
+   */
+  function showMailFallback(values, heading) {
+    const actions = document.createElement("div");
+    actions.className = "contact__status-actions";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "contact__status-btn";
+    copyBtn.textContent = "Copy message";
+    copyBtn.addEventListener("click", async () => {
+      const copied = await copyTextToClipboard(inquiryAsText(values));
+      copyBtn.textContent = copied ? "Copied" : "Copy failed — select it manually";
+      window.setTimeout(() => {
+        copyBtn.textContent = "Copy message";
+      }, 2400);
+    });
+
+    const mailLink = document.createElement("a");
+    mailLink.className = "contact__status-btn contact__status-btn--link";
+    mailLink.href = mailtoHref(values);
+    mailLink.textContent = "Try email app again";
+
+    actions.appendChild(copyBtn);
+    actions.appendChild(mailLink);
+
+    showStatus("error", [
+      statusText(heading, "contact__status-heading"),
+      statusText(
+        `Your email app should have opened with this message ready to send. If nothing happened, copy it and send it to ${CONTACT_EMAIL}.`
+      ),
+      actions,
+    ]);
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    let firstInvalid = null;
+    validators.forEach((entry) => {
+      const message = entry.validate(entry.el.value.trim());
+      setFieldError(entry, message);
+      if (message && !firstInvalid) firstInvalid = entry.el;
+    });
+
+    if (firstInvalid) {
+      clearStatus();
+      firstInvalid.focus();
+      return;
+    }
+
+    if (field("botcheck")?.checked) return;
+
+    const values = readValues();
+    clearStatus();
+
+    if (!CONTACT_FORM_ACCESS_KEY) {
+      openMailClient(values);
+      showMailFallback(values, "One more step — send it from your email app.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const response = await fetch(CONTACT_FORM_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: CONTACT_FORM_ACCESS_KEY,
+          subject: `New photography inquiry from ${values.name}`,
+          from_name: "zachsavagephotography.ca",
+          name: values.name,
+          email: values.email,
+          event_date: values.eventDate || "Not specified",
+          message: values.message,
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || `Request failed (${response.status})`);
+      }
+      showSuccess(values);
+    } catch {
+      openMailClient(values);
+      showMailFallback(values, "That didn't send — here's a backup.");
+    } finally {
+      setBusy(false);
+    }
   });
 }
 

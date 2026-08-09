@@ -3220,7 +3220,7 @@ body.page-profile {
 .contact__form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.9rem;
   margin-bottom: 2rem;
 }
 
@@ -3305,6 +3305,159 @@ body.page-profile {
 }
 
 .contact__submit:active {
+  transform: scale(0.98);
+}
+
+/* Each field groups its own label, control and error message, so the form's gap
+   spaces the fields and the field's gap spaces its parts. */
+.contact__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.contact__field .contact__label {
+  margin-top: 0;
+}
+
+/* Name and email share a row so the extra fields cost only one row of height —
+   the card is height-capped inside the contact panel. */
+.contact__field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+@media (max-width: 560px) {
+  .contact__field-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.contact__label-note {
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.contact__intro-link {
+  color: #e3f2e3;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.contact__input[type="date"] {
+  min-height: 2.9rem;
+}
+
+.contact__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #ffc2c2;
+}
+
+.contact__input[aria-invalid="true"],
+.contact__textarea[aria-invalid="true"] {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.3);
+}
+
+/* Spam trap: off-screen rather than display:none, which bots skip. */
+.contact__botcheck {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.contact__submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.contact__submit:disabled:hover {
+  background: #e3f2e3;
+  box-shadow: none;
+}
+
+.contact__submit:disabled:active {
+  transform: none;
+}
+
+.contact__status {
+  margin: 0 0 var(--space-5);
+  padding: 0.9rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  outline: none;
+}
+
+.contact__status--success {
+  color: #eafaea;
+  background: rgba(93, 158, 93, 0.18);
+  border-color: rgba(147, 214, 147, 0.5);
+}
+
+.contact__status--error {
+  color: #ffe4e4;
+  background: rgba(192, 57, 43, 0.2);
+  border-color: rgba(232, 122, 110, 0.5);
+}
+
+.contact__status-heading {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.contact__status-text {
+  margin: 0 0 0.35rem;
+}
+
+.contact__status-text:last-child {
+  margin-bottom: 0;
+}
+
+.contact__status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.contact__status-btn {
+  padding: 0.6em 1.1em;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  color: #141414;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    background var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.contact__status-btn:hover {
+  background: #fff;
+}
+
+.contact__status-btn:active {
   transform: scale(0.98);
 }
 
