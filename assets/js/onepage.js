@@ -3794,13 +3794,11 @@ function setupContactBackgroundCrossfade() {
 }
 
 /**
- * TO GO LIVE: paste a free access key from https://web3forms.com below. They
- * email you one — no account needed — and inquiries then arrive in that inbox.
- *
- * While this is empty the form still works, but it hands off to the visitor's
- * mail app instead of submitting directly.
+ * Web3Forms delivery key. Public by design — the browser has to send it — so it
+ * is not a secret; the honeypot and Web3Forms' own filtering handle abuse.
+ * Emptying this makes the form fall back to the visitor's mail app.
  */
-const CONTACT_FORM_ACCESS_KEY = "";
+const CONTACT_FORM_ACCESS_KEY = "24208dee-50fd-4eef-bf07-451a4293059f";
 
 const CONTACT_FORM_ENDPOINT = "https://api.web3forms.com/submit";
 const CONTACT_EMAIL = "zachariahsavage@gmail.com";
