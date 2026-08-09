@@ -57,17 +57,26 @@
   <body class="page-full-gallery">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
     <div class="full-gallery-page-bg" aria-hidden="true">
-      <img
-        src="assets/images/site/gallery-page-backdrop.webp"
-        alt=""
-        width="1920"
-        height="1280"
-        data-asset-path="gallery-page-backdrop.webp"
-        loading="eager"
-        decoding="sync"
-        fetchpriority="high"
-        class="priority-render-img"
-      />
+      <picture>
+        <!-- Phone widths borrow the home page's backdrop, which is framed upright;
+             the gallery's own is a landscape crop with little left to read this
+             narrow. Breakpoint mirrors FULL_GALLERY_MOBILE_BG_QUERY in onepage.js. -->
+        <source
+          media="(max-width: 768px)"
+          srcset="assets/images/site/home-hero-backdrop.webp"
+        />
+        <img
+          src="assets/images/site/gallery-page-backdrop.webp"
+          alt=""
+          width="1920"
+          height="1280"
+          data-asset-path="gallery-page-backdrop.webp"
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
+          class="priority-render-img"
+        />
+      </picture>
     </div>
     <nav class="header-social" aria-label="Social and email">
       <a
