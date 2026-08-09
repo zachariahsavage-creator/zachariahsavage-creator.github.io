@@ -3552,6 +3552,9 @@ function resolveIndexHashScrollTarget(hashId) {
   if (id === "contact-section") {
     return document.getElementById("contact-heading") || document.getElementById("contact-section");
   }
+  if (id === "rates-section") {
+    return document.getElementById("rates-heading") || document.getElementById("rates-section");
+  }
   if (id === "gallery-section" || id === "gallery-section-heading") {
     window.location.replace("full-gallery.html");
     return null;
