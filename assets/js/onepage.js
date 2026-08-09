@@ -1512,9 +1512,6 @@ let magneticCursorItem = null;
 let lightbox;
 let lightboxImage;
 let lightboxVideo;
-let lightboxCloseBtn;
-let lightboxPrevBtn;
-let lightboxNextBtn;
 let lightboxCurrentIndex = null;
 let scrollRevealObserver = null;
 
@@ -1769,6 +1766,56 @@ function changeLightboxBy(delta) {
   if (lightboxCurrentIndex === null) return;
   const total = activeGalleryItems.length;
   openLightboxFromIndex((lightboxCurrentIndex + delta + total) % total);
+}
+
+/** Whichever of the two media elements is currently on screen. */
+function getActiveLightboxMedia() {
+  if (lightboxImage?.getAttribute("data-active") === "true") return lightboxImage;
+  if (lightboxVideo?.getAttribute("data-active") === "true") return lightboxVideo;
+  return null;
+}
+
+/**
+ * Which action a pointer position maps to. Measured against the photo's own box
+ * rather than its frame, so "outside the image" means what it looks like on
+ * every aspect ratio — a portrait leaves wide margins the frame doesn't cover.
+ */
+function getLightboxPointerZone(event) {
+  const media = getActiveLightboxMedia();
+  if (!media) return "outside";
+  const rect = media.getBoundingClientRect();
+  if (!(rect.width > 0 && rect.height > 0)) return "outside";
+  if (
+    event.clientX < rect.left ||
+    event.clientX > rect.right ||
+    event.clientY < rect.top ||
+    event.clientY > rect.bottom
+  ) {
+    return "outside";
+  }
+  return event.clientX < rect.left + rect.width / 2 ? "prev" : "next";
+}
+
+function setupLightboxPointerNav() {
+  if (!lightbox) return;
+
+  lightbox.addEventListener("click", (event) => {
+    const zone = getLightboxPointerZone(event);
+    if (zone === "outside") {
+      closeLightbox();
+      return;
+    }
+    changeLightboxBy(zone === "prev" ? -1 : 1);
+  });
+
+  // With no arrows on screen the cursor is the only affordance for which half
+  // does what, so point it the way the photo will move.
+  lightbox.addEventListener("mousemove", (event) => {
+    const media = getActiveLightboxMedia();
+    if (!media) return;
+    const zone = getLightboxPointerZone(event);
+    media.style.cursor = zone === "prev" ? "w-resize" : zone === "next" ? "e-resize" : "";
+  });
 }
 
 function applyMagneticScale() {
@@ -4304,17 +4351,7 @@ function initSharedPageUi() {
   lightbox = document.querySelector(".lightbox");
   lightboxImage = document.querySelector(".lightbox__image");
   lightboxVideo = document.querySelector(".lightbox__video");
-  lightboxCloseBtn = document.querySelector(".lightbox__close");
-  lightboxPrevBtn = document.querySelector(".lightbox__arrow--prev");
-  lightboxNextBtn = document.querySelector(".lightbox__arrow--next");
-  lightboxCloseBtn?.addEventListener("click", closeLightbox);
-  lightboxPrevBtn?.addEventListener("click", () => changeLightboxBy(-1));
-  lightboxNextBtn?.addEventListener("click", () => changeLightboxBy(1));
-  lightbox?.addEventListener("click", (event) => {
-    if (event.target === lightbox || event.target === document.querySelector(".lightbox__backdrop")) {
-      closeLightbox();
-    }
-  });
+  setupLightboxPointerNav();
 
   window.addEventListener("keydown", (event) => {
     if (lightbox?.getAttribute("data-state") !== "open") return;
