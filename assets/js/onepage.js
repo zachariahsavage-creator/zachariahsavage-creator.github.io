@@ -541,7 +541,11 @@ const fullGalleryNumberedItems = [
 ];
 
 /** Used on full gallery page but not in the grid (e.g. page background). */
-const FULL_GALLERY_PAGE_ONLY_PATHS = ["gallery-page-backdrop.webp"];
+const FULL_GALLERY_PAGE_ONLY_PATHS = [
+  "gallery-page-backdrop.webp",
+  // Narrow screens show this one here instead — see getFullGalleryBackdropPath.
+  "home-hero-backdrop.webp",
+];
 
 const FULL_GALLERY_PATH_SET = new Set([
   ...fullGalleryNumberedItems,
@@ -1046,7 +1050,7 @@ function createGridTilesFromPaths(paths) {
 }
 
 function getFullGalleryBootImagePaths() {
-  return [...new Set([FULL_GALLERY_PAGE_BG_PATH, ...getGalleryFolderPreviewAssetPaths()])];
+  return [...new Set([getFullGalleryBackdropPath(), ...getGalleryFolderPreviewAssetPaths()])];
 }
 
 const preparedGalleryFolderGroups = new Set();
@@ -1239,6 +1243,21 @@ function getAllFlowImagePaths() {
 const HOME_PAGE_BG_PATH = "home-hero-backdrop.webp";
 const FULL_GALLERY_PAGE_BG_PATH = "gallery-page-backdrop.webp";
 
+/**
+ * Phone widths show the home backdrop on the gallery page too — the gallery's own
+ * is a landscape crop with little left to read once it is this narrow.
+ *
+ * Must stay in step with the <picture> source in full-gallery.html: that decides
+ * what is painted, this decides what gets pinned, and they have to agree or the
+ * boot pass downloads a backdrop the visitor never sees.
+ */
+const FULL_GALLERY_MOBILE_BG_QUERY = "(max-width: 768px)";
+
+function getFullGalleryBackdropPath() {
+  const narrow = window.matchMedia?.(FULL_GALLERY_MOBILE_BG_QUERY)?.matches ?? false;
+  return narrow ? HOME_PAGE_BG_PATH : FULL_GALLERY_PAGE_BG_PATH;
+}
+
 function getBootImagePaths() {
   if (document.body?.classList.contains("page-full-gallery")) {
     return getFullGalleryBootImagePaths();
@@ -1376,7 +1395,7 @@ function refreshPinnedImageSources(root = document) {
     assignPinnedImageAttributes(img, HOME_PAGE_BG_PATH);
   });
   root.querySelectorAll(".full-gallery-page-bg img").forEach((img) => {
-    assignPinnedImageAttributes(img, FULL_GALLERY_PAGE_BG_PATH);
+    assignPinnedImageAttributes(img, getFullGalleryBackdropPath());
   });
   root.querySelectorAll(".contact-bg__image[data-asset-path]").forEach((img) => {
     assignPinnedImageAttributes(img, img.dataset.assetPath);
