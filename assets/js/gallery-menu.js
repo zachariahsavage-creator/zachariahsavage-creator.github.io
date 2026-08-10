@@ -24,8 +24,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const COLLAPSE_FALLBACK_MS = 480;
   const frostEl = document.querySelector(".gallery-bar__frost");
   const plateEl = document.querySelector(".gallery-bar__plate");
-  const gradeEl = document.querySelector(".gallery-bar__grade");
-  const overlayEls = [frostEl, plateEl, gradeEl].filter(Boolean);
+  const overlayEls = [frostEl, plateEl].filter(Boolean);
   const frostMq =
     typeof window.matchMedia === "function"
       ? window.matchMedia("(max-width: 768px)")
@@ -58,16 +57,12 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     const rect = menuContainer.getBoundingClientRect();
     const radiusRaw = getComputedStyle(menuContainer).borderRadius;
     const radiusPx = Number.parseFloat(radiusRaw) || 0;
-    // Inset the difference plate (+ grade) so its anti-aliased rim sits inside the frost
-    // and doesn't show as a bright 1px fringe after mix-blend: difference.
+    // Inset the difference/exclusion plate so its anti-aliased rim sits inside the frost
+    // and doesn't show as a bright 1px fringe after mix-blend.
     const plateInset = 1;
 
     for (const el of overlayEls) {
-      const inset =
-        el.classList.contains("gallery-bar__plate") ||
-        el.classList.contains("gallery-bar__grade")
-          ? plateInset
-          : 0;
+      const inset = el.classList.contains("gallery-bar__plate") ? plateInset : 0;
       const width = Math.max(0, rect.width - inset * 2);
       const height = Math.max(0, rect.height - inset * 2);
       const radius = Math.max(0, radiusPx - inset);
