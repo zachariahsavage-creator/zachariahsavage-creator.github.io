@@ -182,48 +182,6 @@ function positiveModulo(value, modulus) {
   return ((value % modulus) + modulus) % modulus;
 }
 
-const FLOW_BASE_ITEMS = [
-  "boston-church-scandal-the-drake-05.webp",
-  "listening-room-longboat-hall-01.webp",
-  "daphne-the-drake-01.webp",
-  "stacks-rats-nest-06.webp",
-  "angelique-the-ivy-01.webp",
-  "listening-room-longboat-hall-02.webp",
-  "stacks-rats-nest-07.webp",
-  "listening-room-longboat-hall-03.webp",
-  "daphne-the-drake-05.webp",
-  "sam-william-thomas-burdock-05.webp",
-  "sam-william-thomas-burdock-02.webp",
-  "boston-church-scandal-the-drake-03.webp",
-  "superstar-crush-the-baby-g-03.webp",
-  "superstar-crush-the-baby-g-04.webp",
-  "superstar-crush-the-baby-g-01.webp",
-  "superstar-crush-the-baby-g-02.webp",
-  "angelique-the-ivy-04.webp",
-  "angelique-the-ivy-02.webp",
-  "angelique-the-ivy-05.webp",
-];
-
-/** Subset of Listening Room shots that appear in the home flow carousel. */
-const FLOW_LISTENING_ROOM_ITEMS = [
-  "listening-room-longboat-hall-06.webp",
-  "listening-room-longboat-hall-04.webp",
-];
-
-const FLOW_STACKS_RATS_NEST_ITEMS = ["stacks-rats-nest-02.webp"];
-
-const FLOW_MICO_ITEMS = [
-  "mico-hard-luck-01.webp",
-  "mico-hard-luck-09.webp",
-  "mico-hard-luck-16.webp",
-];
-
-const FLOW_PINNED_INSERTS = [
-  ...FLOW_LISTENING_ROOM_ITEMS,
-  ...FLOW_STACKS_RATS_NEST_ITEMS,
-  ...FLOW_MICO_ITEMS,
-];
-
 /** Explicit source lists for the numbered gallery folders (labels "1"–"5"). */
 const FULL_GALLERY_NUMBERED_SHOW_SOURCES = {
   "1": [
@@ -473,15 +431,49 @@ function getPinnedShowById(id) {
   return FULL_GALLERY_PINNED_SHOWS.find((show) => show.id === id);
 }
 
-function scatterItemsIntoFlow(baseItems, insertItems) {
-  if (!insertItems.length) return [...baseItems];
-  const result = [...baseItems];
-  insertItems.forEach((item, i) => {
-    if (result.includes(item)) return;
-    const slot = Math.round(((i + 1) * result.length) / (insertItems.length + 1));
-    result.splice(Math.min(slot, result.length), 0, item);
-  });
-  return result;
+/** Leading shots per pinned folder used in the home flow (then scrambled). */
+const HOME_FLOW_LEADS_PER_FOLDER = 4;
+/** Fixed seed so the scramble is stable across reloads. */
+const HOME_FLOW_SHUFFLE_SEED = 20260810;
+
+function mulberry32(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t += 0x6d2b79f5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleDeterministic(items, seed) {
+  const arr = [...items];
+  const rand = mulberry32(seed);
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
+/**
+ * Home flow images: leading shots from the latest gallery folders (pinned shows),
+ * then scrambled so shows stay mixed.
+ */
+function buildHomeFlowItemsFromPinnedShows(
+  shows = FULL_GALLERY_PINNED_SHOWS,
+  leadsPerFolder = HOME_FLOW_LEADS_PER_FOLDER,
+  seed = HOME_FLOW_SHUFFLE_SEED
+) {
+  const folders = [...shows].sort((a, b) => a.order - b.order);
+  const leads = folders.flatMap((show) =>
+    (show.sources || [])
+      .filter((path) => typeof path === "string" && path.length > 0)
+      .slice(0, leadsPerFolder)
+  );
+  return shuffleDeterministic(leads, seed);
 }
 
 function dedupeFlowItems(items) {
@@ -832,10 +824,7 @@ const CONTACT_BG_IMAGES = [
   "sam-william-thomas-burdock-03.webp",
 ];
 
-const mediaItems = dedupeFlowItems(
-  scatterItemsIntoFlow(FLOW_BASE_ITEMS, FLOW_PINNED_INSERTS)
-)
-  .filter(isInFullGallery);
+const mediaItems = dedupeFlowItems(buildHomeFlowItemsFromPinnedShows()).filter(isInFullGallery);
 
 let activeGalleryItems = mediaItems;
 const fullGalleryExpandedGroups = new Set();
@@ -4491,12 +4480,13 @@ function setupRatesReveal() {
   }
 }
 
-/** Lead image from each of the top N gallery folders (page order). */
+/** Mobile bio portrait first, then lead image from each of the top N gallery folders. */
 function getRatesBioCyclePaths(limit = 5) {
-  return getFullGalleryFolderDefinitions()
+  const folderLeads = getFullGalleryFolderDefinitions()
     .slice(0, limit)
     .map((folder) => folder.sources?.[0])
     .filter((path) => typeof path === "string" && path.length > 0);
+  return dedupeFlowItems([HOME_BIO_IMAGE_MOBILE_PATH, ...folderLeads]);
 }
 
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
