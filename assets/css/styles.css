@@ -13,6 +13,8 @@
   /* Closest free stand-ins for Beyond The Watch's Proxima Nova Condensed / Proxima Nova. */
   --font-heading: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-button: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
+  /* Regular-width sibling of the heading face — pairs cleanly with Barlow Condensed. */
+  --font-body: "Barlow", "DM Sans", system-ui, -apple-system, sans-serif;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -1036,7 +1038,7 @@ body.page-full-gallery .onepage-section--gallery {
   font-family: var(--font-heading);
   font-size: clamp(1.5rem, 4.2vw, 2.75rem);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.72);
   text-align: center;
@@ -1271,10 +1273,10 @@ body.page-full-gallery .onepage-section__heading {
   margin: 0;
   width: 100%;
   font-family: var(--font-heading);
-  font-size: clamp(2.1rem, 6vw, 3.5rem);
+  font-size: clamp(2.94rem, 8.4vw, 4.9rem);
   font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  line-height: 1.02;
+  letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.98);
   text-align: center;
   text-wrap: balance;
@@ -1293,7 +1295,7 @@ body.page-full-gallery .onepage-section__heading {
   border: 0;
   background: transparent;
   color: rgba(238, 238, 238, 0.92);
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-body);
   font-weight: 400;
   box-shadow: none;
   text-align: center;
@@ -1618,10 +1620,10 @@ body.page-full-gallery .onepage-section__heading {
   min-width: 0;
   font-family: var(--font-heading);
   /* Match .home-bio-heading */
-  font-size: clamp(2.1rem, 6vw, 3.5rem);
+  font-size: clamp(2.94rem, 8.4vw, 4.9rem);
   font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  line-height: 1.02;
+  letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.98);
   text-align: left;
   scroll-margin-top: calc(128px + env(safe-area-inset-top, 0px) + 1.25rem);
@@ -1762,7 +1764,7 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .rates__table tbody td {
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-body);
   font-size: clamp(1rem, 2.2vw, 1.15rem);
   font-weight: 400;
   line-height: 1.55;
@@ -1876,10 +1878,10 @@ body.page-full-gallery .onepage-section__heading {
   padding: 0 max(0.85rem, env(safe-area-inset-left, 0px))
     0 max(0.85rem, env(safe-area-inset-right, 0px));
   font-family: var(--font-heading);
-  font-size: clamp(2.25rem, 7vw, 4.25rem);
+  font-size: clamp(3.15rem, 9.8vw, 5.95rem);
   font-weight: 900;
-  letter-spacing: -0.015em;
-  line-height: 1.05;
+  letter-spacing: 0.06em;
+  line-height: 1.02;
   text-transform: uppercase;
   text-align: center;
   color: rgba(255, 255, 255, 0.96);
@@ -1902,7 +1904,7 @@ body.page-full-gallery .onepage-section__heading {
 
 .onepage-section--home .home-bio-row .home-intro {
   color: rgba(238, 238, 238, 0.92) !important;
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif !important;
+  font-family: var(--font-body) !important;
   font-weight: 400 !important;
   text-align: center !important;
 }
@@ -3642,6 +3644,7 @@ body.page-profile {
 }
 
 .contact__intro {
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.85);
