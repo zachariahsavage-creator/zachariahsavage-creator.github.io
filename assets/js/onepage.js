@@ -4423,10 +4423,11 @@ function setupRatesReveal() {
   if (!toggle || !panel) return;
 
   const RATES_MOBILE_QUERY = "(max-width: 1023px)";
+  const RATES_EXPAND_FOLLOW_MS = 600;
   const isRatesMobile = () => window.matchMedia?.(RATES_MOBILE_QUERY)?.matches ?? false;
-  let ratesScrollTimer = 0;
+  let ratesFollowRaf = 0;
 
-  /** Keep the Rates button fixed in the viewport while the panel grows/shrinks. */
+  /** Keep the Rates button fixed in the viewport while the panel shrinks on close. */
   function pinToggleWhile(fn) {
     if (!isRatesMobile()) {
       fn();
@@ -4444,13 +4445,20 @@ function setupRatesReveal() {
     const started = performance.now();
     const tick = (now) => {
       apply();
-      // Match .rates__panel transition (~550ms) so scroll anchoring cannot fight mid-open.
+      // Match .rates__panel transition (~550ms) so scroll anchoring cannot fight mid-close.
       if (now - started < 650) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   }
 
-  /** Soft-scroll so the opened price block sits in the vertical center of the viewport. */
+  function stopRatesCenterFollow() {
+    if (ratesFollowRaf) {
+      window.cancelAnimationFrame(ratesFollowRaf);
+      ratesFollowRaf = 0;
+    }
+  }
+
+  /** Keep the price block centered while the panel height is changing. */
   function scrollRatesPricesToCenter() {
     if (!isRatesMobile()) return;
     const target =
@@ -4465,14 +4473,24 @@ function setupRatesReveal() {
     const scrollY = getPageScrollTop();
     const targetCenter = rect.top + scrollY + rect.height / 2;
     const destination = Math.max(0, targetCenter - window.innerHeight / 2);
-    const instant = getShouldReduceMotion();
-    const scrollRoot = getOnePageScrollRoot();
+    setPageScrollTop(destination);
+  }
 
-    if (scrollRoot === document.body || scrollRoot === document.documentElement) {
-      window.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
-      return;
-    }
-    scrollRoot.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
+  /** Track the expanding panel into center for the duration of the open animation. */
+  function followRatesPricesCenterWhileExpanding() {
+    stopRatesCenterFollow();
+    if (!isRatesMobile()) return;
+
+    const started = performance.now();
+    const tick = (now) => {
+      ratesFollowRaf = 0;
+      if (!root.classList.contains("is-open")) return;
+      scrollRatesPricesToCenter();
+      if (now - started < RATES_EXPAND_FOLLOW_MS) {
+        ratesFollowRaf = window.requestAnimationFrame(tick);
+      }
+    };
+    ratesFollowRaf = window.requestAnimationFrame(tick);
   }
 
   const setOpen = (open) => {
@@ -4491,19 +4509,15 @@ function setupRatesReveal() {
     event.preventDefault();
     event.stopPropagation();
     const willOpen = !root.classList.contains("is-open");
-    if (ratesScrollTimer) {
-      window.clearTimeout(ratesScrollTimer);
-      ratesScrollTimer = 0;
-    }
-    pinToggleWhile(() => setOpen(willOpen));
+    stopRatesCenterFollow();
+
     if (willOpen && isRatesMobile()) {
-      // Wait for the panel expand + pin window, then ease prices into center.
-      ratesScrollTimer = window.setTimeout(() => {
-        ratesScrollTimer = 0;
-        if (!root.classList.contains("is-open")) return;
-        scrollRatesPricesToCenter();
-      }, 680);
+      setOpen(true);
+      followRatesPricesCenterWhileExpanding();
+      return;
     }
+
+    pinToggleWhile(() => setOpen(willOpen));
   };
 
   // Attach first so a cycle-setup failure cannot leave Rates without a handler.
