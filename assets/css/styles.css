@@ -10,6 +10,9 @@
 :root {
   --font-sans: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  /* Closest free stand-ins for Beyond The Watch's Proxima Nova Condensed / Proxima Nova. */
+  --font-heading: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-button: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -697,9 +700,9 @@ body.page-home .header-social__link:hover {
   -webkit-backdrop-filter: blur(14px);
   border: none;
   box-shadow: var(--shadow-md);
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -801,9 +804,9 @@ a.page-center-title:hover {
 }
 
 .gallery-bar__title {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -882,11 +885,11 @@ a.page-center-title:hover {
   align-items: center;
   min-height: 40px;
   padding: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   color: #000000;
   text-decoration: none;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transform-origin: left center;
@@ -1030,9 +1033,9 @@ body.page-full-gallery .onepage-section--gallery {
   max-width: 72rem;
   margin: 0 auto var(--space-4);
   padding: 0 var(--space-5);
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: clamp(1.5rem, 4.2vw, 2.75rem);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(0, 0, 0, 0.72);
@@ -1043,7 +1046,7 @@ body.page-full-gallery .onepage-section--gallery {
 }
 
 body.page-full-gallery .onepage-section__heading {
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.16em;
 }
 
@@ -1267,9 +1270,9 @@ body.page-full-gallery .onepage-section__heading {
 .home-bio-heading {
   margin: 0;
   width: 100%;
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.1rem, 6vw, 3.5rem);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.08;
   letter-spacing: -0.015em;
   color: rgba(255, 255, 255, 0.98);
@@ -1557,7 +1560,7 @@ body.page-full-gallery .onepage-section__heading {
   background: rgba(255, 255, 255, 0.16);
   color: rgba(255, 255, 255, 0.96);
   text-decoration: none;
-  font-family: var(--font-sans);
+  font-family: var(--font-button);
   font-size: clamp(1.02rem, 1.6vw, 1.24rem);
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -1613,10 +1616,10 @@ body.page-full-gallery .onepage-section__heading {
   margin: 0;
   flex: 1 1 auto;
   min-width: 0;
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-heading);
   /* Match .home-bio-heading */
   font-size: clamp(2.1rem, 6vw, 3.5rem);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.08;
   letter-spacing: -0.015em;
   color: rgba(255, 255, 255, 0.98);
@@ -1725,7 +1728,7 @@ body.page-full-gallery .onepage-section__heading {
 
 .rates__table thead th {
   padding-bottom: 1rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1750,9 +1753,9 @@ body.page-full-gallery .onepage-section__heading {
 
 .rates__price {
   display: inline-block;
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.75rem, 7vw, 4rem);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
   color: #ffffff;
@@ -1872,9 +1875,9 @@ body.page-full-gallery .onepage-section__heading {
   margin: 0 auto var(--space-5);
   padding: 0 max(0.85rem, env(safe-area-inset-left, 0px))
     0 max(0.85rem, env(safe-area-inset-right, 0px));
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.25rem, 7vw, 4.25rem);
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: -0.015em;
   line-height: 1.05;
   text-transform: uppercase;
@@ -1892,8 +1895,8 @@ body.page-full-gallery .onepage-section__heading {
 
 .onepage-section--home .home-bio-row .home-bio-heading {
   color: rgba(255, 255, 255, 0.98) !important;
-  font-family: ui-serif, Georgia, "Times New Roman", Times, serif !important;
-  font-weight: 700 !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 900 !important;
   text-align: center !important;
 }
 
@@ -3627,8 +3630,9 @@ body.page-profile {
 }
 
 .contact__heading {
+  font-family: var(--font-heading);
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   margin: 0 0 var(--space-2);
@@ -3712,9 +3716,9 @@ body.page-profile {
 .contact__submit {
   margin-top: var(--space-3);
   padding: 0.85em 1.75em;
-  font-family: inherit;
+  font-family: var(--font-button);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #141414;
@@ -3914,9 +3918,11 @@ body.page-profile {
   gap: 0.5rem;
   color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
+  font-family: var(--font-button);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: var(--radius-pill);
   padding: 0.45rem 0.9rem;
@@ -4455,7 +4461,7 @@ body.page-profile {
     padding-top: var(--home-flow-header-offset);
     padding-inline: 1.15em;
     padding-bottom: calc(0.55em + 0.2in);
-    font-family: var(--font-sans);
+    font-family: var(--font-heading);
     font-size: var(--home-flow-heading-font, clamp(
       0.55rem,
       calc(
@@ -4466,7 +4472,7 @@ body.page-profile {
       ),
       1.25rem
     ));
-    font-weight: 600;
+    font-weight: 800;
     line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
