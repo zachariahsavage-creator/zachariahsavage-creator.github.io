@@ -1246,19 +1246,6 @@ body.page-full-gallery .onepage-section__heading {
   flex-direction: column;
 }
 
-.home-bio-inner > .home-bio-image {
-  order: 1;
-}
-
-.home-bio-inner > .onepage-section--rates {
-  order: 2;
-}
-
-.home-bio-inner > .home-bio-copy {
-  order: 3;
-  margin-top: clamp(1.25rem, 3vw, 1.75rem);
-}
-
 .home-bio-row .home-bio-image {
   width: 100%;
   margin: 0 0 var(--space-3);
@@ -1801,7 +1788,7 @@ body.page-full-gallery .onepage-section__heading {
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
   .rates__panel,
   .rates.is-open .rates__panel {
-    clip-path: none;
+    transition: none;
   }
 
   .rates:not(.is-open) .rates__panel {
@@ -1917,12 +1904,6 @@ body.page-full-gallery .onepage-section__heading {
     align-items: center;
   }
 
-  .home-bio-inner > .home-bio-image,
-  .home-bio-inner > .home-bio-copy,
-  .home-bio-inner > .onepage-section--rates {
-    order: unset;
-  }
-
   .home-bio-inner > .home-bio-image {
     grid-column: 1;
     grid-row: 1;
@@ -1931,46 +1912,56 @@ body.page-full-gallery .onepage-section__heading {
   .home-bio-inner > .home-bio-copy {
     grid-column: 2;
     grid-row: 1;
-    margin-top: 0;
   }
 
-  /* Promote rates lead/panel into the bio grid under the portrait / beside the copy. */
-  .home-bio-inner > .onepage-section--rates,
-  .home-bio-inner > .onepage-section--rates .rates,
-  .home-bio-inner > .onepage-section--rates .rates__rail {
-    display: contents;
-  }
-
+  /* Full-width row under photo + bio; inner rail mirrors the bio columns. */
   .home-bio-inner > .onepage-section--rates {
+    grid-column: 1 / -1;
+    grid-row: 2;
     margin: 0;
   }
 
+  .rates__rail {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) minmax(0, 1.6fr);
+    column-gap: var(--space-4);
+    align-items: center;
+  }
+
   .rates__lead {
-    grid-column: 1;
-    grid-row: 2;
     max-width: none;
     align-self: center;
   }
 
   .rates__panel {
-    grid-column: 2;
-    grid-row: 2;
-    display: block;
+    display: grid;
+    /* Horizontal unveil only — do not inherit the mobile 0fr row collapse. */
+    grid-template-rows: 1fr;
+    grid-template-columns: 0fr;
     align-self: stretch;
+    min-width: 0;
     height: 100%;
     margin-top: 0;
-    /* Clip the table as it slides in from the left. */
-    clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      grid-template-columns 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease;
   }
 
   .rates.is-open .rates__panel {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
     margin-top: 0;
-    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .rates__panel-inner {
+    min-width: 0;
     min-height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
