@@ -1596,6 +1596,8 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .rates__lead {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1603,6 +1605,8 @@ body.page-full-gallery .onepage-section__heading {
   gap: clamp(0.85rem, 2.5vw, 1.35rem);
   width: 100%;
   max-width: min(28rem, 100%);
+  cursor: pointer;
+  user-select: none;
 }
 
 .rates__heading {
@@ -1624,6 +1628,8 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .rates__toggle {
+  position: relative;
+  z-index: 3;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -1637,6 +1643,8 @@ body.page-full-gallery .onepage-section__heading {
   background: transparent;
   color: rgba(255, 255, 255, 0.96);
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
   transition:
     border-color 0.25s ease,
     background-color 0.25s ease,
@@ -1789,15 +1797,9 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
-  .rates__panel,
-  .rates__panel-inner,
   .rates.is-open .rates__panel,
-  .rates.is-open .rates__panel-inner {
-    transition: none;
-  }
-
-  .rates:not(.is-open) .rates__panel {
-    visibility: hidden;
+  .onepage-section--rates.is-open .rates__panel {
+    animation: none;
   }
 }
 
@@ -1938,51 +1940,67 @@ body.page-full-gallery .onepage-section__heading {
     align-self: center;
   }
 
+  .rates__lead {
+    min-height: 3.25rem;
+  }
+
+  .rates__toggle {
+    width: 3.15rem;
+    height: 3.15rem;
+  }
+
   /*
-   * Desktop: right column stays reserved; panel collapses with 0fr rows when closed,
-   * then grows and slides in from the left when open. No height:100% clipping.
+   * Desktop: use display/hidden (set in JS) instead of 0fr grid tricks.
+   * Right column stays reserved; open panel slides in from the left.
    */
   .rates__panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 0fr;
+    display: none;
     align-self: start;
     min-width: 0;
     width: 100%;
     height: auto;
     margin-top: 0;
-    overflow: hidden;
+    overflow: visible;
     opacity: 1;
-    pointer-events: none;
-    transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: auto;
+    transition: none;
   }
 
   .rates.is-open .rates__panel,
   .onepage-section--rates.is-open .rates__panel {
-    grid-template-rows: 1fr;
+    display: block;
+    grid-template-rows: unset;
     margin-top: 0;
-    pointer-events: auto;
+    animation: rates-panel-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .rates__panel-inner {
     min-width: 0;
     min-height: 0;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    opacity: 0;
-    transform: translateX(-1.25rem);
-    transition:
-      opacity 0.35s ease,
-      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 1;
+    transform: none;
   }
 
   .rates.is-open .rates__panel-inner,
   .onepage-section--rates.is-open .rates__panel-inner {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
+  }
+
+  @keyframes rates-panel-in {
+    from {
+      opacity: 0;
+      transform: translateX(-1.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .rates__note {
