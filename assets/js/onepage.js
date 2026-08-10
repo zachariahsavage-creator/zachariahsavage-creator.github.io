@@ -4367,12 +4367,14 @@ function setupRatesReveal() {
   const root = document.querySelector(".rates--reveal");
   if (!root) return;
 
+  const section = root.closest(".onepage-section--rates");
   const toggle = root.querySelector(".rates__toggle");
   const panel = root.querySelector(".rates__panel");
   if (!toggle || !panel) return;
 
   const setOpen = (open) => {
     root.classList.toggle("is-open", open);
+    section?.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
     toggle.setAttribute("aria-label", open ? "Hide pricing" : "Show pricing");
     panel.setAttribute("aria-hidden", open ? "false" : "true");
@@ -4380,7 +4382,8 @@ function setupRatesReveal() {
     else panel.setAttribute("inert", "");
   };
 
-  toggle.addEventListener("click", () => {
+  toggle.addEventListener("click", (event) => {
+    event.preventDefault();
     setOpen(!root.classList.contains("is-open"));
   });
 }
