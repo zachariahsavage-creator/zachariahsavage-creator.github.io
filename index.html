@@ -179,16 +179,31 @@
         </div>
         <div class="home-bio-row">
           <div class="home-bio-inner">
-            <img
-              class="home-bio-image"
-              src="assets/images/site/zach-savage-portrait.webp"
-              alt="Portrait of Zach Savage, Toronto concert and event photographer"
-              width="1600"
-              height="1067"
-              loading="eager"
-              decoding="sync"
-              data-asset-path="zach-savage-portrait.webp"
-            />
+            <div class="home-bio-picture">
+              <picture class="home-bio-picture__default">
+                <!-- Mobile bio portrait (4:5). Breakpoint mirrors HOME_BIO_MOBILE_QUERY in onepage.js. -->
+                <source
+                  media="(max-width: 1023px)"
+                  srcset="assets/images/site/zach-savage-portrait-mobile.webp"
+                  type="image/webp"
+                />
+                <img
+                  class="home-bio-image"
+                  src="assets/images/site/zach-savage-portrait.webp"
+                  alt="Portrait of Zach Savage, Toronto concert and event photographer"
+                  width="1600"
+                  height="1067"
+                  loading="eager"
+                  decoding="sync"
+                  data-asset-path="zach-savage-portrait.webp"
+                />
+              </picture>
+              <!-- Desktop-only: crossfades lead shots from the top gallery folders while Rates is open. -->
+              <div class="home-bio-cycle" aria-hidden="true">
+                <img class="home-bio-cycle__img home-bio-cycle__img--a" alt="" decoding="async" />
+                <img class="home-bio-cycle__img home-bio-cycle__img--b" alt="" decoding="async" />
+              </div>
+            </div>
             <div class="home-bio-copy">
               <h2 class="home-bio-heading">Who Am I?</h2>
               <p class="home-intro">
@@ -201,7 +216,7 @@
             <section
               class="onepage-section onepage-section--rates"
               id="rates-section"
-              data-section-label="rates"
+              data-section-label="home"
               aria-labelledby="rates-heading"
             >
               <div class="rates rates--reveal">
