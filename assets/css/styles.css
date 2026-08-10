@@ -1673,8 +1673,15 @@ body.page-full-gallery .onepage-section__heading {
   box-shadow: none;
 }
 
+/* Rates toggle is not a menu scroll target — scroll-margin here made mobile
+   browsers yank the button upward when the panel opened under focus. */
 #rates-heading {
-  scroll-margin-top: calc(128px + env(safe-area-inset-top, 0px) + 1.25rem);
+  scroll-margin-top: 0;
+}
+
+.onepage-section--rates,
+.rates__panel {
+  overflow-anchor: none;
 }
 
 .rates__toggle {
