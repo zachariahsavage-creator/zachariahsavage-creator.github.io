@@ -1457,12 +1457,19 @@ function withBootTimeout(promise, ms = SITE_BOOT_PIN_TIMEOUT_MS) {
 
 async function ensureDomImagesDecoded(root) {
   if (!root) return;
-  const imgs = Array.from(root.querySelectorAll("img"));
+  const imgs = Array.from(root.querySelectorAll("img")).filter((img) => {
+    // Empty-src placeholders (rates bio cycle layers) never fire load/error.
+    if (img.classList.contains("home-bio-cycle__img")) return false;
+    const src = (img.getAttribute("src") || img.currentSrc || "").trim();
+    return Boolean(src);
+  });
   await Promise.all(imgs.map((img) => ensureImageDecoded(img)));
 }
 
 async function ensureImageDecoded(img) {
   if (!img) return;
+  const src = (img.getAttribute("src") || img.currentSrc || "").trim();
+  if (!src) return;
   return new Promise((resolve) => {
     const finish = () => {
       if (img.decode) {
@@ -1473,6 +1480,11 @@ async function ensureImageDecoded(img) {
     };
     if (img.complete && img.naturalWidth > 0) {
       finish();
+      return;
+    }
+    // Broken/empty cached images can be complete with naturalWidth 0 and never load again.
+    if (img.complete) {
+      resolve();
       return;
     }
     img.addEventListener("load", finish, { once: true });
@@ -4417,8 +4429,17 @@ function setupRatesReveal() {
     setOpen(!root.classList.contains("is-open"));
   };
 
-  setOpen(false);
+  // Attach first so a cycle-setup failure cannot leave Rates without a handler.
   toggle.addEventListener("click", toggleOpen);
+  try {
+    setOpen(false);
+  } catch (_err) {
+    root.classList.remove("is-open");
+    section?.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+    panel.setAttribute("aria-hidden", "true");
+    panel.setAttribute("inert", "");
+  }
 }
 
 /** Lead image from each of the top N gallery folders (page order). */
