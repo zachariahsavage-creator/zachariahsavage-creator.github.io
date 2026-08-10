@@ -4143,7 +4143,7 @@ body.page-profile {
   }
 
   /*
-   * Mobile menu (closed + open): visible white pill + black type, with difference
+   * Mobile menu (closed + open): frosted white pill + black type, with difference
    * blend on the fixed header stacking context so it actually inverts page content
    * behind it (blend on the inner brand is trapped by .gallery-bar's z-index).
    */
@@ -4154,13 +4154,20 @@ body.page-profile {
   }
 
   body.page-home .gallery-bar__brand,
-  body.page-full-gallery .gallery-bar__brand,
+  body.page-full-gallery .gallery-bar__brand {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-md);
+    mix-blend-mode: normal;
+  }
+
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    background: #ffffff;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-md);
     mix-blend-mode: normal;
   }
 
