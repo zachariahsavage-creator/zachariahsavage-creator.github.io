@@ -10,7 +10,7 @@
 :root {
   --font-sans: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  /* UI / nav / contact headings — matches View Gallery CTAs. */
+  /* UI / nav / contact headings — matches Gallery / Rates CTAs. */
   --font-heading: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
   --font-button: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
   /* Large section titles: Who Am I?, rates, Gallery. */
@@ -1538,13 +1538,13 @@ body.page-full-gallery .onepage-section__heading {
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
 }
 
-/* Twin bio CTAs: View Gallery + Rates (outlined pills on the black band). */
+/* Twin bio CTAs: Gallery + Rates (matched outlined buttons on the black band). */
 .home-bio-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   width: 100%;
   margin: 0.35rem 0 0;
 }
@@ -1555,13 +1555,15 @@ body.page-full-gallery .onepage-section__heading {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4em;
+  gap: 0.35em;
   box-sizing: border-box;
   margin: 0;
-  min-height: 3.15rem;
-  padding: 0.7em 1.35em;
+  flex: 0 0 auto;
+  width: 11.75rem;
+  min-height: 3.55rem;
+  padding: 0.8em 1.1em;
   border: 1px solid rgba(255, 255, 255, 0.42);
-  border-radius: 999px;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.96);
   box-shadow: none;
@@ -1569,7 +1571,7 @@ body.page-full-gallery .onepage-section__heading {
   text-transform: none;
   white-space: nowrap;
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+  font-size: clamp(1.45rem, 3.2vw, 1.85rem);
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1;
@@ -1899,24 +1901,28 @@ body.page-full-gallery .onepage-section__heading {
     grid-row: 1;
   }
 
-  /* Full-width row under photo + bio: twin CTAs, panel expands down. */
+  /* Sit under the bio copy column so CTAs center below Who Am I? */
   .home-bio-inner > .onepage-section--rates {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 2;
     margin: 0;
+    justify-self: stretch;
+    width: 100%;
   }
 
   .home-bio-actions {
     margin-top: 0.15rem;
-    gap: 0.85rem;
+    gap: 0.9rem;
   }
 
   .home-cta,
   .home-bio-row .home-start-btn.home-start-btn--pov,
   .home-cta.rates__toggle {
-    min-height: 3.35rem;
-    padding: 0.75em 1.55em;
-    font-size: clamp(1.28rem, 1.7vw, 1.6rem);
+    width: 12.5rem;
+    min-height: 3.75rem;
+    padding: 0.85em 1.15em;
+    border-radius: 0.6rem;
+    font-size: clamp(1.55rem, 1.9vw, 1.95rem);
   }
 
   .rates__panel-inner {
@@ -4447,17 +4453,17 @@ body.page-profile {
 
   .home-bio-actions {
     margin-top: 0.75rem;
-    gap: 0.65rem;
+    gap: 0.7rem;
   }
 
   .home-cta,
   .home-bio-row .home-start-btn.home-start-btn--pov,
   .home-cta.rates__toggle {
-    width: auto;
-    max-width: 100%;
-    min-height: 3rem;
-    padding: 0.65em 1.2em;
-    font-size: clamp(1.15rem, 4.2vw, 1.4rem);
+    width: min(10.75rem, calc(50% - 0.35rem));
+    min-height: 3.35rem;
+    padding: 0.75em 0.85em;
+    border-radius: 0.5rem;
+    font-size: clamp(1.35rem, 5vw, 1.65rem);
   }
 
   .home-start-btn:not(.home-start-btn--pov) {
@@ -4613,9 +4619,11 @@ body.page-profile {
   .home-cta,
   .home-bio-row .home-start-btn.home-start-btn--pov,
   .home-cta.rates__toggle {
-    min-height: 2.85rem;
-    padding: 0.6em 1.1em;
-    font-size: clamp(1.1rem, 4.5vw, 1.3rem);
+    width: min(10.25rem, calc(50% - 0.35rem));
+    min-height: 3.2rem;
+    padding: 0.7em 0.75em;
+    border-radius: 0.45rem;
+    font-size: clamp(1.28rem, 5.2vw, 1.55rem);
   }
 
   .contact {
