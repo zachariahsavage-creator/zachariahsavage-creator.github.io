@@ -4433,6 +4433,33 @@ function setupRatesReveal() {
   const panel = root.querySelector(".rates__panel");
   if (!toggle || !panel) return;
 
+  const RATES_MOBILE_QUERY = "(max-width: 1023px)";
+  const isRatesMobile = () => window.matchMedia?.(RATES_MOBILE_QUERY)?.matches ?? false;
+
+  /** Keep the Rates button fixed in the viewport while the panel grows/shrinks. */
+  function pinToggleWhile(fn) {
+    if (!isRatesMobile()) {
+      fn();
+      return;
+    }
+    const topBefore = toggle.getBoundingClientRect().top;
+    fn();
+    const apply = () => {
+      const drift = toggle.getBoundingClientRect().top - topBefore;
+      if (Math.abs(drift) > 0.5) {
+        setPageScrollTop(getPageScrollTop() + drift);
+      }
+    };
+    apply();
+    const started = performance.now();
+    const tick = (now) => {
+      apply();
+      // Match .rates__panel transition (~550ms) so scroll anchoring cannot fight mid-open.
+      if (now - started < 650) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   const setOpen = (open) => {
     root.classList.toggle("is-open", open);
     section?.classList.toggle("is-open", open);
@@ -4448,7 +4475,7 @@ function setupRatesReveal() {
   const toggleOpen = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    setOpen(!root.classList.contains("is-open"));
+    pinToggleWhile(() => setOpen(!root.classList.contains("is-open")));
   };
 
   // Attach first so a cycle-setup failure cannot leave Rates without a handler.
