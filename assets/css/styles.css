@@ -4549,10 +4549,22 @@ body.page-profile {
     font-size: clamp(0.94rem, 3.8vw, 1.06rem);
   }
 
+  /* Taller, narrower rounded rectangle; label matches Who Am I? */
   .home-bio-row .home-start-btn.home-start-btn--pov {
+    width: auto;
+    max-width: 88%;
+    align-self: center;
+    box-sizing: border-box;
     text-transform: none;
-    letter-spacing: 0.05em;
-    min-height: calc(var(--gallery-pill-inner-min-height) + 2 * var(--gallery-pill-pad-block));
+    font-family: var(--font-display);
+    font-size: clamp(2.94rem, 8.4vw, 4.9rem);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    gap: 0.2em;
+    border-radius: 1rem;
+    padding: 0.55em 0.85em;
+    min-height: 0;
   }
 
   .full-gallery-heading {
@@ -4700,9 +4712,9 @@ body.page-profile {
   }
 
   .home-bio-row .home-start-btn.home-start-btn--pov {
-    text-transform: none;
-    letter-spacing: 0.045em;
-    min-height: calc(var(--gallery-pill-inner-min-height) + 2 * var(--gallery-pill-pad-block));
+    max-width: 92%;
+    padding: 0.5em 0.75em;
+    border-radius: 0.9rem;
   }
 
   .contact {
