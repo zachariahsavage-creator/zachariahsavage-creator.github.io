@@ -10,10 +10,13 @@
 :root {
   --font-sans: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  /* Same face as View Gallery / CTA buttons (Montserrat ExtraBold/Black). */
+  /* UI / nav / contact headings — matches View Gallery CTAs. */
   --font-heading: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
   --font-button: "Montserrat", "DM Sans", system-ui, -apple-system, sans-serif;
-  /* Regular-width sibling of the heading face — pairs cleanly with Barlow Condensed. */
+  /* Large section titles: Who Am I?, rates, Gallery. */
+  --font-display: "Barlow Condensed", "Barlow", "DM Sans", system-ui, -apple-system,
+    sans-serif;
+  /* Body copy. */
   --font-body: "Barlow", "DM Sans", system-ui, -apple-system, sans-serif;
   --space-1: 4px;
   --space-2: 8px;
@@ -1272,7 +1275,7 @@ body.page-full-gallery .onepage-section__heading {
 .home-bio-heading {
   margin: 0;
   width: 100%;
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: clamp(2.94rem, 8.4vw, 4.9rem);
   font-weight: 900;
   line-height: 1.02;
@@ -1618,7 +1621,7 @@ body.page-full-gallery .onepage-section__heading {
   margin: 0;
   flex: 1 1 auto;
   min-width: 0;
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   /* Match .home-bio-heading */
   font-size: clamp(2.94rem, 8.4vw, 4.9rem);
   font-weight: 900;
@@ -1877,7 +1880,7 @@ body.page-full-gallery .onepage-section__heading {
   margin: 0 auto var(--space-5);
   padding: 0 max(0.85rem, env(safe-area-inset-left, 0px))
     0 max(0.85rem, env(safe-area-inset-right, 0px));
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: clamp(3.15rem, 9.8vw, 5.95rem);
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -1897,7 +1900,7 @@ body.page-full-gallery .onepage-section__heading {
 
 .onepage-section--home .home-bio-row .home-bio-heading {
   color: rgba(255, 255, 255, 0.98) !important;
-  font-family: var(--font-heading) !important;
+  font-family: var(--font-display) !important;
   font-weight: 900 !important;
   text-align: center !important;
 }
