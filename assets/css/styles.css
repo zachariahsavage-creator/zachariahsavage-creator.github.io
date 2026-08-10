@@ -1073,7 +1073,7 @@ body.page-full-gallery .onepage-section__heading {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding: clamp(1.75rem, 4vh, 3rem) max(1.25rem, env(safe-area-inset-left, 0px))
-    clamp(1.5rem, 3.5vh, 2.5rem) max(1.25rem, env(safe-area-inset-right, 0px));
+    clamp(2.75rem, 6vh, 4.25rem) max(1.25rem, env(safe-area-inset-right, 0px));
   background: #000000;
   border: none;
   box-shadow: none;
@@ -3894,6 +3894,20 @@ body.page-profile {
     min-height: 0;
     padding-top: 0.3rem;
     padding-bottom: 0.3rem;
+  }
+
+  /*
+   * The rule above reopens a transparent strip under the bio (home padding-bottom)
+   * and collapses rates top/bottom padding. Keep bio→rates flush and restore rates
+   * breathing room — more top on mobile, more bottom before contact.
+   */
+  body.page-home .onepage-section--home {
+    padding-bottom: 0;
+  }
+
+  body.page-home .onepage-section--rates {
+    padding-top: clamp(2.5rem, 6vh, 3.5rem);
+    padding-bottom: clamp(3rem, 7vh, 4.5rem);
   }
 
   /* Mobile: disable entrance animation for bio text + gallery heading. */
