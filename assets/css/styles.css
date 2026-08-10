@@ -3560,7 +3560,19 @@ body.page-profile {
 }
 
 .contact__input[type="date"] {
+  /* iOS Safari date controls ignore width:100% alone and grow past the card. */
   min-height: 2.9rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.contact__input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.2em;
 }
 
 .contact__error {
