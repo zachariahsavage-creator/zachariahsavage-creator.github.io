@@ -666,8 +666,7 @@ body.page-home::after {
 
 /* Mobile home/full-gallery only — sized to the pill via gallery-menu.js. */
 .gallery-bar__frost,
-.gallery-bar__plate,
-.gallery-bar__grade {
+.gallery-bar__plate {
   display: none;
 }
 
@@ -4160,13 +4159,9 @@ body.page-profile {
 
   /*
    * Body-level layers (home / full-gallery mobile):
-   * 1) `.gallery-bar__frost` — blur + tint
+   * 1) `.gallery-bar__frost` — blur (+ optional tint)
    * 2) `.gallery-bar__plate` — white + exclusion (inversion)
-   * 3) `.gallery-bar__grade` — grayscale the inverted result (post-blend)
-   * 4) `.gallery-bar__brand` — white type + exclusion (inverts with the plate)
-   *
-   * filter:grayscale on the plate itself only grays the white fill before blend,
-   * so color returns from the photo backdrop — grade uses backdrop-filter after.
+   * 3) `.gallery-bar__brand` — white type + exclusion (inverts with the plate)
    */
   body.page-home .gallery-bar,
   body.page-full-gallery .gallery-bar {
@@ -4178,9 +4173,7 @@ body.page-profile {
   body.page-home .gallery-bar__frost,
   body.page-full-gallery .gallery-bar__frost,
   body.page-home .gallery-bar__plate,
-  body.page-full-gallery .gallery-bar__plate,
-  body.page-home .gallery-bar__grade,
-  body.page-full-gallery .gallery-bar__grade {
+  body.page-full-gallery .gallery-bar__plate {
     display: block;
     position: fixed;
     pointer-events: none;
@@ -4207,20 +4200,10 @@ body.page-profile {
     isolation: auto;
   }
 
-  body.page-home .gallery-bar__grade,
-  body.page-full-gallery .gallery-bar__grade {
-    z-index: 11;
-    background: transparent;
-    backdrop-filter: grayscale(1);
-    -webkit-backdrop-filter: grayscale(1);
-  }
-
   body.page-home .gallery-bar__frost.is-ready,
   body.page-full-gallery .gallery-bar__frost.is-ready,
   body.page-home .gallery-bar__plate.is-ready,
-  body.page-full-gallery .gallery-bar__plate.is-ready,
-  body.page-home .gallery-bar__grade.is-ready,
-  body.page-full-gallery .gallery-bar__grade.is-ready {
+  body.page-full-gallery .gallery-bar__plate.is-ready {
     opacity: 1;
   }
 
