@@ -4424,6 +4424,7 @@ function setupRatesReveal() {
 
   const RATES_MOBILE_QUERY = "(max-width: 1023px)";
   const isRatesMobile = () => window.matchMedia?.(RATES_MOBILE_QUERY)?.matches ?? false;
+  let ratesScrollTimer = 0;
 
   /** Keep the Rates button fixed in the viewport while the panel grows/shrinks. */
   function pinToggleWhile(fn) {
@@ -4449,6 +4450,31 @@ function setupRatesReveal() {
     requestAnimationFrame(tick);
   }
 
+  /** Soft-scroll so the opened price block sits in the vertical center of the viewport. */
+  function scrollRatesPricesToCenter() {
+    if (!isRatesMobile()) return;
+    const target =
+      root.querySelector(".rates__table") ||
+      root.querySelector(".rates__panel-inner") ||
+      panel;
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    if (rect.height < 8) return;
+
+    const scrollY = getPageScrollTop();
+    const targetCenter = rect.top + scrollY + rect.height / 2;
+    const destination = Math.max(0, targetCenter - window.innerHeight / 2);
+    const instant = getShouldReduceMotion();
+    const scrollRoot = getOnePageScrollRoot();
+
+    if (scrollRoot === document.body || scrollRoot === document.documentElement) {
+      window.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
+      return;
+    }
+    scrollRoot.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
+  }
+
   const setOpen = (open) => {
     root.classList.toggle("is-open", open);
     section?.classList.toggle("is-open", open);
@@ -4464,7 +4490,20 @@ function setupRatesReveal() {
   const toggleOpen = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    pinToggleWhile(() => setOpen(!root.classList.contains("is-open")));
+    const willOpen = !root.classList.contains("is-open");
+    if (ratesScrollTimer) {
+      window.clearTimeout(ratesScrollTimer);
+      ratesScrollTimer = 0;
+    }
+    pinToggleWhile(() => setOpen(willOpen));
+    if (willOpen && isRatesMobile()) {
+      // Wait for the panel expand + pin window, then ease prices into center.
+      ratesScrollTimer = window.setTimeout(() => {
+        ratesScrollTimer = 0;
+        if (!root.classList.contains("is-open")) return;
+        scrollRatesPricesToCenter();
+      }, 680);
+    }
   };
 
   // Attach first so a cycle-setup failure cannot leave Rates without a handler.
