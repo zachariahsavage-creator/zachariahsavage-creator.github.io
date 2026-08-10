@@ -1230,7 +1230,7 @@ body.page-full-gallery .onepage-section__heading {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding: clamp(1.25rem, 3vw, 2rem) max(1.25rem, env(safe-area-inset-left, 0px))
-    clamp(1.25rem, 3vw, 2rem) max(1.25rem, env(safe-area-inset-right, 0px));
+    clamp(2.75rem, 5.5vw, 4rem) max(1.25rem, env(safe-area-inset-right, 0px));
   border: none;
   border-radius: 0;
   background: #000000;
@@ -1614,7 +1614,8 @@ body.page-full-gallery .onepage-section__heading {
   flex: 1 1 auto;
   min-width: 0;
   font-family: ui-serif, Georgia, "Times New Roman", Times, serif;
-  font-size: clamp(1.65rem, 5vw, 2.65rem);
+  /* Match .home-bio-heading */
+  font-size: clamp(2.1rem, 6vw, 3.5rem);
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.015em;
@@ -1797,9 +1798,11 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
-  .rates.is-open .rates__panel,
-  .onepage-section--rates.is-open .rates__panel {
-    animation: none;
+  .rates__panel-inner,
+  .rates.is-open .rates__panel-inner,
+  .onepage-section--rates.is-open .rates__panel-inner {
+    transition: none;
+    transform: none;
   }
 }
 
@@ -1938,9 +1941,6 @@ body.page-full-gallery .onepage-section__heading {
   .rates__lead {
     max-width: none;
     align-self: center;
-  }
-
-  .rates__lead {
     min-height: 3.25rem;
   }
 
@@ -1950,20 +1950,22 @@ body.page-full-gallery .onepage-section__heading {
   }
 
   /*
-   * Desktop: use display/hidden (set in JS) instead of 0fr grid tricks.
-   * Right column stays reserved; open panel slides in from the left.
+   * Desktop: keep the expanded footprint always (visibility, not display/hidden)
+   * so the heading stays in the same place closed or open. Table is centered
+   * under the bio copy column.
    */
   .rates__panel {
-    display: none;
+    display: block;
     align-self: start;
     min-width: 0;
     width: 100%;
     height: auto;
     margin-top: 0;
     overflow: visible;
-    opacity: 1;
-    pointer-events: auto;
+    visibility: hidden;
+    pointer-events: none;
     transition: none;
+    animation: none;
   }
 
   .rates.is-open .rates__panel,
@@ -1971,36 +1973,39 @@ body.page-full-gallery .onepage-section__heading {
     display: block;
     grid-template-rows: unset;
     margin-top: 0;
-    animation: rates-panel-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    visibility: visible;
+    pointer-events: auto;
+    animation: none;
   }
 
   .rates__panel-inner {
     min-width: 0;
     min-height: 0;
     width: 100%;
+    max-width: min(34rem, 100%);
+    margin-left: auto;
+    margin-right: auto;
     overflow: visible;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
-    opacity: 1;
-    transform: none;
+    opacity: 0;
+    transform: translateX(-1.25rem);
+    transition:
+      opacity 0.35s ease,
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .rates.is-open .rates__panel-inner,
   .onepage-section--rates.is-open .rates__panel-inner {
     opacity: 1;
-    transform: none;
+    transform: translateX(0);
   }
 
-  @keyframes rates-panel-in {
-    from {
-      opacity: 0;
-      transform: translateX(-1.25rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  .rates__table {
+    width: 100%;
+    max-width: min(34rem, 100%);
   }
 
   .rates__note {
@@ -4137,7 +4142,7 @@ body.page-profile {
   }
 
   body.page-home .home-bio-row {
-    padding-bottom: clamp(2.25rem, 5vh, 3.5rem);
+    padding-bottom: clamp(3rem, 6.5vh, 4.5rem);
   }
 
   /* Mobile: disable entrance animation for bio text + gallery heading. */

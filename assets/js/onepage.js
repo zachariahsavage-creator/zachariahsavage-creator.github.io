@@ -4373,21 +4373,14 @@ function setupRatesReveal() {
   const panel = root.querySelector(".rates__panel");
   if (!toggle || !panel) return;
 
-  const desktopMq = window.matchMedia("(min-width: 1024px)");
-
-  const syncPanelHidden = (open) => {
-    // Desktop uses [hidden] for a reliable show/hide. Mobile keeps the CSS 0fr reveal.
-    if (desktopMq.matches) panel.hidden = !open;
-    else panel.hidden = false;
-  };
-
   const setOpen = (open) => {
     root.classList.toggle("is-open", open);
     section?.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
     toggle.setAttribute("aria-label", open ? "Hide pricing" : "Show pricing");
     panel.setAttribute("aria-hidden", open ? "false" : "true");
-    syncPanelHidden(open);
+    // Keep the panel in layout on desktop so closed/open share the same footprint.
+    panel.hidden = false;
     if (open) panel.removeAttribute("inert");
     else panel.setAttribute("inert", "");
   };
@@ -4406,15 +4399,6 @@ function setupRatesReveal() {
     if (event.target.closest(".rates__toggle")) return;
     toggleOpen(event);
   });
-
-  const onViewportChange = () => {
-    syncPanelHidden(root.classList.contains("is-open"));
-  };
-  if (typeof desktopMq.addEventListener === "function") {
-    desktopMq.addEventListener("change", onViewportChange);
-  } else if (typeof desktopMq.addListener === "function") {
-    desktopMq.addListener(onViewportChange);
-  }
 }
 
 function initSharedPageUi() {
