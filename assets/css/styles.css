@@ -4291,6 +4291,11 @@ body.page-profile {
     line-height: 1.58;
   }
 
+  /* A little air between the bio paragraph and View Gallery on narrow screens. */
+  body.page-home .home-bio-row .home-start-btn--pov {
+    margin-top: 0.75rem;
+  }
+
   .home-start-btn {
     width: 100%;
     min-height: 52px;
