@@ -1847,6 +1847,10 @@ body.page-full-gallery .onepage-section__heading {
   text-wrap: balance;
 }
 
+.rates__note + .rates__note {
+  margin-top: 0.65rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home-bio-inner > .home-bio-picture,
   .home-bio-inner > .home-bio-image {
@@ -4143,32 +4147,67 @@ body.page-profile {
   }
 
   /*
-   * Mobile menu (closed + open): frosted white pill + black type, with difference
-   * blend on the fixed header stacking context so it actually inverts page content
-   * behind it (blend on the inner brand is trapped by .gallery-bar's z-index).
+   * Mobile menu (closed + open): frosted glass + inverting type.
+   * Browsers drop backdrop-filter when mix-blend-mode/filter is on the same
+   * element (or an ancestor), so frost lives on ::before and difference stays
+   * on the text/icon rows only.
    */
   body.page-home .gallery-bar,
   body.page-full-gallery .gallery-bar {
     isolation: auto;
-    mix-blend-mode: difference;
+    mix-blend-mode: normal;
   }
 
   body.page-home .gallery-bar__brand,
-  body.page-full-gallery .gallery-bar__brand {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: var(--shadow-md);
-    mix-blend-mode: normal;
-  }
-
+  body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: var(--shadow-md);
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + (104px - 52px) / 2);
+    right: max(1rem, env(safe-area-inset-right, 0px));
+    left: auto;
+    z-index: 10;
+    transform: none;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
     mix-blend-mode: normal;
+    filter: none;
+    isolation: auto;
+  }
+
+  body.page-home .gallery-bar__brand::before,
+  body.page-full-gallery .gallery-bar__brand::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: 0;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    box-shadow: var(--shadow-md);
+  }
+
+  body.page-home .gallery-bar__brand.gallery-bar__brand--open::before,
+  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open::before {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  }
+
+  /* Invert only the ink so the frosted ::before can keep a real backdrop-filter. */
+  body.page-home .gallery-bar__title,
+  body.page-home .gallery-bar__menu-link,
+  body.page-home .gallery-bar__menu-icon,
+  body.page-full-gallery .gallery-bar__title,
+  body.page-full-gallery .gallery-bar__menu-link,
+  body.page-full-gallery .gallery-bar__menu-icon {
+    position: relative;
+    z-index: 1;
+    mix-blend-mode: difference;
   }
 
   body.page-home .gallery-bar__title,
@@ -4185,14 +4224,14 @@ body.page-profile {
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-    color: #000000;
+    color: #ffffff;
   }
 
   body.page-home .gallery-bar__menu-icon span,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-    background: #000000;
+    background: #ffffff;
   }
 
   .gallery-bar__menu-inner {
