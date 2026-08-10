@@ -22,9 +22,61 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const COLLAPSE_CLASS = "gallery-bar__menu-content--collapse";
   const OPEN_CLASS = "gallery-bar__brand--open";
   const COLLAPSE_FALLBACK_MS = 480;
+  const frostEl = document.querySelector(".gallery-bar__frost");
+  const frostMq =
+    typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 768px)")
+      : null;
 
   function prefersReducedMotion() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  }
+
+  function frostEnabled() {
+    if (!frostEl || !frostMq?.matches) return false;
+    return (
+      document.body.classList.contains("page-home") ||
+      document.body.classList.contains("page-full-gallery")
+    );
+  }
+
+  let frostRaf = 0;
+  let frostTrackUntil = 0;
+
+  function syncMenuFrost() {
+    if (!frostEl) return;
+    if (!frostEnabled()) {
+      frostEl.classList.remove("is-ready");
+      frostEl.removeAttribute("style");
+      return;
+    }
+    const rect = menuContainer.getBoundingClientRect();
+    const radius = getComputedStyle(menuContainer).borderRadius;
+    frostEl.style.top = `${rect.top}px`;
+    frostEl.style.left = `${rect.left}px`;
+    frostEl.style.width = `${rect.width}px`;
+    frostEl.style.height = `${rect.height}px`;
+    frostEl.style.borderRadius = radius;
+    frostEl.classList.add("is-ready");
+  }
+
+  function scheduleFrostSync(durationMs) {
+    if (!frostEnabled()) {
+      syncMenuFrost();
+      return;
+    }
+    const trackFor = typeof durationMs === "number" ? durationMs : 0;
+    frostTrackUntil = Math.max(frostTrackUntil, performance.now() + trackFor);
+    if (frostRaf) return;
+    const tick = (now) => {
+      syncMenuFrost();
+      if (now < frostTrackUntil) {
+        frostRaf = requestAnimationFrame(tick);
+      } else {
+        frostRaf = 0;
+      }
+    };
+    frostRaf = requestAnimationFrame(tick);
   }
 
   let collapseTimer = null;
@@ -48,6 +100,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
+    scheduleFrostSync(420);
   }
 
   function finishCollapseIfNeeded() {
@@ -76,6 +129,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
+    scheduleFrostSync(480);
 
     collapseOnEnd = (e) => {
       if (e.target !== menuContent || e.propertyName !== "grid-template-rows") return;
@@ -106,6 +160,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "true");
     menuTrigger.setAttribute("aria-label", "Close menu");
     menuContent.setAttribute("aria-hidden", "false");
+    scheduleFrostSync(420);
   }
 
   function toggleMenu() {
@@ -116,6 +171,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       menuTrigger.setAttribute("aria-expanded", "true");
       menuTrigger.setAttribute("aria-label", "Close menu");
       menuContent.setAttribute("aria-hidden", "false");
+      scheduleFrostSync(420);
       return;
     }
     if (menuContainer.classList.contains(OPEN_CLASS)) {
@@ -142,6 +198,16 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       if (menuContainer.contains(event.target)) return;
       closeMenu();
     });
+  }
+
+  if (frostEl) {
+    scheduleFrostSync();
+    window.addEventListener("resize", () => scheduleFrostSync(), { passive: true });
+    if (typeof ResizeObserver === "function") {
+      const ro = new ResizeObserver(() => scheduleFrostSync());
+      ro.observe(menuContainer);
+    }
+    frostMq?.addEventListener?.("change", () => scheduleFrostSync());
   }
 
   return { closeMenu, openMenu, toggleMenu };
