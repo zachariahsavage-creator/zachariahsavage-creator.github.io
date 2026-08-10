@@ -1235,15 +1235,27 @@ body.page-full-gallery .onepage-section__heading {
   object-fit: cover;
 }
 
+/* Full-bleed black band under the flow — joins the rates band into one continuous block. */
 .home-bio-row {
+  width: 100vw;
+  max-width: 100vw;
+  margin-top: var(--space-3);
+  margin-bottom: 0;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: clamp(1.25rem, 3vw, 2rem) max(1.25rem, env(safe-area-inset-left, 0px))
+    clamp(1.25rem, 3vw, 2rem) max(1.25rem, env(safe-area-inset-right, 0px));
+  border: none;
+  border-radius: 0;
+  background: #000000;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.home-bio-inner {
   width: 100%;
   max-width: min(92rem, 100%);
-  margin: var(--space-3) auto var(--space-3);
-  padding: var(--space-3);
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: calc(var(--radius-md) + 2px);
-  background: #000000;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  margin: 0 auto;
 }
 
 .home-bio-row .home-bio-image {
@@ -1759,7 +1771,6 @@ body.page-full-gallery .onepage-section__heading {
 /* Force bio card/text theme regardless of downstream generic `.home-intro` rules. */
 .onepage-section--home .home-bio-row {
   background: #000000 !important;
-  /* Flush against the rates band below — no atmosphere strip between them. */
   margin-bottom: 0;
 }
 
@@ -1778,7 +1789,7 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (min-width: 1024px) {
-  .home-bio-row {
+  .home-bio-inner {
     display: grid;
     grid-template-columns: minmax(300px, 1fr) minmax(0, 1.6fr);
     gap: var(--space-4);
@@ -4233,12 +4244,15 @@ body.page-profile {
   }
 
   body.page-home .home-bio-row {
-    width: auto;
+    width: 100vw;
+    max-width: 100vw;
     margin-top: 0;
-    margin-left: max(0.9rem, env(safe-area-inset-left, 0px));
-    margin-right: max(0.9rem, env(safe-area-inset-right, 0px));
+    margin-bottom: 0;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
     padding: 1.35rem max(1.15rem, env(safe-area-inset-left, 0px))
       1.35rem max(1.15rem, env(safe-area-inset-right, 0px));
+    border-radius: 0;
   }
 
   .home-bio-copy {
@@ -4399,10 +4413,14 @@ body.page-profile {
   }
 
   .home-bio-row {
-    margin-left: max(0.95rem, env(safe-area-inset-left, 0px));
-    margin-right: max(0.95rem, env(safe-area-inset-right, 0px));
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-bottom: 0;
     padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px))
       1.25rem max(1rem, env(safe-area-inset-right, 0px));
+    border-radius: 0;
   }
 
   .home-bio-heading {
