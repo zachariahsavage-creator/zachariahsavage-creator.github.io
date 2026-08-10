@@ -1264,6 +1264,16 @@ body.page-full-gallery .onepage-section__heading {
 .home-bio-row .home-bio-image {
   width: 100%;
   margin: 0 0 var(--space-3);
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+@media (max-width: 1023px) {
+  .home-bio-row .home-bio-image {
+    aspect-ratio: 4 / 5;
+    height: auto;
+    max-height: min(70vh, 36rem);
+  }
 }
 
 .home-bio-copy {
@@ -1435,9 +1445,7 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .home-bio-row .home-start-btn--pov:hover {
-  border-color: #ffffff;
-  background: #ffffff;
-  color: #111111;
+  /* No invert on hover — invert happens on press (:active). */
   box-shadow: none;
 }
 
@@ -1472,8 +1480,8 @@ body.page-full-gallery .onepage-section__heading {
     scale: 1;
   }
 
-  /* Invert Gallery on hover to match the shared CTA language. */
-  body.page-home .home-bio-row .home-start-btn--pov:hover {
+  /* Press feedback for Gallery lives on :active, not hover. */
+  body.page-home .home-bio-row .home-start-btn--pov:active {
     z-index: 2;
     background: #ffffff !important;
     color: #111111 !important;
@@ -1538,15 +1546,16 @@ body.page-full-gallery .onepage-section__heading {
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
 }
 
-/* Twin bio CTAs: Gallery + Rates (full-width matched buttons under bio). */
+/* Twin bio CTAs: Gallery + Rates (capped width, centered under bio). */
 .home-bio-actions {
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
   justify-content: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   width: 100%;
-  margin: 0.35rem 0 0;
+  max-width: min(24rem, 100%);
+  margin: 0.35rem auto 0;
 }
 
 .home-cta,
@@ -1561,8 +1570,9 @@ body.page-full-gallery .onepage-section__heading {
   flex: 1 1 0;
   width: auto;
   min-width: 0;
-  min-height: 4rem;
-  padding: 0.95em 1.15em;
+  max-width: 11.5rem;
+  min-height: 3.5rem;
+  padding: 0.8em 1em;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.06);
@@ -1572,7 +1582,7 @@ body.page-full-gallery .onepage-section__heading {
   text-transform: none;
   white-space: nowrap;
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3.6vw, 2.15rem);
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1;
@@ -1589,21 +1599,18 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .home-cta:hover,
-.home-cta:focus-visible,
 .home-bio-row .home-start-btn.home-start-btn--pov:hover,
-.home-bio-row .home-start-btn.home-start-btn--pov:focus-visible,
-.home-cta.rates__toggle:hover,
-.home-cta.rates__toggle:focus-visible {
-  border-color: #ffffff;
-  background: #ffffff;
-  color: #111111;
-  outline: none;
-  box-shadow: none;
+.home-cta.rates__toggle:hover {
+  /* Keep default look on hover; invert on click / open instead. */
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .home-cta:focus-visible,
 .home-bio-row .home-start-btn.home-start-btn--pov:focus-visible,
 .home-cta.rates__toggle:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.85), 0 0 0 4px rgba(255, 255, 255, 0.55);
 }
 
@@ -1611,8 +1618,8 @@ body.page-full-gallery .onepage-section__heading {
 .home-bio-row .home-start-btn.home-start-btn--pov:active,
 .home-cta.rates__toggle:active {
   transform: scale(0.985);
-  background: #f0f0f0;
-  border-color: #f0f0f0;
+  border-color: #ffffff;
+  background: #ffffff;
   color: #111111;
 }
 
@@ -1662,16 +1669,22 @@ body.page-full-gallery .onepage-section__heading {
 
 .rates.is-open .home-cta.rates__toggle,
 .onepage-section--rates.is-open .home-cta.rates__toggle {
-  border-color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.14);
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #111111;
 }
 
 .rates.is-open .home-cta.rates__toggle:hover,
-.rates.is-open .home-cta.rates__toggle:focus-visible,
-.onepage-section--rates.is-open .home-cta.rates__toggle:hover,
-.onepage-section--rates.is-open .home-cta.rates__toggle:focus-visible {
+.onepage-section--rates.is-open .home-cta.rates__toggle:hover {
   border-color: #ffffff;
   background: #ffffff;
+  color: #111111;
+}
+
+.rates.is-open .home-cta.rates__toggle:active,
+.onepage-section--rates.is-open .home-cta.rates__toggle:active {
+  border-color: #f0f0f0;
+  background: #f0f0f0;
   color: #111111;
 }
 
@@ -1780,6 +1793,10 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-bio-inner > .home-bio-image {
+    transition: none;
+  }
+
   .rates__toggle-arrow,
   .rates__panel,
   .rates__panel-inner {
@@ -1896,16 +1913,35 @@ body.page-full-gallery .onepage-section__heading {
 @media (min-width: 1024px) {
   .home-bio-inner {
     display: grid;
-    grid-template-columns: minmax(300px, 1fr) minmax(0, 1.6fr);
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.55fr);
     grid-template-rows: auto auto;
     column-gap: var(--space-4);
     row-gap: clamp(0.85rem, 1.6vw, 1.35rem);
-    align-items: center;
+    /* Stretch so the portrait can fill the full left column height. */
+    align-items: stretch;
   }
 
   .home-bio-inner > .home-bio-image {
     grid-column: 1;
-    grid-row: 1;
+    /* Span copy + rates rows so closed and open stay balanced. */
+    grid-row: 1 / -1;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    object-fit: cover;
+    /* Crop in on the face; taller frame reads as a modest portrait crop. */
+    object-position: center 18%;
+    transition:
+      object-position 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* When rates opens, the left column grows with the panel — tighten the crop. */
+  .home-bio-inner:has(.onepage-section--rates.is-open) > .home-bio-image,
+  .home-bio-inner:has(.rates.is-open) > .home-bio-image {
+    object-position: center 14%;
   }
 
   .home-bio-inner > .home-bio-copy {
@@ -1920,20 +1956,26 @@ body.page-full-gallery .onepage-section__heading {
     margin: 0;
     justify-self: stretch;
     width: 100%;
+    align-self: start;
   }
 
   .home-bio-actions {
     margin-top: 0.15rem;
-    gap: 1rem;
+    margin-inline: auto;
+    width: 100%;
+    max-width: min(26rem, 100%);
+    gap: 0.75rem;
   }
 
   .home-cta,
   .home-bio-row .home-start-btn.home-start-btn--pov,
   .home-cta.rates__toggle {
-    min-height: 4.35rem;
-    padding: 1em 1.25em;
-    border-radius: 0.6rem;
-    font-size: clamp(1.85rem, 2.2vw, 2.35rem);
+    flex: 1 1 0;
+    max-width: 12.25rem;
+    min-height: 3.55rem;
+    padding: 0.8em 1em;
+    border-radius: 0.55rem;
+    font-size: clamp(1.4rem, 1.7vw, 1.7rem);
   }
 
   .rates__panel-inner {
@@ -1947,8 +1989,9 @@ body.page-full-gallery .onepage-section__heading {
 
   .home-bio-row .home-bio-image {
     margin: 0;
+    /* Desktop sizing handled by the grid-span rules above. */
+    min-height: 0;
     height: 100%;
-    min-height: 17rem;
   }
 
   .home-bio-row .home-intro {
@@ -4464,7 +4507,9 @@ body.page-profile {
 
   .home-bio-actions {
     margin-top: 0.75rem;
-    gap: 0.75rem;
+    margin-inline: auto;
+    max-width: min(22rem, 100%);
+    gap: 0.65rem;
   }
 
   .home-cta,
@@ -4472,10 +4517,11 @@ body.page-profile {
   .home-cta.rates__toggle {
     flex: 1 1 0;
     width: auto;
-    min-height: 3.85rem;
-    padding: 0.85em 0.9em;
+    max-width: 10.5rem;
+    min-height: 3.35rem;
+    padding: 0.75em 0.8em;
     border-radius: 0.5rem;
-    font-size: clamp(1.55rem, 5.5vw, 1.9rem);
+    font-size: clamp(1.3rem, 4.8vw, 1.55rem);
   }
 
   .home-start-btn:not(.home-start-btn--pov) {
@@ -4633,10 +4679,11 @@ body.page-profile {
   .home-cta.rates__toggle {
     flex: 1 1 0;
     width: auto;
-    min-height: 3.65rem;
-    padding: 0.8em 0.8em;
+    max-width: 10rem;
+    min-height: 3.2rem;
+    padding: 0.7em 0.7em;
     border-radius: 0.45rem;
-    font-size: clamp(1.45rem, 5.8vw, 1.75rem);
+    font-size: clamp(1.22rem, 5vw, 1.45rem);
   }
 
   .contact {
