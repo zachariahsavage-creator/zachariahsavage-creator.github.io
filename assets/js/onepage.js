@@ -4368,7 +4368,6 @@ function setupRatesReveal() {
   if (!root) return;
 
   const section = root.closest(".onepage-section--rates");
-  const lead = root.querySelector(".rates__lead");
   const toggle = root.querySelector(".rates__toggle");
   const panel = root.querySelector(".rates__panel");
   if (!toggle || !panel) return;
@@ -4379,7 +4378,6 @@ function setupRatesReveal() {
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
     toggle.setAttribute("aria-label", open ? "Hide pricing" : "Show pricing");
     panel.setAttribute("aria-hidden", open ? "false" : "true");
-    // Keep the panel in layout on desktop so closed/open share the same footprint.
     panel.hidden = false;
     if (open) panel.removeAttribute("inert");
     else panel.setAttribute("inert", "");
@@ -4392,13 +4390,7 @@ function setupRatesReveal() {
   };
 
   setOpen(false);
-
   toggle.addEventListener("click", toggleOpen);
-  // Larger hit area: heading + arrow both toggle.
-  lead?.addEventListener("click", (event) => {
-    if (event.target.closest(".rates__toggle")) return;
-    toggleOpen(event);
-  });
 }
 
 function initSharedPageUi() {
