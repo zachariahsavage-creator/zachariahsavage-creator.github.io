@@ -4143,46 +4143,49 @@ body.page-profile {
   }
 
   /*
-   * Mobile menu (closed + open): invert against whatever scrolls underneath
-   * (same idea as the desktop center title). Clear the opaque pill + isolation
-   * so blend can reach the page.
+   * Mobile menu (closed + open): visible white pill + black type, with difference
+   * blend on the fixed header stacking context so it actually inverts page content
+   * behind it (blend on the inner brand is trapped by .gallery-bar's z-index).
    */
   body.page-home .gallery-bar,
   body.page-full-gallery .gallery-bar {
     isolation: auto;
+    mix-blend-mode: difference;
   }
 
   body.page-home .gallery-bar__brand,
   body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    background: transparent;
+    background: #ffffff;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
-    mix-blend-mode: difference;
+    mix-blend-mode: normal;
   }
 
   body.page-home .gallery-bar__title,
   body.page-home .gallery-bar__menu-link,
   body.page-home .gallery-bar__menu-link:visited,
+  body.page-home .gallery-bar__menu-link:hover,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited,
   body.page-full-gallery .gallery-bar__title,
   body.page-full-gallery .gallery-bar__menu-link,
   body.page-full-gallery .gallery-bar__menu-link:visited,
+  body.page-full-gallery .gallery-bar__menu-link:hover,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-    color: #ffffff;
+    color: #000000;
   }
 
   body.page-home .gallery-bar__menu-icon span,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-    background: #ffffff;
+    background: #000000;
   }
 
   .gallery-bar__menu-inner {
