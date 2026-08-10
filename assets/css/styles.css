@@ -659,6 +659,11 @@ body.page-home::after {
   pointer-events: auto;
 }
 
+/* Mobile home/full-gallery only — sized to the pill via gallery-menu.js. */
+.gallery-bar__frost {
+  display: none;
+}
+
 /* Top-left Instagram + email — vertically aligned with `.gallery-bar__anchor` / menu pill. */
 .header-social {
   position: absolute;
@@ -4147,67 +4152,66 @@ body.page-profile {
   }
 
   /*
-   * Mobile menu (closed + open): frosted glass + inverting type.
-   * Browsers drop backdrop-filter when mix-blend-mode/filter is on the same
-   * element (or an ancestor), so frost lives on ::before and difference stays
-   * on the text/icon rows only.
+   * Two siblings (home / full-gallery mobile):
+   * 1) `.gallery-bar__frost` — blur only, z-index BELOW the header.
+   * 2) `.gallery-bar` — mix-blend difference so the pill inverts against the page
+   *    (and the frost behind it). Brand stays in-flow with a white fill + black
+   *    ink; difference turns that into an inversion plate (not a flat white chip).
+   *
+   * Frost must stay a sibling outside this blend group or backdrop-filter dies.
+   * Brand must not be position:fixed or it escapes the header blend group.
    */
   body.page-home .gallery-bar,
   body.page-full-gallery .gallery-bar {
+    z-index: 11;
     isolation: auto;
-    mix-blend-mode: normal;
+    mix-blend-mode: difference;
+  }
+
+  body.page-home .gallery-bar__frost,
+  body.page-full-gallery .gallery-bar__frost {
+    display: block;
+    position: fixed;
+    z-index: 9;
+    pointer-events: none;
+    box-sizing: border-box;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4.5px) saturate(1.35);
+    -webkit-backdrop-filter: blur(4.5px) saturate(1.35);
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    transition: opacity 160ms var(--ease-out);
+  }
+
+  body.page-home .gallery-bar__frost.is-ready,
+  body.page-full-gallery .gallery-bar__frost.is-ready {
+    opacity: 1;
   }
 
   body.page-home .gallery-bar__brand,
   body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + (104px - 52px) / 2);
-    right: max(1rem, env(safe-area-inset-right, 0px));
+    position: relative;
+    top: auto;
+    right: auto;
     left: auto;
-    z-index: 10;
+    z-index: auto;
     transform: none;
-    background: transparent;
+    background: #ffffff;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
     mix-blend-mode: normal;
     filter: none;
     isolation: auto;
+    pointer-events: auto;
   }
 
   body.page-home .gallery-bar__brand::before,
   body.page-full-gallery .gallery-bar__brand::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    z-index: 0;
-    pointer-events: none;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    box-shadow: var(--shadow-md);
-  }
-
-  body.page-home .gallery-bar__brand.gallery-bar__brand--open::before,
-  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open::before {
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  }
-
-  /* Invert only the ink so the frosted ::before can keep a real backdrop-filter. */
-  body.page-home .gallery-bar__title,
-  body.page-home .gallery-bar__menu-link,
-  body.page-home .gallery-bar__menu-icon,
-  body.page-full-gallery .gallery-bar__title,
-  body.page-full-gallery .gallery-bar__menu-link,
-  body.page-full-gallery .gallery-bar__menu-icon {
-    position: relative;
-    z-index: 1;
-    mix-blend-mode: difference;
+    content: none;
   }
 
   body.page-home .gallery-bar__title,
@@ -4224,14 +4228,14 @@ body.page-profile {
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-    color: #ffffff;
+    color: #000000;
   }
 
   body.page-home .gallery-bar__menu-icon span,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-    background: #ffffff;
+    background: #000000;
   }
 
   .gallery-bar__menu-inner {
