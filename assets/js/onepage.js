@@ -4129,7 +4129,9 @@ function setupContactForm() {
 function setupHeaderPillsScrollFade() {
   const centerTitle = document.querySelector(".page-center-title");
   const menuPill = document.querySelector(".gallery-bar__brand");
-  if (!centerTitle && !menuPill) return;
+  // Menu pill stays visible while scrolling; only the center title may fade.
+  if (menuPill) menuPill.classList.remove("gallery-bar__brand--scroll-hidden");
+  if (!centerTitle) return;
 
   let lastTop = getPageScrollTop();
   let ticking = false;
@@ -4142,20 +4144,12 @@ function setupHeaderPillsScrollFade() {
     lastTop = top;
 
     if (top <= 8) {
-      if (centerTitle) centerTitle.classList.remove("page-center-title--hidden");
-      if (menuPill) menuPill.classList.remove("gallery-bar__brand--scroll-hidden");
+      centerTitle.classList.remove("page-center-title--hidden");
       return;
     }
 
     if (delta > deltaThreshold) {
-      if (centerTitle) centerTitle.classList.add("page-center-title--hidden");
-      if (menuPill && !menuPill.classList.contains("gallery-bar__brand--open")) {
-        menuPill.classList.add("gallery-bar__brand--scroll-hidden");
-      }
-    } else if (delta < -deltaThreshold) {
-      if (menuPill && !menuPill.classList.contains("gallery-bar__brand--open")) {
-        menuPill.classList.remove("gallery-bar__brand--scroll-hidden");
-      }
+      centerTitle.classList.add("page-center-title--hidden");
     }
   }
 
@@ -4369,6 +4363,28 @@ scheduleOnePageInit();
 
 let fullGalleryPageInitialized = false;
 
+function setupRatesReveal() {
+  const root = document.querySelector(".rates--reveal");
+  if (!root) return;
+
+  const toggle = root.querySelector(".rates__toggle");
+  const panel = root.querySelector(".rates__panel");
+  if (!toggle || !panel) return;
+
+  const setOpen = (open) => {
+    root.classList.toggle("is-open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-label", open ? "Hide pricing" : "Show pricing");
+    panel.setAttribute("aria-hidden", open ? "false" : "true");
+    if (open) panel.removeAttribute("inert");
+    else panel.setAttribute("inert", "");
+  };
+
+  toggle.addEventListener("click", () => {
+    setOpen(!root.classList.contains("is-open"));
+  });
+}
+
 function initSharedPageUi() {
   lightbox = document.querySelector(".lightbox");
   lightboxImage = document.querySelector(".lightbox__image");
@@ -4388,6 +4404,7 @@ function initSharedPageUi() {
   setupContactBackgroundCrossfade();
   setupContactForm();
   setupHeaderPillsScrollFade();
+  setupRatesReveal();
 }
 
 async function initFullGalleryPage() {
