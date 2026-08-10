@@ -1261,14 +1261,40 @@ body.page-full-gallery .onepage-section__heading {
   flex-direction: column;
 }
 
-.home-bio-row .home-bio-image {
+.home-bio-picture {
+  position: relative;
+  display: block;
   width: 100%;
   margin: 0 0 var(--space-3);
+  overflow: hidden;
+  border-radius: calc(var(--radius-md) + 2px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.home-bio-picture__default {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-bio-picture .home-bio-image,
+.home-bio-row .home-bio-image {
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   object-fit: cover;
   object-position: center 18%;
 }
 
+.home-bio-cycle {
+  display: none;
+}
+
 @media (max-width: 1023px) {
+  .home-bio-picture .home-bio-image,
   .home-bio-row .home-bio-image {
     aspect-ratio: 4 / 5;
     height: auto;
@@ -1450,11 +1476,6 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
-  body.page-home .onepage-section--home:has(.home-start-btn--pov:hover) {
-    position: relative;
-    z-index: 8;
-  }
-
   @keyframes home-view-gallery-burst-spin {
     to {
       rotate: 360deg;
@@ -1793,6 +1814,7 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-bio-inner > .home-bio-picture,
   .home-bio-inner > .home-bio-image {
     transition: none;
   }
@@ -1921,6 +1943,7 @@ body.page-full-gallery .onepage-section__heading {
     align-items: stretch;
   }
 
+  .home-bio-inner > .home-bio-picture,
   .home-bio-inner > .home-bio-image {
     grid-column: 1;
     /* Span copy + rates rows so closed and open stay balanced. */
@@ -1931,14 +1954,68 @@ body.page-full-gallery .onepage-section__heading {
     height: 100%;
     min-height: 0;
     margin: 0;
+  }
+
+  .home-bio-inner > .home-bio-picture .home-bio-picture__default,
+  .home-bio-inner > .home-bio-picture .home-bio-image,
+  .home-bio-inner > .home-bio-image {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
     object-fit: cover;
     /* Crop in on the face; taller frame reads as a modest portrait crop. */
     object-position: center 18%;
     transition:
-      object-position 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      object-position 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.55s ease;
+  }
+
+  .home-bio-cycle {
+    display: block;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.55s ease;
+  }
+
+  .home-bio-picture.is-cycling .home-bio-cycle {
+    opacity: 1;
+  }
+
+  .home-bio-picture.is-cycling .home-bio-picture__default {
+    opacity: 0;
+  }
+
+  .home-bio-cycle__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: inherit;
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0;
+    transition: opacity 0.75s ease;
+  }
+
+  .home-bio-cycle__img.is-active {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-bio-cycle,
+    .home-bio-picture__default,
+    .home-bio-cycle__img {
+      transition: none;
+    }
   }
 
   /* When rates opens, the left column grows with the panel — tighten the crop. */
+  .home-bio-inner:has(.onepage-section--rates.is-open) > .home-bio-picture .home-bio-image,
+  .home-bio-inner:has(.rates.is-open) > .home-bio-picture .home-bio-image,
   .home-bio-inner:has(.onepage-section--rates.is-open) > .home-bio-image,
   .home-bio-inner:has(.rates.is-open) > .home-bio-image {
     object-position: center 14%;
@@ -1987,6 +2064,7 @@ body.page-full-gallery .onepage-section__heading {
     max-width: min(40rem, 100%);
   }
 
+  .home-bio-row .home-bio-picture,
   .home-bio-row .home-bio-image {
     margin: 0;
     /* Desktop sizing handled by the grid-span rules above. */

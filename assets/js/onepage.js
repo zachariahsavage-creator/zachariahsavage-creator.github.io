@@ -710,6 +710,7 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "superstar-crush-the-baby-g-04.webp": 0.667,
   "superstar-crush-the-baby-g-05.webp": 0.667,
   "zach-savage-portrait.webp": 1.5,
+  "zach-savage-portrait-mobile.webp": 0.8,
 };
 
 function getPathAspectRatio(path) {
@@ -872,6 +873,10 @@ Object.entries(FULL_GALLERY_NUMBERED_SHOW_SOURCES).forEach(([label, sources]) =>
 });
 photoAltTextByPath.set(
   "zach-savage-portrait.webp",
+  "Portrait of Zach Savage, Toronto concert and event photographer"
+);
+photoAltTextByPath.set(
+  "zach-savage-portrait-mobile.webp",
   "Portrait of Zach Savage, Toronto concert and event photographer"
 );
 
@@ -1191,6 +1196,26 @@ async function pinGalleryFolderPreviewImages() {
 const FLOW_PRIORITY_PRELOAD_PATHS = buildFlowPriorityPreloadPaths();
 
 const HOME_BIO_IMAGE_PATH = "zach-savage-portrait.webp";
+const HOME_BIO_IMAGE_MOBILE_PATH = "zach-savage-portrait-mobile.webp";
+/** Must stay in step with the <picture> source in index.html. */
+const HOME_BIO_MOBILE_QUERY = "(max-width: 1023px)";
+
+function getHomeBioImagePath() {
+  const narrow = window.matchMedia?.(HOME_BIO_MOBILE_QUERY)?.matches ?? false;
+  return narrow ? HOME_BIO_IMAGE_MOBILE_PATH : HOME_BIO_IMAGE_PATH;
+}
+
+function setupHomeBioImageMediaSwap() {
+  const mq = window.matchMedia?.(HOME_BIO_MOBILE_QUERY);
+  if (!mq) return;
+  const sync = () => {
+    document.querySelectorAll(".home-bio-image").forEach((img) => {
+      assignPinnedImageAttributes(img, getHomeBioImagePath());
+    });
+  };
+  if (typeof mq.addEventListener === "function") mq.addEventListener("change", sync);
+  else mq.addListener?.(sync);
+}
 
 /** Blob + in-memory Image() refs so WebKit cannot discard decoded hero tiles. */
 const pinnedBlobUrlByPath = new Map();
@@ -1267,6 +1292,8 @@ function getBootImagePaths() {
       ...new Set([
         ...getAllFlowImagePaths(),
         HOME_BIO_IMAGE_PATH,
+        HOME_BIO_IMAGE_MOBILE_PATH,
+        ...getRatesBioCyclePaths(),
         HOME_PAGE_BG_PATH,
         CONTACT_BG_HERO_PATH,
       ]),
@@ -1389,7 +1416,7 @@ function refreshPinnedImageSources(root = document) {
     img.decoding = "sync";
   });
   root.querySelectorAll(".home-bio-image").forEach((img) => {
-    assignPinnedImageAttributes(img, HOME_BIO_IMAGE_PATH);
+    assignPinnedImageAttributes(img, getHomeBioImagePath());
   });
   root.querySelectorAll(".home-page-bg img").forEach((img) => {
     assignPinnedImageAttributes(img, HOME_PAGE_BG_PATH);
@@ -4381,6 +4408,7 @@ function setupRatesReveal() {
     panel.hidden = false;
     if (open) panel.removeAttribute("inert");
     else panel.setAttribute("inert", "");
+    setRatesBioCycleActive(open);
   };
 
   const toggleOpen = (event) => {
@@ -4391,6 +4419,124 @@ function setupRatesReveal() {
 
   setOpen(false);
   toggle.addEventListener("click", toggleOpen);
+}
+
+/** Lead image from each of the top N gallery folders (page order). */
+function getRatesBioCyclePaths(limit = 5) {
+  return getFullGalleryFolderDefinitions()
+    .slice(0, limit)
+    .map((folder) => folder.sources?.[0])
+    .filter((path) => typeof path === "string" && path.length > 0);
+}
+
+const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
+const RATES_BIO_CYCLE_INTERVAL_MS = 3200;
+
+function isRatesBioCycleDesktop() {
+  return window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY)?.matches ?? false;
+}
+
+function setupRatesBioCycle() {
+  const picture = document.querySelector(".home-bio-picture");
+  const cycle = picture?.querySelector(".home-bio-cycle");
+  const imgA = cycle?.querySelector(".home-bio-cycle__img--a");
+  const imgB = cycle?.querySelector(".home-bio-cycle__img--b");
+  if (!picture || !cycle || !imgA || !imgB) return null;
+
+  const paths = getRatesBioCyclePaths();
+  if (paths.length < 1) return null;
+
+  let index = 0;
+  let showingA = true;
+  let timerId = 0;
+  let active = false;
+
+  const setLayerSrc = (img, path) => {
+    img.src = getPinnedImageSrc(path);
+    img.dataset.assetPath = path;
+    img.alt = getPhotoAltText(path) || "";
+  };
+
+  const showIndex = (nextIndex, { immediate = false } = {}) => {
+    index = ((nextIndex % paths.length) + paths.length) % paths.length;
+    const path = paths[index];
+    const incoming = showingA ? imgB : imgA;
+    const outgoing = showingA ? imgA : imgB;
+    setLayerSrc(incoming, path);
+    if (immediate) {
+      incoming.classList.add("is-active");
+      outgoing.classList.remove("is-active");
+    } else {
+      // Force paint of the incoming frame before fading it in.
+      void incoming.offsetWidth;
+      incoming.classList.add("is-active");
+      outgoing.classList.remove("is-active");
+    }
+    showingA = !showingA;
+  };
+
+  const stop = () => {
+    active = false;
+    if (timerId) {
+      window.clearInterval(timerId);
+      timerId = 0;
+    }
+    picture.classList.remove("is-cycling");
+    imgA.classList.remove("is-active");
+    imgB.classList.remove("is-active");
+  };
+
+  const start = () => {
+    if (!isRatesBioCycleDesktop() || paths.length < 1) {
+      stop();
+      return;
+    }
+    if (active) return;
+    active = true;
+    showingA = true;
+    setLayerSrc(imgA, paths[0]);
+    imgA.classList.add("is-active");
+    imgB.classList.remove("is-active");
+    index = 0;
+    picture.classList.add("is-cycling");
+
+    if (getShouldReduceMotion() || paths.length < 2) return;
+
+    timerId = window.setInterval(() => {
+      if (!active || !isRatesBioCycleDesktop()) {
+        stop();
+        return;
+      }
+      showIndex(index + 1);
+    }, RATES_BIO_CYCLE_INTERVAL_MS);
+  };
+
+  const mq = window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY);
+  const onViewportChange = () => {
+    if (!document.querySelector(".rates--reveal.is-open")) return;
+    if (isRatesBioCycleDesktop()) start();
+    else stop();
+  };
+  if (mq) {
+    if (typeof mq.addEventListener === "function") mq.addEventListener("change", onViewportChange);
+    else mq.addListener?.(onViewportChange);
+  }
+
+  return {
+    start,
+    stop,
+    setActive(open) {
+      if (open) start();
+      else stop();
+    },
+  };
+}
+
+let ratesBioCycleApi = null;
+
+function setRatesBioCycleActive(open) {
+  if (!ratesBioCycleApi) ratesBioCycleApi = setupRatesBioCycle();
+  ratesBioCycleApi?.setActive(Boolean(open));
 }
 
 function initSharedPageUi() {
@@ -4413,6 +4559,7 @@ function initSharedPageUi() {
   setupContactForm();
   setupHeaderPillsScrollFade();
   setupRatesReveal();
+  setupHomeBioImageMediaSwap();
 }
 
 async function initFullGalleryPage() {
