@@ -382,6 +382,11 @@ body.page-full-gallery a.page-center-title:hover {
 /* Home + full gallery: black menu pill, white type (matches gallery page). */
 body.page-home .gallery-bar__brand,
 body.page-full-gallery .gallery-bar__brand {
+  /* Brand is a body sibling of the header (needed for mobile plate stacking). */
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + (128px - 52px) / 2 - 12px);
+  right: calc(2.4rem + env(safe-area-inset-right, 0px));
+  z-index: 12;
   background: rgba(0, 0, 0, 0.88);
 }
 
@@ -660,7 +665,9 @@ body.page-home::after {
 }
 
 /* Mobile home/full-gallery only — sized to the pill via gallery-menu.js. */
-.gallery-bar__frost {
+.gallery-bar__frost,
+.gallery-bar__plate,
+.gallery-bar__grade {
   display: none;
 }
 
@@ -4152,40 +4159,68 @@ body.page-profile {
   }
 
   /*
-   * Two siblings (home / full-gallery mobile):
-   * 1) `.gallery-bar__frost` — blur only, z-index BELOW the header.
-   * 2) `.gallery-bar` — mix-blend difference so the pill inverts against the page
-   *    (and the frost behind it). Brand stays in-flow with a white fill + black
-   *    ink; difference turns that into an inversion plate (not a flat white chip).
+   * Body-level layers (home / full-gallery mobile):
+   * 1) `.gallery-bar__frost` — blur + tint
+   * 2) `.gallery-bar__plate` — white + exclusion (inversion)
+   * 3) `.gallery-bar__grade` — grayscale the inverted result (post-blend)
+   * 4) `.gallery-bar__brand` — white type + exclusion (inverts with the plate)
    *
-   * Frost must stay a sibling outside this blend group or backdrop-filter dies.
-   * Brand must not be position:fixed or it escapes the header blend group.
+   * filter:grayscale on the plate itself only grays the white fill before blend,
+   * so color returns from the photo backdrop — grade uses backdrop-filter after.
    */
   body.page-home .gallery-bar,
   body.page-full-gallery .gallery-bar {
-    z-index: 11;
+    z-index: auto;
     isolation: auto;
-    mix-blend-mode: difference;
+    mix-blend-mode: normal;
   }
 
   body.page-home .gallery-bar__frost,
-  body.page-full-gallery .gallery-bar__frost {
+  body.page-full-gallery .gallery-bar__frost,
+  body.page-home .gallery-bar__plate,
+  body.page-full-gallery .gallery-bar__plate,
+  body.page-home .gallery-bar__grade,
+  body.page-full-gallery .gallery-bar__grade {
     display: block;
     position: fixed;
-    z-index: 9;
     pointer-events: none;
     box-sizing: border-box;
     border-radius: 50px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4.5px) saturate(1.35);
-    -webkit-backdrop-filter: blur(4.5px) saturate(1.35);
-    box-shadow: var(--shadow-md);
     opacity: 0;
     transition: opacity 160ms var(--ease-out);
   }
 
+  body.page-home .gallery-bar__frost,
+  body.page-full-gallery .gallery-bar__frost {
+    z-index: 9;
+    background: rgba(255, 255, 255, 0);
+    backdrop-filter: blur(15px) saturate(1.35);
+    -webkit-backdrop-filter: blur(15px) saturate(1.35);
+    box-shadow: var(--shadow-md);
+  }
+
+  body.page-home .gallery-bar__plate,
+  body.page-full-gallery .gallery-bar__plate {
+    z-index: 10;
+    background: #ffffff;
+    mix-blend-mode: exclusion;
+    isolation: auto;
+  }
+
+  body.page-home .gallery-bar__grade,
+  body.page-full-gallery .gallery-bar__grade {
+    z-index: 11;
+    background: transparent;
+    backdrop-filter: grayscale(1);
+    -webkit-backdrop-filter: grayscale(1);
+  }
+
   body.page-home .gallery-bar__frost.is-ready,
-  body.page-full-gallery .gallery-bar__frost.is-ready {
+  body.page-full-gallery .gallery-bar__frost.is-ready,
+  body.page-home .gallery-bar__plate.is-ready,
+  body.page-full-gallery .gallery-bar__plate.is-ready,
+  body.page-home .gallery-bar__grade.is-ready,
+  body.page-full-gallery .gallery-bar__grade.is-ready {
     opacity: 1;
   }
 
@@ -4193,17 +4228,17 @@ body.page-profile {
   body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    position: relative;
-    top: auto;
-    right: auto;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + (104px - 52px) / 2);
+    right: max(1rem, env(safe-area-inset-right, 0px));
     left: auto;
-    z-index: auto;
+    z-index: 12;
     transform: none;
-    background: #ffffff;
+    background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow: none;
-    mix-blend-mode: normal;
+    mix-blend-mode: exclusion;
     filter: none;
     isolation: auto;
     pointer-events: auto;
@@ -4228,14 +4263,14 @@ body.page-profile {
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-    color: #000000;
+    color: #ffffff;
   }
 
   body.page-home .gallery-bar__menu-icon span,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__menu-icon span,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-    background: #000000;
+    background: #ffffff;
   }
 
   .gallery-bar__menu-inner {

@@ -23,6 +23,9 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const OPEN_CLASS = "gallery-bar__brand--open";
   const COLLAPSE_FALLBACK_MS = 480;
   const frostEl = document.querySelector(".gallery-bar__frost");
+  const plateEl = document.querySelector(".gallery-bar__plate");
+  const gradeEl = document.querySelector(".gallery-bar__grade");
+  const overlayEls = [frostEl, plateEl, gradeEl].filter(Boolean);
   const frostMq =
     typeof window.matchMedia === "function"
       ? window.matchMedia("(max-width: 768px)")
@@ -32,51 +35,68 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
   }
 
-  function frostEnabled() {
-    if (!frostEl || !frostMq?.matches) return false;
+  function overlaysEnabled() {
+    if (!overlayEls.length || !frostMq?.matches) return false;
     return (
       document.body.classList.contains("page-home") ||
       document.body.classList.contains("page-full-gallery")
     );
   }
 
-  let frostRaf = 0;
-  let frostTrackUntil = 0;
+  let overlayRaf = 0;
+  let overlayTrackUntil = 0;
 
-  function syncMenuFrost() {
-    if (!frostEl) return;
-    if (!frostEnabled()) {
-      frostEl.classList.remove("is-ready");
-      frostEl.removeAttribute("style");
+  function syncMenuOverlays() {
+    if (!overlayEls.length) return;
+    if (!overlaysEnabled()) {
+      for (const el of overlayEls) {
+        el.classList.remove("is-ready");
+        el.removeAttribute("style");
+      }
       return;
     }
     const rect = menuContainer.getBoundingClientRect();
-    const radius = getComputedStyle(menuContainer).borderRadius;
-    frostEl.style.top = `${rect.top}px`;
-    frostEl.style.left = `${rect.left}px`;
-    frostEl.style.width = `${rect.width}px`;
-    frostEl.style.height = `${rect.height}px`;
-    frostEl.style.borderRadius = radius;
-    frostEl.classList.add("is-ready");
+    const radiusRaw = getComputedStyle(menuContainer).borderRadius;
+    const radiusPx = Number.parseFloat(radiusRaw) || 0;
+    // Inset the difference plate (+ grade) so its anti-aliased rim sits inside the frost
+    // and doesn't show as a bright 1px fringe after mix-blend: difference.
+    const plateInset = 1;
+
+    for (const el of overlayEls) {
+      const inset =
+        el.classList.contains("gallery-bar__plate") ||
+        el.classList.contains("gallery-bar__grade")
+          ? plateInset
+          : 0;
+      const width = Math.max(0, rect.width - inset * 2);
+      const height = Math.max(0, rect.height - inset * 2);
+      const radius = Math.max(0, radiusPx - inset);
+      el.style.top = `${rect.top + inset}px`;
+      el.style.left = `${rect.left + inset}px`;
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+      el.style.borderRadius = `${radius}px`;
+      el.classList.add("is-ready");
+    }
   }
 
-  function scheduleFrostSync(durationMs) {
-    if (!frostEnabled()) {
-      syncMenuFrost();
+  function scheduleOverlaySync(durationMs) {
+    if (!overlaysEnabled()) {
+      syncMenuOverlays();
       return;
     }
     const trackFor = typeof durationMs === "number" ? durationMs : 0;
-    frostTrackUntil = Math.max(frostTrackUntil, performance.now() + trackFor);
-    if (frostRaf) return;
+    overlayTrackUntil = Math.max(overlayTrackUntil, performance.now() + trackFor);
+    if (overlayRaf) return;
     const tick = (now) => {
-      syncMenuFrost();
-      if (now < frostTrackUntil) {
-        frostRaf = requestAnimationFrame(tick);
+      syncMenuOverlays();
+      if (now < overlayTrackUntil) {
+        overlayRaf = requestAnimationFrame(tick);
       } else {
-        frostRaf = 0;
+        overlayRaf = 0;
       }
     };
-    frostRaf = requestAnimationFrame(tick);
+    overlayRaf = requestAnimationFrame(tick);
   }
 
   let collapseTimer = null;
@@ -100,7 +120,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
-    scheduleFrostSync(420);
+    scheduleOverlaySync(420);
   }
 
   function finishCollapseIfNeeded() {
@@ -129,7 +149,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
-    scheduleFrostSync(480);
+    scheduleOverlaySync(480);
 
     collapseOnEnd = (e) => {
       if (e.target !== menuContent || e.propertyName !== "grid-template-rows") return;
@@ -160,7 +180,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "true");
     menuTrigger.setAttribute("aria-label", "Close menu");
     menuContent.setAttribute("aria-hidden", "false");
-    scheduleFrostSync(420);
+    scheduleOverlaySync(420);
   }
 
   function toggleMenu() {
@@ -171,7 +191,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       menuTrigger.setAttribute("aria-expanded", "true");
       menuTrigger.setAttribute("aria-label", "Close menu");
       menuContent.setAttribute("aria-hidden", "false");
-      scheduleFrostSync(420);
+      scheduleOverlaySync(420);
       return;
     }
     if (menuContainer.classList.contains(OPEN_CLASS)) {
@@ -200,14 +220,14 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     });
   }
 
-  if (frostEl) {
-    scheduleFrostSync();
-    window.addEventListener("resize", () => scheduleFrostSync(), { passive: true });
+  if (overlayEls.length) {
+    scheduleOverlaySync();
+    window.addEventListener("resize", () => scheduleOverlaySync(), { passive: true });
     if (typeof ResizeObserver === "function") {
-      const ro = new ResizeObserver(() => scheduleFrostSync());
+      const ro = new ResizeObserver(() => scheduleOverlaySync());
       ro.observe(menuContainer);
     }
-    frostMq?.addEventListener?.("change", () => scheduleFrostSync());
+    frostMq?.addEventListener?.("change", () => scheduleOverlaySync());
   }
 
   return { closeMenu, openMenu, toggleMenu };
