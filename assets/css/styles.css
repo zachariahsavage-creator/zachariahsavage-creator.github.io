@@ -4142,9 +4142,47 @@ body.page-profile {
     -webkit-backdrop-filter: blur(16px);
   }
 
+  /*
+   * Mobile menu (closed + open): invert against whatever scrolls underneath
+   * (same idea as the desktop center title). Clear the opaque pill + isolation
+   * so blend can reach the page.
+   */
+  body.page-home .gallery-bar,
+  body.page-full-gallery .gallery-bar {
+    isolation: auto;
+  }
+
+  body.page-home .gallery-bar__brand,
+  body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    background: rgba(0, 0, 0, 0.96);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    mix-blend-mode: difference;
+  }
+
+  body.page-home .gallery-bar__title,
+  body.page-home .gallery-bar__menu-link,
+  body.page-home .gallery-bar__menu-link:visited,
+  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
+  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
+  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited,
+  body.page-full-gallery .gallery-bar__title,
+  body.page-full-gallery .gallery-bar__menu-link,
+  body.page-full-gallery .gallery-bar__menu-link:visited,
+  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
+  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
+  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
+    color: #ffffff;
+  }
+
+  body.page-home .gallery-bar__menu-icon span,
+  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
+  body.page-full-gallery .gallery-bar__menu-icon span,
+  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
+    background: #ffffff;
   }
 
   .gallery-bar__menu-inner {
