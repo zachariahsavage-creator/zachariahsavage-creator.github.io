@@ -1779,7 +1779,8 @@ function openLightboxFromIndex(index) {
     lightboxVideo.pause();
     lightboxVideo.removeAttribute("src");
     lightboxVideo.removeAttribute("data-active");
-    lightboxImage.src = getAssetUrl(item);
+    // Prefer the same pinned blob the flow tile shows so Android taps match pixels.
+    lightboxImage.src = getPinnedImageSrc(item);
     lightboxImage.alt = getPhotoAltText(item);
     lightboxImage.setAttribute("data-active", "true");
   } else {
@@ -1790,6 +1791,55 @@ function openLightboxFromIndex(index) {
     lightboxVideo.setAttribute("data-active", "true");
     lightboxVideo.play().catch(() => {});
   }
+}
+
+/** Find which flow tile is visually under a point (transformed marquee-safe). */
+function findFlowTileAtPoint(clientX, clientY) {
+  if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+  const tiles = document.querySelectorAll(".gallery-flow-track .media-item");
+  let best = null;
+  for (const tile of tiles) {
+    const rect = tile.getBoundingClientRect();
+    if (
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom
+    ) {
+      continue;
+    }
+    const area = rect.width * rect.height;
+    if (!best || area < best.area) best = { tile, area };
+  }
+  return best?.tile || null;
+}
+
+function getFlowTileAssetPath(tile) {
+  if (!tile) return "";
+  const imgPath = tile.querySelector("img[data-asset-path]")?.dataset.assetPath;
+  if (imgPath) return normalizeAssetPath(imgPath);
+  const mediaIndex = Number(tile.dataset.mediaIndex);
+  if (Number.isFinite(mediaIndex) && mediaItems[mediaIndex]) {
+    return normalizeAssetPath(flowItemPath(mediaItems[mediaIndex]));
+  }
+  return "";
+}
+
+function findLightboxIndexForPath(path) {
+  const key = normalizeAssetPath(path);
+  if (!key) return -1;
+  const inActive = activeGalleryItems.findIndex(
+    (item) => normalizeAssetPath(flowItemPath(item)) === key
+  );
+  if (inActive >= 0) return inActive;
+  if (!document.body.classList.contains("page-home")) return -1;
+  return mediaItems.findIndex((item) => normalizeAssetPath(flowItemPath(item)) === key);
+}
+
+function openLightboxFromPath(path) {
+  const index = findLightboxIndexForPath(path);
+  if (index < 0) return;
+  openLightboxFromIndex(index);
 }
 
 function closeLightbox() {
@@ -1881,6 +1931,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   let pointerDownAt = 0;
   let pointerDragged = false;
   let trackPaused = false;
+  let pressPath = "";
 
   function getFlowTrack() {
     return wrapper.closest(".gallery-flow-track");
@@ -1889,14 +1940,33 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   function pauseFlowTrackForTap() {
     const track = getFlowTrack();
     if (!track || trackPaused) return;
+    // Bake the live animated offset into an inline transform so Android hit-testing
+    // matches the pixels under the finger while the marquee is frozen.
+    const x = readTrackTranslateX(track);
     track.classList.add("gallery-flow-track--tap-paused");
+    track.style.animation = "none";
+    track.style.transform = `translate3d(${x}px, 0, 0)`;
     trackPaused = true;
   }
 
   function resumeFlowTrackAfterTap() {
     if (!trackPaused) return;
-    getFlowTrack()?.classList.remove("gallery-flow-track--tap-paused");
+    const track = getFlowTrack();
     trackPaused = false;
+    if (!track) return;
+    track.classList.remove("gallery-flow-track--tap-paused");
+    track.style.removeProperty("animation");
+    track.style.removeProperty("transform");
+    const rowIndex = galleryRowsState?.findIndex((row) => row.trackElement === track) ?? -1;
+    if (rowIndex >= 0) applyFlowTrackMotion(galleryRowsState[rowIndex], rowIndex);
+  }
+
+  function capturePressPath(clientX, clientY) {
+    const visualTile = findFlowTileAtPoint(clientX, clientY) || wrapper;
+    pressPath =
+      getFlowTileAssetPath(visualTile) ||
+      getFlowTileAssetPath(wrapper) ||
+      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
   }
 
   function activateTile(e) {
@@ -1906,14 +1976,20 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     }
     const now = Date.now();
     if (now - lastActivateAt < 350) return;
-    if (typeof mediaIndex !== "number") return;
-    const item = activeGalleryItems[mediaIndex] ?? mediaItems[mediaIndex];
-    if (!item) return;
+
+    if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+      capturePressPath(e.clientX, e.clientY);
+    }
+    const path =
+      pressPath ||
+      getFlowTileAssetPath(wrapper) ||
+      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
+    if (!path) return;
+
     lastActivateAt = now;
     resumeFlowTrackAfterTap();
-    const openIndex =
-      activeGalleryItems[mediaIndex] != null ? mediaIndex : mediaItems.indexOf(item);
-    openLightboxFromIndex(openIndex >= 0 ? openIndex : mediaIndex);
+    openLightboxFromPath(path);
+    pressPath = "";
   }
 
   wrapper.setAttribute("role", "button");
@@ -1927,8 +2003,9 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
       pointerStartY = e.clientY;
       pointerDownAt = Date.now();
       pointerDragged = false;
-      // Freeze the CSS marquee so the tile stays under the finger on mobile.
+      // Freeze first so getBoundingClientRect matches what the user sees, then capture path.
       if (e.pointerType !== "mouse") pauseFlowTrackForTap();
+      capturePressPath(e.clientX, e.clientY);
     },
     { passive: true }
   );
@@ -1942,6 +2019,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
         Math.abs(e.clientY - pointerStartY) > TILE_TAP_SLOP_PX
       ) {
         pointerDragged = true;
+        pressPath = "";
         resumeFlowTrackAfterTap();
       }
     },
@@ -1955,10 +2033,14 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     (e) => {
       const elapsed = Date.now() - pointerDownAt;
       const wasTap = !pointerDragged && elapsed > 0 && elapsed <= TILE_TAP_CANCEL_MAX_MS;
-      resumeFlowTrackAfterTap();
-      if (e.pointerType === "mouse") return;
+      if (e.pointerType === "mouse") {
+        resumeFlowTrackAfterTap();
+        return;
+      }
       if (!wasTap) {
         pointerDragged = true;
+        pressPath = "";
+        resumeFlowTrackAfterTap();
         return;
       }
       activateTile(e);
@@ -1971,10 +2053,12 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     activateTile(e);
   });
   wrapper.addEventListener("pointerup", (e) => {
-    resumeFlowTrackAfterTap();
     if (e.pointerType === "mouse") return;
     if (!e.isPrimary) return;
-    if (pointerDragged) return;
+    if (pointerDragged) {
+      resumeFlowTrackAfterTap();
+      return;
+    }
     activateTile(e);
   });
   wrapper.addEventListener("keydown", (e) => {
