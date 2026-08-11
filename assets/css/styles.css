@@ -2351,6 +2351,11 @@ body.page-full-gallery .onepage-section__heading {
   will-change: transform;
 }
 
+/* Pause the marquee while a finger is down so mobile taps hit a still tile. */
+.gallery-flow-track.gallery-flow-track--tap-paused {
+  animation-play-state: paused !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gallery-flow-track.flow-marquee-active {
     animation: none !important;

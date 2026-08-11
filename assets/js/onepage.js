@@ -1871,25 +1871,49 @@ function applyMagneticScale() {
 
 /** Pointer travel past this is a swipe, not a tap on a tile. */
 const TILE_TAP_SLOP_PX = 10;
+/** iOS often pointercancels before click; short stationary cancels still count as taps. */
+const TILE_TAP_CANCEL_MAX_MS = 320;
 
 function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   let lastActivateAt = 0;
   let pointerStartX = 0;
   let pointerStartY = 0;
+  let pointerDownAt = 0;
   let pointerDragged = false;
+  let trackPaused = false;
+
+  function getFlowTrack() {
+    return wrapper.closest(".gallery-flow-track");
+  }
+
+  function pauseFlowTrackForTap() {
+    const track = getFlowTrack();
+    if (!track || trackPaused) return;
+    track.classList.add("gallery-flow-track--tap-paused");
+    trackPaused = true;
+  }
+
+  function resumeFlowTrackAfterTap() {
+    if (!trackPaused) return;
+    getFlowTrack()?.classList.remove("gallery-flow-track--tap-paused");
+    trackPaused = false;
+  }
 
   function activateTile(e) {
     if (e) {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       e.stopPropagation();
     }
     const now = Date.now();
     if (now - lastActivateAt < 350) return;
     if (typeof mediaIndex !== "number") return;
-    const item = activeGalleryItems[mediaIndex];
+    const item = activeGalleryItems[mediaIndex] ?? mediaItems[mediaIndex];
     if (!item) return;
     lastActivateAt = now;
-    openLightboxFromIndex(mediaIndex);
+    resumeFlowTrackAfterTap();
+    const openIndex =
+      activeGalleryItems[mediaIndex] != null ? mediaIndex : mediaItems.indexOf(item);
+    openLightboxFromIndex(openIndex >= 0 ? openIndex : mediaIndex);
   }
 
   wrapper.setAttribute("role", "button");
@@ -1901,7 +1925,10 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     (e) => {
       pointerStartX = e.clientX;
       pointerStartY = e.clientY;
+      pointerDownAt = Date.now();
       pointerDragged = false;
+      // Freeze the CSS marquee so the tile stays under the finger on mobile.
+      if (e.pointerType !== "mouse") pauseFlowTrackForTap();
     },
     { passive: true }
   );
@@ -1915,16 +1942,26 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
         Math.abs(e.clientY - pointerStartY) > TILE_TAP_SLOP_PX
       ) {
         pointerDragged = true;
+        resumeFlowTrackAfterTap();
       }
     },
     { passive: true }
   );
 
-  // Safari cancels the pointer stream the moment a scroll gesture takes over.
+  // Safari cancels the pointer stream when a scroll gesture takes over. Don't
+  // treat every cancel as a drag — a short stationary press is still a tap.
   wrapper.addEventListener(
     "pointercancel",
-    () => {
-      pointerDragged = true;
+    (e) => {
+      const elapsed = Date.now() - pointerDownAt;
+      const wasTap = !pointerDragged && elapsed > 0 && elapsed <= TILE_TAP_CANCEL_MAX_MS;
+      resumeFlowTrackAfterTap();
+      if (e.pointerType === "mouse") return;
+      if (!wasTap) {
+        pointerDragged = true;
+        return;
+      }
+      activateTile(e);
     },
     { passive: true }
   );
@@ -1934,6 +1971,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     activateTile(e);
   });
   wrapper.addEventListener("pointerup", (e) => {
+    resumeFlowTrackAfterTap();
     if (e.pointerType === "mouse") return;
     if (!e.isPrimary) return;
     if (pointerDragged) return;
