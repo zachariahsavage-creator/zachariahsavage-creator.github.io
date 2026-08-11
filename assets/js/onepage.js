@@ -701,8 +701,8 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "superstar-crush-the-baby-g-03.webp": 0.667,
   "superstar-crush-the-baby-g-04.webp": 0.667,
   "superstar-crush-the-baby-g-05.webp": 0.667,
-  "zach-savage-portrait.webp": 1.5,
-  "zach-savage-portrait-mobile.webp": 0.8,
+  "zach-savage-portrait.webp": 0.749023,
+  "zach-savage-portrait-mobile.webp": 0.749023,
 };
 
 function getPathAspectRatio(path) {
