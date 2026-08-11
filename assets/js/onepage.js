@@ -1846,7 +1846,15 @@ function getLightboxPointerZone(event) {
 function setupLightboxPointerNav() {
   if (!lightbox) return;
 
+  const closeBtn = lightbox.querySelector(".lightbox__close");
+  closeBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    closeLightbox();
+  });
+
   lightbox.addEventListener("click", (event) => {
+    if (event.target.closest?.(".lightbox__close")) return;
     const zone = getLightboxPointerZone(event);
     if (zone === "outside") {
       closeLightbox();
