@@ -345,33 +345,6 @@ body.page-full-gallery a.page-center-title {
   transition: opacity 420ms var(--ease-out), transform 420ms var(--ease-out);
 }
 
-/* Desktop: stay fixed and invert against whatever scrolls underneath. */
-@media (min-width: 769px) {
-  body.page-home .page-center-title,
-  body.page-home a.page-center-title,
-  body.page-full-gallery .page-center-title,
-  body.page-full-gallery a.page-center-title {
-    mix-blend-mode: difference;
-    opacity: 1 !important;
-    pointer-events: auto;
-    transform: translate(-50%, -50%) !important;
-  }
-
-  body.page-home a.page-center-title:hover,
-  body.page-full-gallery a.page-center-title:hover {
-    background: transparent;
-    color: #ffffff;
-    opacity: 1;
-  }
-
-  body.page-home .page-center-title.page-center-title--hidden,
-  body.page-full-gallery .page-center-title.page-center-title--hidden {
-    opacity: 1 !important;
-    transform: translate(-50%, -50%) !important;
-    pointer-events: auto;
-  }
-}
-
 body.page-home a.page-center-title:hover,
 body.page-full-gallery a.page-center-title:hover {
   background: transparent;

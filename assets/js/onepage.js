@@ -4161,25 +4161,12 @@ function setupHeaderPillsScrollFade() {
   if (menuPill) menuPill.classList.remove("gallery-bar__brand--scroll-hidden");
   if (!centerTitle) return;
 
-  // Desktop keeps the wordmark fixed with mix-blend-mode; never scroll-hide it.
-  const desktopTitleQuery = "(min-width: 769px)";
-  const isDesktopTitle = () => window.matchMedia?.(desktopTitleQuery)?.matches ?? false;
-
-  if (isDesktopTitle()) {
-    centerTitle.classList.remove("page-center-title--hidden");
-  }
-
   let lastTop = getPageScrollTop();
   let ticking = false;
   const deltaThreshold = 2;
 
   function update() {
     ticking = false;
-    if (isDesktopTitle()) {
-      centerTitle.classList.remove("page-center-title--hidden");
-      return;
-    }
-
     const top = getPageScrollTop();
     const delta = top - lastTop;
     lastTop = top;
@@ -4209,15 +4196,6 @@ function setupHeaderPillsScrollFade() {
   scrollRoot.addEventListener("scroll", onScroll, { passive: true });
   if (scrollRoot !== window) {
     window.addEventListener("scroll", onScroll, { passive: true });
-  }
-
-  const mq = window.matchMedia?.(desktopTitleQuery);
-  if (mq) {
-    const onChange = () => {
-      if (isDesktopTitle()) centerTitle.classList.remove("page-center-title--hidden");
-    };
-    if (typeof mq.addEventListener === "function") mq.addEventListener("change", onChange);
-    else mq.addListener?.(onChange);
   }
 }
 
