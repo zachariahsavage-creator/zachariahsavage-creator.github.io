@@ -379,20 +379,82 @@ body.page-full-gallery a.page-center-title:hover {
   opacity: 0.85;
 }
 
-/* Home + full gallery: black menu pill, white type (matches gallery page). */
+/* Home + full gallery: frosted exclusion menu (same stack on mobile + desktop).
+ * Layers: frost (blur) → plate (white + exclusion) → brand (white type + exclusion).
+ * Brand is a body sibling of the header so type stacks above the plate. */
+body.page-home .gallery-bar,
+body.page-full-gallery .gallery-bar {
+  z-index: auto;
+  isolation: auto;
+  mix-blend-mode: normal;
+}
+
+body.page-home .gallery-bar__frost,
+body.page-full-gallery .gallery-bar__frost,
+body.page-home .gallery-bar__plate,
+body.page-full-gallery .gallery-bar__plate {
+  display: block;
+  position: fixed;
+  pointer-events: none;
+  box-sizing: border-box;
+  border-radius: 50px;
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+
+body.page-home .gallery-bar__frost,
+body.page-full-gallery .gallery-bar__frost {
+  z-index: 9;
+  background: rgba(255, 255, 255, 0);
+  backdrop-filter: blur(15px) saturate(1.35);
+  -webkit-backdrop-filter: blur(15px) saturate(1.35);
+  box-shadow: var(--shadow-md);
+}
+
+body.page-home .gallery-bar__plate,
+body.page-full-gallery .gallery-bar__plate {
+  z-index: 10;
+  background: #ffffff;
+  mix-blend-mode: exclusion;
+  isolation: auto;
+}
+
+body.page-home .gallery-bar__frost.is-ready,
+body.page-full-gallery .gallery-bar__frost.is-ready,
+body.page-home .gallery-bar__plate.is-ready,
+body.page-full-gallery .gallery-bar__plate.is-ready {
+  opacity: 1;
+}
+
 body.page-home .gallery-bar__brand,
 body.page-full-gallery .gallery-bar__brand {
-  /* Brand is a body sibling of the header (needed for mobile plate stacking). */
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + (128px - 52px) / 2 - 12px);
   right: calc(2.4rem + env(safe-area-inset-right, 0px));
   z-index: 12;
-  background: rgba(0, 0, 0, 0.88);
+  transform: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  mix-blend-mode: exclusion;
+  filter: none;
+  isolation: auto;
+  pointer-events: auto;
 }
 
 body.page-home .gallery-bar__brand.gallery-bar__brand--open,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-  background: rgba(0, 0, 0, 0.96);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  mix-blend-mode: exclusion;
+}
+
+body.page-home .gallery-bar__brand::before,
+body.page-full-gallery .gallery-bar__brand::before {
+  content: none;
 }
 
 body.page-home .gallery-bar__title,
@@ -409,14 +471,14 @@ body.page-full-gallery .gallery-bar__menu-link:hover,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-  color: rgba(255, 255, 255, 0.96);
+  color: #ffffff;
 }
 
 body.page-home .gallery-bar__menu-icon span,
 body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-  background: rgba(255, 255, 255, 0.92);
+  background: #ffffff;
 }
 
 /* Home flow arrows: match black menu pill + white icons. */
@@ -4158,102 +4220,16 @@ body.page-profile {
   }
 
   /*
-   * Body-level layers (home / full-gallery mobile):
-   * 1) `.gallery-bar__frost` — blur (+ optional tint)
-   * 2) `.gallery-bar__plate` — white + exclusion (inversion)
-   * 3) `.gallery-bar__brand` — white type + exclusion (inverts with the plate)
+   * Mobile: same frost/exclusion stack as desktop; only the pill offset changes
+   * for the shorter header.
    */
-  body.page-home .gallery-bar,
-  body.page-full-gallery .gallery-bar {
-    z-index: auto;
-    isolation: auto;
-    mix-blend-mode: normal;
-  }
-
-  body.page-home .gallery-bar__frost,
-  body.page-full-gallery .gallery-bar__frost,
-  body.page-home .gallery-bar__plate,
-  body.page-full-gallery .gallery-bar__plate {
-    display: block;
-    position: fixed;
-    pointer-events: none;
-    box-sizing: border-box;
-    border-radius: 50px;
-    opacity: 0;
-    transition: opacity 160ms var(--ease-out);
-  }
-
-  body.page-home .gallery-bar__frost,
-  body.page-full-gallery .gallery-bar__frost {
-    z-index: 9;
-    background: rgba(255, 255, 255, 0);
-    backdrop-filter: blur(15px) saturate(1.35);
-    -webkit-backdrop-filter: blur(15px) saturate(1.35);
-    box-shadow: var(--shadow-md);
-  }
-
-  body.page-home .gallery-bar__plate,
-  body.page-full-gallery .gallery-bar__plate {
-    z-index: 10;
-    background: #ffffff;
-    mix-blend-mode: exclusion;
-    isolation: auto;
-  }
-
-  body.page-home .gallery-bar__frost.is-ready,
-  body.page-full-gallery .gallery-bar__frost.is-ready,
-  body.page-home .gallery-bar__plate.is-ready,
-  body.page-full-gallery .gallery-bar__plate.is-ready {
-    opacity: 1;
-  }
-
   body.page-home .gallery-bar__brand,
   body.page-full-gallery .gallery-bar__brand,
   body.page-home .gallery-bar__brand.gallery-bar__brand--open,
   body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-    position: fixed;
     top: calc(env(safe-area-inset-top, 0px) + (104px - 52px) / 2);
     right: max(1rem, env(safe-area-inset-right, 0px));
     left: auto;
-    z-index: 12;
-    transform: none;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-    mix-blend-mode: exclusion;
-    filter: none;
-    isolation: auto;
-    pointer-events: auto;
-  }
-
-  body.page-home .gallery-bar__brand::before,
-  body.page-full-gallery .gallery-bar__brand::before {
-    content: none;
-  }
-
-  body.page-home .gallery-bar__title,
-  body.page-home .gallery-bar__menu-link,
-  body.page-home .gallery-bar__menu-link:visited,
-  body.page-home .gallery-bar__menu-link:hover,
-  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
-  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
-  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited,
-  body.page-full-gallery .gallery-bar__title,
-  body.page-full-gallery .gallery-bar__menu-link,
-  body.page-full-gallery .gallery-bar__menu-link:visited,
-  body.page-full-gallery .gallery-bar__menu-link:hover,
-  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
-  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
-  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-    color: #ffffff;
-  }
-
-  body.page-home .gallery-bar__menu-icon span,
-  body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
-  body.page-full-gallery .gallery-bar__menu-icon span,
-  body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-    background: #ffffff;
   }
 
   .gallery-bar__menu-inner {

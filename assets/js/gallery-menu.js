@@ -25,17 +25,13 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const frostEl = document.querySelector(".gallery-bar__frost");
   const plateEl = document.querySelector(".gallery-bar__plate");
   const overlayEls = [frostEl, plateEl].filter(Boolean);
-  const frostMq =
-    typeof window.matchMedia === "function"
-      ? window.matchMedia("(max-width: 768px)")
-      : null;
 
   function prefersReducedMotion() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
   }
 
   function overlaysEnabled() {
-    if (!overlayEls.length || !frostMq?.matches) return false;
+    if (!overlayEls.length) return false;
     return (
       document.body.classList.contains("page-home") ||
       document.body.classList.contains("page-full-gallery")
@@ -222,7 +218,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       const ro = new ResizeObserver(() => scheduleOverlaySync());
       ro.observe(menuContainer);
     }
-    frostMq?.addEventListener?.("change", () => scheduleOverlaySync());
   }
 
   return { closeMenu, openMenu, toggleMenu };
