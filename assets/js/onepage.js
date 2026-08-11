@@ -1560,6 +1560,16 @@ let lightbox;
 let lightboxImage;
 let lightboxVideo;
 let lightboxCurrentIndex = null;
+/** Android synthesizes a click after the pointerup that opened the lightbox; ignore it. */
+let lightboxInputQuietUntil = 0;
+
+function isLightboxInputQuiet() {
+  return performance.now() < lightboxInputQuietUntil;
+}
+
+function armLightboxInputQuiet(ms = 650) {
+  lightboxInputQuietUntil = performance.now() + ms;
+}
 let scrollRevealObserver = null;
 
 const MAX_HOVER_SCALE = 1.18;
@@ -1771,6 +1781,9 @@ function openLightboxFromIndex(index) {
     } catch (_e) {}
   });
 
+  // Swallow the compatibility click Android fires after the opening touch, which
+  // otherwise lands on the lightbox (often with a 0×0 image rect → instant close).
+  armLightboxInputQuiet();
   lightboxCurrentIndex = index;
   lightbox.setAttribute("data-state", "open");
   document.documentElement.style.overflow = "hidden";
@@ -1852,9 +1865,22 @@ function setupLightboxPointerNav() {
     event.stopPropagation();
     closeLightbox();
   });
+  // Touch devices may deliver pointerup without a clean click on the control.
+  closeBtn?.addEventListener(
+    "pointerup",
+    (event) => {
+      if (event.pointerType === "mouse") return;
+      if (!event.isPrimary) return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeLightbox();
+    },
+    { passive: false }
+  );
 
   lightbox.addEventListener("click", (event) => {
     if (event.target.closest?.(".lightbox__close")) return;
+    if (isLightboxInputQuiet()) return;
     const zone = getLightboxPointerZone(event);
     if (zone === "outside") {
       closeLightbox();
@@ -1866,6 +1892,7 @@ function setupLightboxPointerNav() {
   // With no arrows on screen the cursor is the only affordance for which half
   // does what, so point it the way the photo will move.
   lightbox.addEventListener("mousemove", (event) => {
+    if (isLightboxInputQuiet()) return;
     const media = getActiveLightboxMedia();
     if (!media) return;
     const zone = getLightboxPointerZone(event);
@@ -1880,7 +1907,18 @@ function applyMagneticScale() {
 /** Pointer travel past this is a swipe, not a tap on a tile. */
 const TILE_TAP_SLOP_PX = 12;
 
+function isAndroidUserAgent() {
+  return /Android/i.test(navigator.userAgent || "");
+}
+
 function attachHoverAndClickBehavior(wrapper, mediaIndex) {
+  // Temporary: Android marquee hit-testing opens the wrong flow photo. Keep scrolling
+  // the page over the strip, but don't open the lightbox from home flow tiles.
+  if (isAndroidUserAgent()) {
+    wrapper.classList.add("media-item--no-lightbox");
+    return;
+  }
+
   let lastActivateAt = 0;
   let pointerStartX = 0;
   let pointerStartY = 0;

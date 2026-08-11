@@ -2404,6 +2404,11 @@ body.page-full-gallery .onepage-section__heading {
   cursor: pointer;
 }
 
+.gallery-row .gallery-flow-track .media-item.media-item--no-lightbox {
+  cursor: default;
+  touch-action: pan-y;
+}
+
 /* Top-of-page flow tiles (first 3 per row): keep decoded + composited in Instagram WebKit. */
 .gallery-row .media-item--priority-render,
 body.page-full-gallery .portfolio-grid .media-item--priority-render {
@@ -4974,7 +4979,8 @@ body.page-profile {
 .lightbox {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /* Above menu overlays (≤12) and below the boot gate (100000) while it exists. */
+  z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
@@ -4990,21 +4996,21 @@ body.page-profile {
 }
 
 .lightbox__close {
-  position: fixed;
+  position: absolute;
   top: max(0.75rem, env(safe-area-inset-top, 0px));
   right: max(0.75rem, env(safe-area-inset-right, 0px));
-  z-index: 3;
+  z-index: 20;
   box-sizing: border-box;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3rem;
+  height: 3rem;
   margin: 0;
   padding: 0;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
-  background: rgba(12, 12, 14, 0.55);
+  background: rgba(0, 0, 0, 0.72);
   color: #ffffff;
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 1.85rem;
+  font-size: 2rem;
   font-weight: 400;
   line-height: 1;
   display: inline-flex;
@@ -5013,7 +5019,7 @@ body.page-profile {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .lightbox__close span {
@@ -5023,14 +5029,14 @@ body.page-profile {
 
 .lightbox__close:hover,
 .lightbox__close:focus-visible {
-  background: rgba(12, 12, 14, 0.78);
+  background: rgba(0, 0, 0, 0.88);
   outline: none;
 }
 
 .lightbox__close:focus-visible {
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.85),
-    0 4px 18px rgba(0, 0, 0, 0.35);
+    0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
 .lightbox__backdrop {
