@@ -1781,9 +1781,10 @@ function openLightboxFromIndex(index) {
     } catch (_e) {}
   });
 
-  // Swallow the compatibility click Android fires after the opening touch, which
-  // otherwise lands on the lightbox (often with a 0×0 image rect → instant close).
-  armLightboxInputQuiet();
+  // Only swallow the opening gesture's ghost click — re-arming on every next/prev
+  // made the following tap a no-op, so gallery fullscreen felt like it needed a double tap.
+  const wasClosed = lightbox.getAttribute("data-state") !== "open";
+  if (wasClosed) armLightboxInputQuiet();
   lightboxCurrentIndex = index;
   lightbox.setAttribute("data-state", "open");
   document.documentElement.style.overflow = "hidden";
