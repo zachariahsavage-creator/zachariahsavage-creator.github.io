@@ -4533,13 +4533,13 @@ function setupRatesReveal() {
   }
 }
 
-/** Mobile bio portrait first, then lead image from each of the top N gallery folders. */
+/** Lead image from each of the top N gallery folders (desktop Rates bio cycle). */
 function getRatesBioCyclePaths(limit = 5) {
   const folderLeads = getFullGalleryFolderDefinitions()
     .slice(0, limit)
     .map((folder) => folder.sources?.[0])
     .filter((path) => typeof path === "string" && path.length > 0);
-  return dedupeFlowItems([HOME_BIO_IMAGE_MOBILE_PATH, ...folderLeads]);
+  return dedupeFlowItems(folderLeads);
 }
 
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
