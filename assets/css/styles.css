@@ -1386,6 +1386,12 @@ body.page-full-gallery .onepage-section__heading {
   align-items: center;
   text-align: center;
   width: 100%;
+  /* iOS otherwise starts a text-selection gesture here, so a finger-down on the
+     bio copy won't begin scrolling (momentum scroll over the text still works). */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: pan-y;
 }
 
 .home-bio-heading {
@@ -1399,6 +1405,8 @@ body.page-full-gallery .onepage-section__heading {
   color: rgba(255, 255, 255, 0.98);
   text-align: center;
   text-wrap: balance;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Mobile-only title above the home flow row. */
@@ -1421,6 +1429,8 @@ body.page-full-gallery .onepage-section__heading {
   text-wrap: balance;
   line-height: 1.62;
   font-size: clamp(1rem, 2.4vw, 1.2rem);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .home-bio-row .home-start-btn--pov {
