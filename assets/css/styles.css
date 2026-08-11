@@ -4995,6 +4995,26 @@ body.page-profile {
   display: flex;
 }
 
+/* Invisible but still receiving the rest of the close gesture so it can't hit the menu. */
+.lightbox[data-state="closing"] {
+  display: flex;
+  opacity: 0;
+  pointer-events: auto;
+  cursor: default;
+}
+
+/* Menu sits under the × — don't let it take taps while the lightbox is up. */
+body:has(.lightbox[data-state="open"]) .gallery-bar__brand,
+body:has(.lightbox[data-state="closing"]) .gallery-bar__brand,
+body:has(.lightbox[data-state="open"]) .gallery-bar__frost,
+body:has(.lightbox[data-state="closing"]) .gallery-bar__frost,
+body:has(.lightbox[data-state="open"]) .gallery-bar__plate,
+body:has(.lightbox[data-state="closing"]) .gallery-bar__plate,
+body:has(.lightbox[data-state="open"]) .page-center-title,
+body:has(.lightbox[data-state="closing"]) .page-center-title {
+  pointer-events: none !important;
+}
+
 .lightbox__close {
   position: absolute;
   top: max(0.75rem, env(safe-area-inset-top, 0px));

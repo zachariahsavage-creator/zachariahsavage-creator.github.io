@@ -1808,7 +1808,12 @@ function openLightboxFromIndex(index) {
 
 function closeLightbox() {
   if (!lightbox) return;
-  lightbox.setAttribute("data-state", "closed");
+  const state = lightbox.getAttribute("data-state");
+  if (state === "closed" || state === "closing") return;
+
+  // Stay in the hit-testing stack briefly so the same tap can't fall through to the
+  // menu under the × after display:none removes the overlay.
+  lightbox.setAttribute("data-state", "closing");
   document.documentElement.style.overflow = "";
   lightboxCurrentIndex = null;
 
@@ -1821,6 +1826,12 @@ function closeLightbox() {
     lightboxImage.removeAttribute("src");
     lightboxImage.removeAttribute("data-active");
   }
+
+  window.setTimeout(() => {
+    if (lightbox?.getAttribute("data-state") === "closing") {
+      lightbox.setAttribute("data-state", "closed");
+    }
+  }, 400);
 }
 
 function changeLightboxBy(delta) {
@@ -1861,26 +1872,19 @@ function setupLightboxPointerNav() {
   if (!lightbox) return;
 
   const closeBtn = lightbox.querySelector(".lightbox__close");
-  closeBtn?.addEventListener("click", (event) => {
+  function handleCloseGesture(event) {
     event.preventDefault();
     event.stopPropagation();
     closeLightbox();
-  });
-  // Touch devices may deliver pointerup without a clean click on the control.
-  closeBtn?.addEventListener(
-    "pointerup",
-    (event) => {
-      if (event.pointerType === "mouse") return;
-      if (!event.isPrimary) return;
-      event.preventDefault();
-      event.stopPropagation();
-      closeLightbox();
-    },
-    { passive: false }
-  );
+  }
+  // Close on pointerdown and cancel the synthetic click — otherwise the click lands
+  // on the menu pill sitting under the × once the overlay is gone.
+  closeBtn?.addEventListener("pointerdown", handleCloseGesture, { passive: false });
+  closeBtn?.addEventListener("click", handleCloseGesture);
 
   lightbox.addEventListener("click", (event) => {
     if (event.target.closest?.(".lightbox__close")) return;
+    if (lightbox.getAttribute("data-state") !== "open") return;
     if (isLightboxInputQuiet()) return;
     const zone = getLightboxPointerZone(event);
     if (zone === "outside") {
