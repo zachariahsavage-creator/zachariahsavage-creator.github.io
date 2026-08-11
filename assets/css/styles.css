@@ -2351,11 +2351,6 @@ body.page-full-gallery .onepage-section__heading {
   will-change: transform;
 }
 
-/* Freeze offset is applied inline from JS (baked translate) so hit-testing matches pixels. */
-.gallery-flow-track.gallery-flow-track--tap-paused {
-  will-change: auto;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .gallery-flow-track.flow-marquee-active {
     animation: none !important;

@@ -1779,7 +1779,6 @@ function openLightboxFromIndex(index) {
     lightboxVideo.pause();
     lightboxVideo.removeAttribute("src");
     lightboxVideo.removeAttribute("data-active");
-    // Prefer the same pinned blob the flow tile shows so Android taps match pixels.
     lightboxImage.src = getPinnedImageSrc(item);
     lightboxImage.alt = getPhotoAltText(item);
     lightboxImage.setAttribute("data-active", "true");
@@ -1791,55 +1790,6 @@ function openLightboxFromIndex(index) {
     lightboxVideo.setAttribute("data-active", "true");
     lightboxVideo.play().catch(() => {});
   }
-}
-
-/** Find which flow tile is visually under a point (transformed marquee-safe). */
-function findFlowTileAtPoint(clientX, clientY) {
-  if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
-  const tiles = document.querySelectorAll(".gallery-flow-track .media-item");
-  let best = null;
-  for (const tile of tiles) {
-    const rect = tile.getBoundingClientRect();
-    if (
-      clientX < rect.left ||
-      clientX > rect.right ||
-      clientY < rect.top ||
-      clientY > rect.bottom
-    ) {
-      continue;
-    }
-    const area = rect.width * rect.height;
-    if (!best || area < best.area) best = { tile, area };
-  }
-  return best?.tile || null;
-}
-
-function getFlowTileAssetPath(tile) {
-  if (!tile) return "";
-  const imgPath = tile.querySelector("img[data-asset-path]")?.dataset.assetPath;
-  if (imgPath) return normalizeAssetPath(imgPath);
-  const mediaIndex = Number(tile.dataset.mediaIndex);
-  if (Number.isFinite(mediaIndex) && mediaItems[mediaIndex]) {
-    return normalizeAssetPath(flowItemPath(mediaItems[mediaIndex]));
-  }
-  return "";
-}
-
-function findLightboxIndexForPath(path) {
-  const key = normalizeAssetPath(path);
-  if (!key) return -1;
-  const inActive = activeGalleryItems.findIndex(
-    (item) => normalizeAssetPath(flowItemPath(item)) === key
-  );
-  if (inActive >= 0) return inActive;
-  if (!document.body.classList.contains("page-home")) return -1;
-  return mediaItems.findIndex((item) => normalizeAssetPath(flowItemPath(item)) === key);
-}
-
-function openLightboxFromPath(path) {
-  const index = findLightboxIndexForPath(path);
-  if (index < 0) return;
-  openLightboxFromIndex(index);
 }
 
 function closeLightbox() {
@@ -1920,53 +1870,31 @@ function applyMagneticScale() {
 }
 
 /** Pointer travel past this is a swipe, not a tap on a tile. */
-const TILE_TAP_SLOP_PX = 10;
-/** iOS often pointercancels before click; short stationary cancels still count as taps. */
-const TILE_TAP_CANCEL_MAX_MS = 320;
+const TILE_TAP_SLOP_PX = 12;
 
 function attachHoverAndClickBehavior(wrapper, mediaIndex) {
   let lastActivateAt = 0;
   let pointerStartX = 0;
   let pointerStartY = 0;
-  let pointerDownAt = 0;
   let pointerDragged = false;
-  let trackPaused = false;
-  let pressPath = "";
+  // Android fires pointerup then click; only open once for the gesture.
+  let openedFromPointerUp = false;
 
-  function getFlowTrack() {
-    return wrapper.closest(".gallery-flow-track");
-  }
-
-  function pauseFlowTrackForTap() {
-    const track = getFlowTrack();
-    if (!track || trackPaused) return;
-    // Bake the live animated offset into an inline transform so Android hit-testing
-    // matches the pixels under the finger while the marquee is frozen.
-    const x = readTrackTranslateX(track);
-    track.classList.add("gallery-flow-track--tap-paused");
-    track.style.animation = "none";
-    track.style.transform = `translate3d(${x}px, 0, 0)`;
-    trackPaused = true;
-  }
-
-  function resumeFlowTrackAfterTap() {
-    if (!trackPaused) return;
-    const track = getFlowTrack();
-    trackPaused = false;
-    if (!track) return;
-    track.classList.remove("gallery-flow-track--tap-paused");
-    track.style.removeProperty("animation");
-    track.style.removeProperty("transform");
-    const rowIndex = galleryRowsState?.findIndex((row) => row.trackElement === track) ?? -1;
-    if (rowIndex >= 0) applyFlowTrackMotion(galleryRowsState[rowIndex], rowIndex);
-  }
-
-  function capturePressPath(clientX, clientY) {
-    const visualTile = findFlowTileAtPoint(clientX, clientY) || wrapper;
-    pressPath =
-      getFlowTileAssetPath(visualTile) ||
-      getFlowTileAssetPath(wrapper) ||
-      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
+  function resolveIndexFromTile(tile) {
+    const path = tile?.querySelector?.("img[data-asset-path]")?.dataset.assetPath;
+    if (path) {
+      const key = normalizeAssetPath(path);
+      const fromActive = activeGalleryItems.findIndex(
+        (item) => normalizeAssetPath(typeof item === "string" ? item : item.src) === key
+      );
+      if (fromActive >= 0) return fromActive;
+      const fromMedia = mediaItems.findIndex(
+        (item) => normalizeAssetPath(typeof item === "string" ? item : item.src) === key
+      );
+      if (fromMedia >= 0 && activeGalleryItems === mediaItems) return fromMedia;
+    }
+    if (typeof mediaIndex === "number" && activeGalleryItems[mediaIndex]) return mediaIndex;
+    return -1;
   }
 
   function activateTile(e) {
@@ -1975,21 +1903,12 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
       e.stopPropagation();
     }
     const now = Date.now();
-    if (now - lastActivateAt < 350) return;
-
-    if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
-      capturePressPath(e.clientX, e.clientY);
-    }
-    const path =
-      pressPath ||
-      getFlowTileAssetPath(wrapper) ||
-      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
-    if (!path) return;
-
+    if (now - lastActivateAt < 400) return;
+    const tile = e?.currentTarget || wrapper;
+    const index = resolveIndexFromTile(tile);
+    if (index < 0) return;
     lastActivateAt = now;
-    resumeFlowTrackAfterTap();
-    openLightboxFromPath(path);
-    pressPath = "";
+    openLightboxFromIndex(index);
   }
 
   wrapper.setAttribute("role", "button");
@@ -2001,11 +1920,8 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     (e) => {
       pointerStartX = e.clientX;
       pointerStartY = e.clientY;
-      pointerDownAt = Date.now();
       pointerDragged = false;
-      // Freeze first so getBoundingClientRect matches what the user sees, then capture path.
-      if (e.pointerType !== "mouse") pauseFlowTrackForTap();
-      capturePressPath(e.clientX, e.clientY);
+      openedFromPointerUp = false;
     },
     { passive: true }
   );
@@ -2019,48 +1935,37 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
         Math.abs(e.clientY - pointerStartY) > TILE_TAP_SLOP_PX
       ) {
         pointerDragged = true;
-        pressPath = "";
-        resumeFlowTrackAfterTap();
       }
     },
     { passive: true }
   );
 
-  // Safari cancels the pointer stream when a scroll gesture takes over. Don't
-  // treat every cancel as a drag — a short stationary press is still a tap.
   wrapper.addEventListener(
     "pointercancel",
-    (e) => {
-      const elapsed = Date.now() - pointerDownAt;
-      const wasTap = !pointerDragged && elapsed > 0 && elapsed <= TILE_TAP_CANCEL_MAX_MS;
-      if (e.pointerType === "mouse") {
-        resumeFlowTrackAfterTap();
-        return;
-      }
-      if (!wasTap) {
-        pointerDragged = true;
-        pressPath = "";
-        resumeFlowTrackAfterTap();
-        return;
-      }
-      activateTile(e);
+    () => {
+      pointerDragged = true;
     },
     { passive: true }
   );
 
-  wrapper.addEventListener("click", (e) => {
-    if (pointerDragged) return;
-    activateTile(e);
-  });
+  // Touch: open on pointerup. Android also synthesizes click afterward — ignore that.
   wrapper.addEventListener("pointerup", (e) => {
     if (e.pointerType === "mouse") return;
     if (!e.isPrimary) return;
-    if (pointerDragged) {
-      resumeFlowTrackAfterTap();
-      return;
-    }
+    if (pointerDragged) return;
+    openedFromPointerUp = true;
+    activateTile(e);
+    window.setTimeout(() => {
+      openedFromPointerUp = false;
+    }, 450);
+  });
+
+  wrapper.addEventListener("click", (e) => {
+    if (pointerDragged) return;
+    if (openedFromPointerUp) return;
     activateTile(e);
   });
+
   wrapper.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
