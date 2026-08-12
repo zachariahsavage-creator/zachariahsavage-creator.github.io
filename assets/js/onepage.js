@@ -182,7 +182,7 @@ function positiveModulo(value, modulus) {
   return ((value % modulus) + modulus) % modulus;
 }
 
-/** Explicit source lists for the numbered gallery folders (labels "1"–"5"). */
+/** Explicit source lists for the numbered gallery folders (labels "1", "2", "4"). */
 const FULL_GALLERY_NUMBERED_SHOW_SOURCES = {
   "1": [
     "boston-church-scandal-the-drake-01.webp",
@@ -199,27 +199,12 @@ const FULL_GALLERY_NUMBERED_SHOW_SOURCES = {
     "daphne-the-drake-04.webp",
     "daphne-the-drake-05.webp",
   ],
-  "3": [
-    "izzy-flores-986-bathurst-01.webp",
-    "izzy-flores-986-bathurst-02.webp",
-    "izzy-flores-986-bathurst-03.webp",
-    "izzy-flores-986-bathurst-04.webp",
-    "izzy-flores-986-bathurst-05.webp",
-    "izzy-flores-986-bathurst-06.webp",
-  ],
   "4": [
     "angelique-the-ivy-01.webp",
     "angelique-the-ivy-02.webp",
     "angelique-the-ivy-03.webp",
     "angelique-the-ivy-04.webp",
     "angelique-the-ivy-05.webp",
-  ],
-  "5": [
-    "superstar-crush-the-baby-g-01.webp",
-    "superstar-crush-the-baby-g-02.webp",
-    "superstar-crush-the-baby-g-03.webp",
-    "superstar-crush-the-baby-g-04.webp",
-    "superstar-crush-the-baby-g-05.webp",
   ],
 };
 
@@ -228,7 +213,7 @@ Object.entries(FULL_GALLERY_NUMBERED_SHOW_SOURCES).forEach(([label, sources]) =>
   sources.forEach((path) => numberedShowGroupByPath.set(path, label));
 });
 
-/** Numbered-folder label ("1"–"5") for a path, or null when it belongs to no numbered show. */
+/** Numbered-folder label ("1", "2", "4") for a path, or null when it belongs to no numbered show. */
 function getNumberedShowGroup(src) {
   const filename = src.split("/").pop() || "";
   return numberedShowGroupByPath.get(filename) || null;
@@ -305,6 +290,44 @@ const FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME = {
   ],
 };
 
+const FULL_GALLERY_TAPLIN_THE_BABY_G = {
+  id: "taplin-the-baby-g",
+  order: -1.825,
+  title: "Taplin @ The Baby G",
+  preserveSourceOrder: true,
+  /* Home flow: only the first Taplin shot (other pinned shows use HOME_FLOW_LEADS_PER_FOLDER). */
+  homeFlowLeads: 1,
+  sources: [
+    "taplin-the-baby-g-01.webp",
+    "taplin-the-baby-g-02.webp",
+    "taplin-the-baby-g-03.webp",
+    "taplin-the-baby-g-04.webp",
+    "taplin-the-baby-g-05.webp",
+    "taplin-the-baby-g-06.webp",
+    "taplin-the-baby-g-07.webp",
+    "taplin-the-baby-g-08.webp",
+    "taplin-the-baby-g-09.webp",
+    "taplin-the-baby-g-10.webp",
+    "taplin-the-baby-g-11.webp",
+    "taplin-the-baby-g-12.webp",
+    "taplin-the-baby-g-13.webp",
+    "taplin-the-baby-g-14.webp",
+    "taplin-the-baby-g-15.webp",
+    "taplin-the-baby-g-16.webp",
+    "taplin-the-baby-g-17.webp",
+    "taplin-the-baby-g-18.webp",
+    "taplin-the-baby-g-19.webp",
+    "taplin-the-baby-g-20.webp",
+    "taplin-the-baby-g-21.webp",
+    "taplin-the-baby-g-22.webp",
+    "taplin-the-baby-g-23.webp",
+    "taplin-the-baby-g-24.webp",
+    "taplin-the-baby-g-25.webp",
+    "taplin-the-baby-g-26.webp",
+    "taplin-the-baby-g-27.webp"
+  ],
+};
+
 const FULL_GALLERY_LISTENING_ROOM = {
   id: "listening-room-longboat",
   order: -2,
@@ -356,10 +379,50 @@ const FULL_GALLERY_SUPERSTAR_CRUSH_DINAS = {
   ],
 };
 
+const FULL_GALLERY_METEOR_HEIST_DANCE_CAVE = {
+  id: "meteor-heist-dance-cave",
+  order: -1.85,
+  title: "Meteor Heist @ Dance Cave",
+  preserveSourceOrder: true,
+  /* Home flow: heroes + shot 7 only, then scrambled with other shows. */
+  homeFlowSources: [
+    "meteor-heist-dance-cave-01.webp",
+    "meteor-heist-dance-cave-02.webp",
+    "meteor-heist-dance-cave-07.webp",
+  ],
+  sources: [
+    "meteor-heist-dance-cave-01.webp",
+    "meteor-heist-dance-cave-02.webp",
+    "meteor-heist-dance-cave-03.webp",
+    "meteor-heist-dance-cave-04.webp",
+    "meteor-heist-dance-cave-05.webp",
+    "meteor-heist-dance-cave-06.webp",
+    "meteor-heist-dance-cave-07.webp",
+    "meteor-heist-dance-cave-08.webp",
+    "meteor-heist-dance-cave-09.webp",
+    "meteor-heist-dance-cave-10.webp",
+    "meteor-heist-dance-cave-11.webp",
+    "meteor-heist-dance-cave-12.webp",
+    "meteor-heist-dance-cave-13.webp",
+    "meteor-heist-dance-cave-14.webp",
+    "meteor-heist-dance-cave-15.webp",
+    "meteor-heist-dance-cave-16.webp",
+    "meteor-heist-dance-cave-17.webp",
+    "meteor-heist-dance-cave-18.webp",
+    "meteor-heist-dance-cave-19.webp",
+    "meteor-heist-dance-cave-20.webp",
+    "meteor-heist-dance-cave-21.webp",
+    "meteor-heist-dance-cave-22.webp",
+    "meteor-heist-dance-cave-23.webp",
+  ],
+};
+
 const FULL_GALLERY_STACKS_RATS_NEST = {
   id: "stacks-rats-nest",
   order: -1.5,
   title: "Stacks @ Rats Nest",
+  /* Keep Stacks in the full gallery, but out of the home flow. */
+  homeFlowLeads: 0,
   sources: [
     "stacks-rats-nest-01.webp",
     "stacks-rats-nest-02.webp",
@@ -375,6 +438,8 @@ const FULL_GALLERY_PINNED_SHOW = {
   id: "swt-burdock",
   order: -1,
   title: "Sam William Thomas @ Burdock",
+  /* Keep SWT in the full gallery, but out of the home flow. */
+  homeFlowLeads: 0,
   sources: [
     "sam-william-thomas-burdock-01.webp",
     "sam-william-thomas-burdock-02.webp",
@@ -422,6 +487,8 @@ const FULL_GALLERY_PINNED_SHOWS = [
   FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME,
   FULL_GALLERY_LISTENING_ROOM,
   FULL_GALLERY_SUPERSTAR_CRUSH_DINAS,
+  FULL_GALLERY_METEOR_HEIST_DANCE_CAVE,
+  FULL_GALLERY_TAPLIN_THE_BABY_G,
   FULL_GALLERY_STACKS_RATS_NEST,
   FULL_GALLERY_PINNED_SHOW,
   FULL_GALLERY_MICO_HARD_LUCK,
@@ -435,6 +502,19 @@ function getPinnedShowById(id) {
 const HOME_FLOW_LEADS_PER_FOLDER = 4;
 /** Fixed seed so the scramble is stable across reloads. */
 const HOME_FLOW_SHUFFLE_SEED = 20260810;
+/** First shots mobile (and desktop) users see when the flow opens. */
+const HOME_FLOW_OPENING_PATHS = [
+  "daniela-andrade-mod-club-01.webp",
+  "superstar-crush-dinas-tavern-01.webp",
+  "taplin-the-baby-g-01.webp",
+  "listening-room-longboat-hall-01.webp",
+];
+const HOME_FLOW_OPENING_PATH = HOME_FLOW_OPENING_PATHS[0];
+const HOME_FLOW_NO_ADJACENT_PREFIX = "daniela-andrade-mod-club-";
+/** Push these shots later in the scramble (min fraction along the flow, after the opener). */
+const HOME_FLOW_DEFERRED_PATHS = [
+  { path: "meteor-heist-dance-cave-02.webp", minFraction: 0.45 },
+];
 
 function mulberry32(seed) {
   let t = seed >>> 0;
@@ -458,6 +538,90 @@ function shuffleDeterministic(items, seed) {
   return arr;
 }
 
+function pinHomeFlowOpeningPaths(items, openingPaths = HOME_FLOW_OPENING_PATHS) {
+  const lead = openingPaths.filter((path) => items.includes(path));
+  if (!lead.length) return items;
+  const leadSet = new Set(lead);
+  return [...lead, ...items.filter((path) => !leadSet.has(path))];
+}
+
+function isHomeFlowPathInGroup(path, prefix) {
+  return typeof path === "string" && path.startsWith(prefix);
+}
+
+/** Keep same-show shots from sitting next to each other after the scramble. */
+function separateAdjacentHomeFlowGroup(items, prefix, seed = HOME_FLOW_SHUFFLE_SEED) {
+  if (!prefix || items.length < 3) return items;
+
+  const isGroup = (path) => isHomeFlowPathInGroup(path, prefix);
+  const group = [];
+  const others = [];
+  items.forEach((path) => {
+    if (isGroup(path)) group.push(path);
+    else others.push(path);
+  });
+  if (group.length <= 1 || !others.length) return items;
+
+  const opening = isGroup(items[0]) ? group.shift() : null;
+  const result = opening ? [opening] : [];
+  others.forEach((path) => result.push(path));
+
+  const lockCount = Math.min(HOME_FLOW_OPENING_PATHS.length, result.length);
+  const rand = mulberry32((seed ^ 0x9e3779b9) >>> 0);
+  group.forEach((path) => {
+    const candidates = [];
+    for (let i = lockCount; i <= result.length; i += 1) {
+      const left = i > 0 ? result[i - 1] : null;
+      const right = i < result.length ? result[i] : null;
+      if (left && isGroup(left)) continue;
+      if (right && isGroup(right)) continue;
+      candidates.push(i);
+    }
+    const insertAt = candidates.length
+      ? candidates[Math.floor(rand() * candidates.length)]
+      : result.length;
+    result.splice(insertAt, 0, path);
+  });
+  return result;
+}
+
+function deferHomeFlowPath(items, path, minFraction) {
+  const idx = items.indexOf(path);
+  if (idx < 0) return items;
+  const minIndex = Math.max(
+    HOME_FLOW_OPENING_PATHS.length,
+    Math.min(items.length - 1, Math.floor(items.length * minFraction))
+  );
+  if (idx >= minIndex) return items;
+  const next = items.filter((entry) => entry !== path);
+  const insertAt = Math.min(minIndex, next.length);
+  next.splice(insertAt, 0, path);
+  return next;
+}
+
+function deferHomeFlowPaths(items, deferred = HOME_FLOW_DEFERRED_PATHS) {
+  return deferred.reduce(
+    (acc, rule) =>
+      deferHomeFlowPath(acc, rule.path, Number.isFinite(rule.minFraction) ? rule.minFraction : 0.5),
+    items
+  );
+}
+
+function getHomeFlowLeadsForShow(show, leadsPerFolder) {
+  if (Array.isArray(show.homeFlowSources) && show.homeFlowSources.length) {
+    const allowed = new Set(show.sources || []);
+    return show.homeFlowSources.filter(
+      (path) => typeof path === "string" && path.length > 0 && allowed.has(path)
+    );
+  }
+  const take = Number.isFinite(show.homeFlowLeads)
+    ? Math.max(0, show.homeFlowLeads)
+    : leadsPerFolder;
+  return (show.sources || [])
+    .filter((path) => typeof path === "string" && path.length > 0)
+    .slice(0, take);
+}
+
 /**
  * Home flow images: leading shots from the latest gallery folders (pinned shows),
  * then scrambled so shows stay mixed.
@@ -468,12 +632,14 @@ function buildHomeFlowItemsFromPinnedShows(
   seed = HOME_FLOW_SHUFFLE_SEED
 ) {
   const folders = [...shows].sort((a, b) => a.order - b.order);
-  const leads = folders.flatMap((show) =>
-    (show.sources || [])
-      .filter((path) => typeof path === "string" && path.length > 0)
-      .slice(0, leadsPerFolder)
+  const leads = folders.flatMap((show) => getHomeFlowLeadsForShow(show, leadsPerFolder));
+  return deferHomeFlowPaths(
+    separateAdjacentHomeFlowGroup(
+      pinHomeFlowOpeningPaths(shuffleDeterministic(leads, seed)),
+      HOME_FLOW_NO_ADJACENT_PREFIX,
+      seed
+    )
   );
-  return shuffleDeterministic(leads, seed);
 }
 
 function dedupeFlowItems(items) {
@@ -500,6 +666,8 @@ const fullGalleryNumberedItems = [
   ...FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
   ...FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.sources,
+  ...FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.sources,
+  ...FULL_GALLERY_TAPLIN_THE_BABY_G.sources,
   ...FULL_GALLERY_STACKS_RATS_NEST.sources,
   ...FULL_GALLERY_PINNED_SHOW.sources,
   ...FULL_GALLERY_MICO_HARD_LUCK.sources,
@@ -514,22 +682,11 @@ const fullGalleryNumberedItems = [
   "daphne-the-drake-03.webp",
   "daphne-the-drake-04.webp",
   "daphne-the-drake-05.webp",
-  "izzy-flores-986-bathurst-01.webp",
-  "izzy-flores-986-bathurst-02.webp",
-  "izzy-flores-986-bathurst-03.webp",
-  "izzy-flores-986-bathurst-04.webp",
-  "izzy-flores-986-bathurst-05.webp",
-  "izzy-flores-986-bathurst-06.webp",
   "angelique-the-ivy-01.webp",
   "angelique-the-ivy-02.webp",
   "angelique-the-ivy-03.webp",
   "angelique-the-ivy-04.webp",
   "angelique-the-ivy-05.webp",
-  "superstar-crush-the-baby-g-01.webp",
-  "superstar-crush-the-baby-g-02.webp",
-  "superstar-crush-the-baby-g-03.webp",
-  "superstar-crush-the-baby-g-04.webp",
-  "superstar-crush-the-baby-g-05.webp",
 ];
 
 /** Used on full gallery page but not in the grid (e.g. page background). */
@@ -618,12 +775,6 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "daphne-the-drake-05.webp": 1.5,
   "gallery-page-backdrop.webp": 1.5,
   "home-hero-backdrop.webp": 0.481,
-  "izzy-flores-986-bathurst-01.webp": 1.5,
-  "izzy-flores-986-bathurst-02.webp": 1.5,
-  "izzy-flores-986-bathurst-03.webp": 1.5,
-  "izzy-flores-986-bathurst-04.webp": 1.5,
-  "izzy-flores-986-bathurst-05.webp": 1.5,
-  "izzy-flores-986-bathurst-06.webp": 0.667,
   "listening-room-longboat-hall-01.webp": 0.667,
   "listening-room-longboat-hall-02.webp": 0.667,
   "listening-room-longboat-hall-03.webp": 0.667,
@@ -681,6 +832,33 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "stacks-rats-nest-05.webp": 0.667,
   "stacks-rats-nest-06.webp": 0.667,
   "stacks-rats-nest-07.webp": 0.667,
+  "taplin-the-baby-g-01.webp": 0.75,
+  "taplin-the-baby-g-02.webp": 0.75,
+  "taplin-the-baby-g-03.webp": 1.333,
+  "taplin-the-baby-g-04.webp": 1.333,
+  "taplin-the-baby-g-05.webp": 0.75,
+  "taplin-the-baby-g-06.webp": 0.75,
+  "taplin-the-baby-g-07.webp": 1.0,
+  "taplin-the-baby-g-08.webp": 1.333,
+  "taplin-the-baby-g-09.webp": 1.333,
+  "taplin-the-baby-g-10.webp": 1.333,
+  "taplin-the-baby-g-11.webp": 1.333,
+  "taplin-the-baby-g-12.webp": 1.333,
+  "taplin-the-baby-g-13.webp": 1.333,
+  "taplin-the-baby-g-14.webp": 1.333,
+  "taplin-the-baby-g-15.webp": 1.333,
+  "taplin-the-baby-g-16.webp": 1.333,
+  "taplin-the-baby-g-17.webp": 1.333,
+  "taplin-the-baby-g-18.webp": 1.333,
+  "taplin-the-baby-g-19.webp": 1.333,
+  "taplin-the-baby-g-20.webp": 1.333,
+  "taplin-the-baby-g-21.webp": 0.75,
+  "taplin-the-baby-g-22.webp": 1.333,
+  "taplin-the-baby-g-23.webp": 1.333,
+  "taplin-the-baby-g-24.webp": 1.333,
+  "taplin-the-baby-g-25.webp": 0.75,
+  "taplin-the-baby-g-26.webp": 1.5,
+  "taplin-the-baby-g-27.webp": 1.333,
   "superstar-crush-dinas-tavern-01.webp": 0.667,
   "superstar-crush-dinas-tavern-02.webp": 0.75,
   "superstar-crush-dinas-tavern-03.webp": 0.667,
@@ -696,11 +874,29 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "superstar-crush-dinas-tavern-13.webp": 1.5,
   "superstar-crush-dinas-tavern-14.webp": 0.667,
   "superstar-crush-dinas-tavern-15.webp": 0.667,
-  "superstar-crush-the-baby-g-01.webp": 1.5,
-  "superstar-crush-the-baby-g-02.webp": 1.5,
-  "superstar-crush-the-baby-g-03.webp": 0.667,
-  "superstar-crush-the-baby-g-04.webp": 0.667,
-  "superstar-crush-the-baby-g-05.webp": 0.667,
+  "meteor-heist-dance-cave-01.webp": 0.667,
+  "meteor-heist-dance-cave-02.webp": 0.75,
+  "meteor-heist-dance-cave-03.webp": 0.667,
+  "meteor-heist-dance-cave-04.webp": 0.75,
+  "meteor-heist-dance-cave-05.webp": 0.75,
+  "meteor-heist-dance-cave-06.webp": 0.75,
+  "meteor-heist-dance-cave-07.webp": 0.75,
+  "meteor-heist-dance-cave-08.webp": 0.75,
+  "meteor-heist-dance-cave-09.webp": 0.75,
+  "meteor-heist-dance-cave-10.webp": 0.75,
+  "meteor-heist-dance-cave-11.webp": 0.75,
+  "meteor-heist-dance-cave-12.webp": 0.75,
+  "meteor-heist-dance-cave-13.webp": 1.333,
+  "meteor-heist-dance-cave-14.webp": 1.333,
+  "meteor-heist-dance-cave-15.webp": 1.333,
+  "meteor-heist-dance-cave-16.webp": 1.333,
+  "meteor-heist-dance-cave-17.webp": 1.333,
+  "meteor-heist-dance-cave-18.webp": 1.333,
+  "meteor-heist-dance-cave-19.webp": 1.333,
+  "meteor-heist-dance-cave-20.webp": 1.333,
+  "meteor-heist-dance-cave-21.webp": 1.5,
+  "meteor-heist-dance-cave-22.webp": 1.5,
+  "meteor-heist-dance-cave-23.webp": 1.5,
   "zach-savage-portrait.webp": 1.5,
   "zach-savage-portrait-mobile.webp": 0.8,
 };
@@ -833,14 +1029,14 @@ const fullGallerySectionTitles = {
   [FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.id]: FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
   [FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.id]: FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.title,
+  [FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.id]: FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.title,
+  [FULL_GALLERY_TAPLIN_THE_BABY_G.id]: FULL_GALLERY_TAPLIN_THE_BABY_G.title,
   [FULL_GALLERY_STACKS_RATS_NEST.id]: FULL_GALLERY_STACKS_RATS_NEST.title,
   [FULL_GALLERY_PINNED_SHOW.id]: FULL_GALLERY_PINNED_SHOW.title,
   [FULL_GALLERY_MICO_HARD_LUCK.id]: FULL_GALLERY_MICO_HARD_LUCK.title,
   "1": "Boston Church Scandal @ The Drake",
   "2": "DAPHNE @ The Drake",
-  "3": "Izzy Flores @ 986 Bathurst",
   "4": "Angelique @ The Ivy",
-  "5": "Superstar Crush @ The Baby G",
 };
 
 /** Descriptive alt text for gallery photographs, keyed by asset filename. */
@@ -891,13 +1087,6 @@ const FULL_GALLERY_NUMBERED_FOLDER_SOURCE_ORDER = {
     "daphne-the-drake-03.webp",
     "daphne-the-drake-04.webp",
     "daphne-the-drake-05.webp",
-  ],
-  "5": [
-    "superstar-crush-the-baby-g-01.webp",
-    "superstar-crush-the-baby-g-02.webp",
-    "superstar-crush-the-baby-g-03.webp",
-    "superstar-crush-the-baby-g-04.webp",
-    "superstar-crush-the-baby-g-05.webp",
   ],
 };
 
@@ -1011,7 +1200,9 @@ function getFullGalleryFolderDefinitions() {
   const folders = FULL_GALLERY_PINNED_SHOWS.map((show) => ({
     label: show.id,
     order: show.order,
-    sources: sortPathsForPairedGridLayout(show.sources, { lockFirst: 2 }),
+    sources: sortPathsForPairedGridLayout(show.sources, {
+      lockFirst: show.preserveSourceOrder ? show.sources.length : 2,
+    }),
   }));
 
   const byNumber = new Map();
@@ -1220,6 +1411,8 @@ function normalizeAssetPath(path) {
 }
 
 const IMAGE_BASE_PATH = "assets/images/";
+/** Bump when replacing image bytes under the same filename (pinImagePath uses force-cache). */
+const ASSET_CACHE_VERSION = "meteor-swap-2";
 
 /** Show folders under `assets/images/shows/`; every photo filename is prefixed with its slug.
  *  Longest slug first so an added slug that extends another still matches the right folder. */
@@ -1229,13 +1422,13 @@ const SHOW_IMAGE_FOLDERS = [
   "concrete-breaks-standard-time",
   "daniela-andrade-mod-club",
   "daphne-the-drake",
-  "izzy-flores-986-bathurst",
   "listening-room-longboat-hall",
+  "meteor-heist-dance-cave",
   "mico-hard-luck",
   "sam-william-thomas-burdock",
   "stacks-rats-nest",
   "superstar-crush-dinas-tavern",
-  "superstar-crush-the-baby-g",
+  "taplin-the-baby-g",
 ].sort((a, b) => b.length - a.length);
 
 /**
@@ -1247,7 +1440,7 @@ function getAssetUrl(assetPath) {
   const filename = normalizeAssetPath(assetPath).split("/").pop() || "";
   if (!filename) return assetPath;
   const folder = SHOW_IMAGE_FOLDERS.find((slug) => filename.startsWith(`${slug}-`));
-  return `${IMAGE_BASE_PATH}${folder ? `shows/${folder}` : "site"}/${filename}`;
+  return `${IMAGE_BASE_PATH}${folder ? `shows/${folder}` : "site"}/${filename}?v=${ASSET_CACHE_VERSION}`;
 }
 
 function getAllFlowImagePaths() {
@@ -1550,6 +1743,8 @@ function cloneFlowMediaTile(original) {
   return clone;
 }
 const FLOW_BASE_SPEEDS = [24, 30];
+/** Mobile single-row marquee: 1.3 × 1.25 vs desktop base speeds. */
+const FLOW_MOBILE_SPEED_MULTIPLIER = 1.625;
 let galleryRowsState = null;
 let flowDirection = 1;
 let flowMultiplier = 1;
@@ -1816,6 +2011,10 @@ function closeLightbox() {
   lightbox.setAttribute("data-state", "closing");
   document.documentElement.style.overflow = "";
   lightboxCurrentIndex = null;
+
+  if (document.body.classList.contains("page-full-gallery")) {
+    activeGalleryItems = fullGalleryNumberedItems;
+  }
 
   if (lightboxVideo) {
     lightboxVideo.pause();
@@ -2389,7 +2588,8 @@ function applyFlowTrackMotion(rowState, rowIndex) {
     return;
   }
 
-  const speed = (FLOW_BASE_SPEEDS[rowIndex] || FLOW_BASE_SPEEDS[0]) * flowMultiplier;
+  const baseSpeed = (FLOW_BASE_SPEEDS[rowIndex] || FLOW_BASE_SPEEDS[0]) * flowMultiplier;
+  const speed = baseSpeed * (isFlowMobileLayout() ? FLOW_MOBILE_SPEED_MULTIPLIER : 1);
   const durationSec = W / speed;
   track.style.setProperty("--flow-marquee-duration", `${durationSec}s`);
   track.style.setProperty("--flow-marquee-direction", flowDirection < 0 ? "reverse" : "normal");
@@ -2587,6 +2787,20 @@ function createGridTile(item, mediaIndex) {
   }
 
   tile.addEventListener("click", () => {
+    // Full gallery: swipe through this folder in the same order as the grid.
+    if (document.body.classList.contains("page-full-gallery")) {
+      const path = typeof item === "string" ? item : item?.src;
+      const label = tile.dataset.groupLabel;
+      const folder = getFullGalleryFolderDefinitions().find((f) => f.label === label);
+      if (path && folder?.sources?.length) {
+        const folderIndex = folder.sources.indexOf(path);
+        if (folderIndex >= 0) {
+          activeGalleryItems = folder.sources;
+          openLightboxFromIndex(folderIndex);
+          return;
+        }
+      }
+    }
     openLightboxFromIndex(mediaIndex);
   });
   return tile;
@@ -2863,14 +3077,13 @@ function renderFolderPreview(parentEl, layoutTiles) {
   retainGalleryFolderPreviewTiles(preview);
 }
 
-/** Expanded folder body: pair by closest aspect (same rules as DAPHNE preview rows). */
+/** Expanded folder body: keep folder source order; row-split by orientation only. */
 function renderFolderBody(parentEl, tiles) {
   if (!tiles.length) return;
 
-  const orderedPaths = sortPathsForPairedGridLayout(tiles.map(getTileAssetPath));
-  const orderedTiles = sortTilesByAssetOrder(tiles, orderedPaths);
-
-  splitTilesIntoSourceOrderOrientationRuns(orderedTiles).forEach((run) => {
+  // Tiles arrive in folder source order from createGridTilesFromPaths — do not
+  // re-sort by aspect here, or the grid and lightbox swipe order diverge.
+  splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
     const gridEl = document.createElement("div");
     gridEl.className = "portfolio-date-grid";
     appendTilesToFullGalleryGrid(gridEl, run);
@@ -4589,7 +4802,7 @@ function setupRatesReveal() {
   }
 }
 
-/** Lead image from each of the top N gallery folders (desktop Rates bio cycle). */
+/** Lead image from each of the top N gallery folders (Rates / bio slideshow). */
 function getRatesBioCyclePaths(limit = 5) {
   const folderLeads = getFullGalleryFolderDefinitions()
     .slice(0, limit)
@@ -4599,14 +4812,21 @@ function getRatesBioCyclePaths(limit = 5) {
 }
 
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
-const RATES_BIO_CYCLE_INTERVAL_MS = 3200;
+const RATES_BIO_CYCLE_MOBILE_QUERY = "(max-width: 1023px)";
+const RATES_BIO_CYCLE_INTERVAL_MS = 2560;
+const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 1500;
 
 function isRatesBioCycleDesktop() {
   return window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY)?.matches ?? false;
 }
 
+function isRatesBioCycleMobile() {
+  return window.matchMedia?.(RATES_BIO_CYCLE_MOBILE_QUERY)?.matches ?? false;
+}
+
 function setupRatesBioCycle() {
   const picture = document.querySelector(".home-bio-picture");
+  const bioRow = document.querySelector(".home-bio-row");
   const cycle = picture?.querySelector(".home-bio-cycle");
   const imgA = cycle?.querySelector(".home-bio-cycle__img--a");
   const imgB = cycle?.querySelector(".home-bio-cycle__img--b");
@@ -4618,7 +4838,10 @@ function setupRatesBioCycle() {
   let index = 0;
   let showingA = true;
   let timerId = 0;
+  let mobileStartTimerId = 0;
   let active = false;
+  let ratesOpen = false;
+  let bioCentered = false;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -4644,8 +4867,15 @@ function setupRatesBioCycle() {
     showingA = !showingA;
   };
 
+  const clearMobileStartTimer = () => {
+    if (!mobileStartTimerId) return;
+    window.clearTimeout(mobileStartTimerId);
+    mobileStartTimerId = 0;
+  };
+
   const stop = () => {
     active = false;
+    clearMobileStartTimer();
     if (timerId) {
       window.clearInterval(timerId);
       timerId = 0;
@@ -4655,24 +4885,33 @@ function setupRatesBioCycle() {
     imgB.classList.remove("is-active");
   };
 
+  const shouldPlay = () => {
+    if (paths.length < 1) return false;
+    if (isRatesBioCycleDesktop()) return ratesOpen;
+    if (isRatesBioCycleMobile()) return bioCentered;
+    return false;
+  };
+
   const start = () => {
-    if (!isRatesBioCycleDesktop() || paths.length < 1) {
+    if (!shouldPlay()) {
       stop();
       return;
     }
     if (active) return;
     active = true;
     showingA = true;
-    setLayerSrc(imgA, paths[0]);
+    // Resume from the last shown slide (index stays put across stop/start).
+    const resumeIndex = ((index % paths.length) + paths.length) % paths.length;
+    index = resumeIndex;
+    setLayerSrc(imgA, paths[resumeIndex]);
     imgA.classList.add("is-active");
     imgB.classList.remove("is-active");
-    index = 0;
     picture.classList.add("is-cycling");
 
     if (getShouldReduceMotion() || paths.length < 2) return;
 
     timerId = window.setInterval(() => {
-      if (!active || !isRatesBioCycleDesktop()) {
+      if (!active || !shouldPlay()) {
         stop();
         return;
       }
@@ -4680,23 +4919,82 @@ function setupRatesBioCycle() {
     }, RATES_BIO_CYCLE_INTERVAL_MS);
   };
 
-  const mq = window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY);
-  const onViewportChange = () => {
-    if (!document.querySelector(".rates--reveal.is-open")) return;
-    if (isRatesBioCycleDesktop()) start();
-    else stop();
+  const syncPlayback = () => {
+    if (!shouldPlay()) {
+      stop();
+      return;
+    }
+    // Desktop rates open: start immediately. Mobile scroll trigger: delayed start.
+    if (isRatesBioCycleDesktop()) {
+      clearMobileStartTimer();
+      start();
+      return;
+    }
+    if (active || mobileStartTimerId) return;
+    mobileStartTimerId = window.setTimeout(() => {
+      mobileStartTimerId = 0;
+      if (shouldPlay()) start();
+    }, RATES_BIO_CYCLE_MOBILE_START_DELAY_MS);
   };
-  if (mq) {
-    if (typeof mq.addEventListener === "function") mq.addEventListener("change", onViewportChange);
-    else mq.addListener?.(onViewportChange);
+
+  const desktopMq = window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY);
+  const mobileMq = window.matchMedia?.(RATES_BIO_CYCLE_MOBILE_QUERY);
+  const onViewportChange = () => {
+    if (!isRatesBioCycleMobile()) bioCentered = false;
+    if (!isRatesBioCycleDesktop()) ratesOpen = Boolean(
+      document.querySelector(".rates--reveal.is-open, .onepage-section--rates.is-open")
+    );
+    syncPlayback();
+  };
+  if (desktopMq) {
+    if (typeof desktopMq.addEventListener === "function") {
+      desktopMq.addEventListener("change", onViewportChange);
+    } else {
+      desktopMq.addListener?.(onViewportChange);
+    }
+  }
+  if (mobileMq) {
+    if (typeof mobileMq.addEventListener === "function") {
+      mobileMq.addEventListener("change", onViewportChange);
+    } else {
+      mobileMq.addListener?.(onViewportChange);
+    }
+  }
+
+  // Mobile: only start once "Who Am I?" reaches the lower-mid viewport
+  // (portrait still in view, copy/CTAs visible — not when the photo alone scrolls in).
+  const mobileTrigger =
+    bioRow?.querySelector(".home-bio-heading") ||
+    bioRow?.querySelector(".home-bio-copy") ||
+    bioRow ||
+    picture;
+  if (mobileTrigger && typeof IntersectionObserver === "function") {
+    const centerObserver = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.some((entry) => entry.isIntersecting);
+        if (!isRatesBioCycleMobile()) {
+          bioCentered = false;
+          return;
+        }
+        bioCentered = hit;
+        syncPlayback();
+      },
+      {
+        root: null,
+        // Active when the heading sits roughly mid-lower on screen.
+        rootMargin: "-48% 0px -18% 0px",
+        threshold: 0,
+      }
+    );
+    centerObserver.observe(mobileTrigger);
   }
 
   return {
     start,
     stop,
     setActive(open) {
-      if (open) start();
-      else stop();
+      ratesOpen = Boolean(open);
+      syncPlayback();
     },
   };
 }
