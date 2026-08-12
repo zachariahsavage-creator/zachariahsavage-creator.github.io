@@ -378,7 +378,7 @@ body.page-full-gallery .gallery-bar__plate {
 body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost {
   z-index: 9;
-  background: rgba(255, 255, 255, 0);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(15px) saturate(1.35);
   -webkit-backdrop-filter: blur(15px) saturate(1.35);
   box-shadow: var(--shadow-md);
@@ -410,7 +410,7 @@ body.page-full-gallery .gallery-bar__brand {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: exclusion;
+  mix-blend-mode: normal;
   filter: none;
   isolation: auto;
   pointer-events: auto;
@@ -422,7 +422,7 @@ body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: exclusion;
+  mix-blend-mode: normal;
 }
 
 body.page-home .gallery-bar__brand::before,
@@ -444,14 +444,14 @@ body.page-full-gallery .gallery-bar__menu-link:hover,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-  color: #ffffff;
+  color: rgba(0, 0, 0, 0.8);
 }
 
 body.page-home .gallery-bar__menu-icon span,
 body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-  background: #ffffff;
+  background: rgba(0, 0, 0, 0.8);
 }
 
 /* Home flow arrows: match black menu pill + white icons. */
@@ -3317,14 +3317,19 @@ body.page-full-gallery .portfolio-grid .full-gallery-tile video {
   display: block;
 }
 
-/* Folder covers read as a matched set: the side-by-side pair shares one box, so
-   fill it rather than letterboxing the shallower frame. Expanded rows keep
-   `contain` — pairing there can span orientations and cropping would gut them. */
+/* Side-by-side same-orientation pairs share one row height (taller frame wins).
+   Use cover so the shallower shot fills the box instead of letterboxing.
+   Orientation runs never mix L+P, so cropping won't gut a mismatched pair. */
 body.page-full-gallery
   .portfolio-grid
-  .portfolio-date-preview-grid:not(.portfolio-date-grid--stacked)
+  .portfolio-date-grid:not(.portfolio-date-grid--stacked)
   .full-gallery-tile:not(.full-gallery-tile--fullwidth)
-  img {
+  img,
+body.page-full-gallery
+  .portfolio-grid
+  .portfolio-date-grid:not(.portfolio-date-grid--stacked)
+  .full-gallery-tile:not(.full-gallery-tile--fullwidth)
+  video {
   object-fit: cover !important;
 }
 

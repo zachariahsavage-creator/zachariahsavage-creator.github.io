@@ -305,6 +305,44 @@ const FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME = {
   ],
 };
 
+const FULL_GALLERY_TAPLIN_THE_BABY_G = {
+  id: "taplin-the-baby-g",
+  order: -1.825,
+  title: "Taplin @ The Baby G",
+  preserveSourceOrder: true,
+  /* Home flow: only the first Taplin shot (other pinned shows use HOME_FLOW_LEADS_PER_FOLDER). */
+  homeFlowLeads: 1,
+  sources: [
+    "taplin-the-baby-g-01.webp",
+    "taplin-the-baby-g-02.webp",
+    "taplin-the-baby-g-03.webp",
+    "taplin-the-baby-g-04.webp",
+    "taplin-the-baby-g-05.webp",
+    "taplin-the-baby-g-06.webp",
+    "taplin-the-baby-g-07.webp",
+    "taplin-the-baby-g-08.webp",
+    "taplin-the-baby-g-09.webp",
+    "taplin-the-baby-g-10.webp",
+    "taplin-the-baby-g-11.webp",
+    "taplin-the-baby-g-12.webp",
+    "taplin-the-baby-g-13.webp",
+    "taplin-the-baby-g-14.webp",
+    "taplin-the-baby-g-15.webp",
+    "taplin-the-baby-g-16.webp",
+    "taplin-the-baby-g-17.webp",
+    "taplin-the-baby-g-18.webp",
+    "taplin-the-baby-g-19.webp",
+    "taplin-the-baby-g-20.webp",
+    "taplin-the-baby-g-21.webp",
+    "taplin-the-baby-g-22.webp",
+    "taplin-the-baby-g-23.webp",
+    "taplin-the-baby-g-24.webp",
+    "taplin-the-baby-g-25.webp",
+    "taplin-the-baby-g-26.webp",
+    "taplin-the-baby-g-27.webp"
+  ],
+};
+
 const FULL_GALLERY_LISTENING_ROOM = {
   id: "listening-room-longboat",
   order: -2,
@@ -353,6 +391,38 @@ const FULL_GALLERY_SUPERSTAR_CRUSH_DINAS = {
     "superstar-crush-dinas-tavern-13.webp",
     "superstar-crush-dinas-tavern-14.webp",
     "superstar-crush-dinas-tavern-15.webp",
+  ],
+};
+
+const FULL_GALLERY_METEOR_HEIST_DANCE_CAVE = {
+  id: "meteor-heist-dance-cave",
+  order: -1.85,
+  title: "Meteor Heist @ Dance Cave",
+  preserveSourceOrder: true,
+  sources: [
+    "meteor-heist-dance-cave-01.webp",
+    "meteor-heist-dance-cave-02.webp",
+    "meteor-heist-dance-cave-03.webp",
+    "meteor-heist-dance-cave-04.webp",
+    "meteor-heist-dance-cave-05.webp",
+    "meteor-heist-dance-cave-06.webp",
+    "meteor-heist-dance-cave-07.webp",
+    "meteor-heist-dance-cave-08.webp",
+    "meteor-heist-dance-cave-09.webp",
+    "meteor-heist-dance-cave-10.webp",
+    "meteor-heist-dance-cave-11.webp",
+    "meteor-heist-dance-cave-12.webp",
+    "meteor-heist-dance-cave-13.webp",
+    "meteor-heist-dance-cave-14.webp",
+    "meteor-heist-dance-cave-15.webp",
+    "meteor-heist-dance-cave-16.webp",
+    "meteor-heist-dance-cave-17.webp",
+    "meteor-heist-dance-cave-18.webp",
+    "meteor-heist-dance-cave-19.webp",
+    "meteor-heist-dance-cave-20.webp",
+    "meteor-heist-dance-cave-21.webp",
+    "meteor-heist-dance-cave-22.webp",
+    "meteor-heist-dance-cave-23.webp",
   ],
 };
 
@@ -422,6 +492,8 @@ const FULL_GALLERY_PINNED_SHOWS = [
   FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME,
   FULL_GALLERY_LISTENING_ROOM,
   FULL_GALLERY_SUPERSTAR_CRUSH_DINAS,
+  FULL_GALLERY_METEOR_HEIST_DANCE_CAVE,
+  FULL_GALLERY_TAPLIN_THE_BABY_G,
   FULL_GALLERY_STACKS_RATS_NEST,
   FULL_GALLERY_PINNED_SHOW,
   FULL_GALLERY_MICO_HARD_LUCK,
@@ -468,11 +540,14 @@ function buildHomeFlowItemsFromPinnedShows(
   seed = HOME_FLOW_SHUFFLE_SEED
 ) {
   const folders = [...shows].sort((a, b) => a.order - b.order);
-  const leads = folders.flatMap((show) =>
-    (show.sources || [])
+  const leads = folders.flatMap((show) => {
+    const take = Number.isFinite(show.homeFlowLeads)
+      ? Math.max(0, show.homeFlowLeads)
+      : leadsPerFolder;
+    return (show.sources || [])
       .filter((path) => typeof path === "string" && path.length > 0)
-      .slice(0, leadsPerFolder)
-  );
+      .slice(0, take);
+  });
   return shuffleDeterministic(leads, seed);
 }
 
@@ -500,6 +575,8 @@ const fullGalleryNumberedItems = [
   ...FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
   ...FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.sources,
+  ...FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.sources,
+  ...FULL_GALLERY_TAPLIN_THE_BABY_G.sources,
   ...FULL_GALLERY_STACKS_RATS_NEST.sources,
   ...FULL_GALLERY_PINNED_SHOW.sources,
   ...FULL_GALLERY_MICO_HARD_LUCK.sources,
@@ -681,6 +758,33 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "stacks-rats-nest-05.webp": 0.667,
   "stacks-rats-nest-06.webp": 0.667,
   "stacks-rats-nest-07.webp": 0.667,
+  "taplin-the-baby-g-01.webp": 0.75,
+  "taplin-the-baby-g-02.webp": 0.75,
+  "taplin-the-baby-g-03.webp": 1.333,
+  "taplin-the-baby-g-04.webp": 1.333,
+  "taplin-the-baby-g-05.webp": 0.75,
+  "taplin-the-baby-g-06.webp": 0.75,
+  "taplin-the-baby-g-07.webp": 1.0,
+  "taplin-the-baby-g-08.webp": 1.333,
+  "taplin-the-baby-g-09.webp": 1.333,
+  "taplin-the-baby-g-10.webp": 1.333,
+  "taplin-the-baby-g-11.webp": 1.333,
+  "taplin-the-baby-g-12.webp": 1.333,
+  "taplin-the-baby-g-13.webp": 1.333,
+  "taplin-the-baby-g-14.webp": 1.333,
+  "taplin-the-baby-g-15.webp": 1.333,
+  "taplin-the-baby-g-16.webp": 1.333,
+  "taplin-the-baby-g-17.webp": 1.333,
+  "taplin-the-baby-g-18.webp": 1.333,
+  "taplin-the-baby-g-19.webp": 1.333,
+  "taplin-the-baby-g-20.webp": 1.333,
+  "taplin-the-baby-g-21.webp": 0.75,
+  "taplin-the-baby-g-22.webp": 1.333,
+  "taplin-the-baby-g-23.webp": 1.333,
+  "taplin-the-baby-g-24.webp": 1.333,
+  "taplin-the-baby-g-25.webp": 0.75,
+  "taplin-the-baby-g-26.webp": 1.5,
+  "taplin-the-baby-g-27.webp": 1.333,
   "superstar-crush-dinas-tavern-01.webp": 0.667,
   "superstar-crush-dinas-tavern-02.webp": 0.75,
   "superstar-crush-dinas-tavern-03.webp": 0.667,
@@ -696,6 +800,29 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "superstar-crush-dinas-tavern-13.webp": 1.5,
   "superstar-crush-dinas-tavern-14.webp": 0.667,
   "superstar-crush-dinas-tavern-15.webp": 0.667,
+  "meteor-heist-dance-cave-01.webp": 0.667,
+  "meteor-heist-dance-cave-02.webp": 0.75,
+  "meteor-heist-dance-cave-03.webp": 0.667,
+  "meteor-heist-dance-cave-04.webp": 0.75,
+  "meteor-heist-dance-cave-05.webp": 0.75,
+  "meteor-heist-dance-cave-06.webp": 0.75,
+  "meteor-heist-dance-cave-07.webp": 0.75,
+  "meteor-heist-dance-cave-08.webp": 0.75,
+  "meteor-heist-dance-cave-09.webp": 0.75,
+  "meteor-heist-dance-cave-10.webp": 0.75,
+  "meteor-heist-dance-cave-11.webp": 0.75,
+  "meteor-heist-dance-cave-12.webp": 0.75,
+  "meteor-heist-dance-cave-13.webp": 1.333,
+  "meteor-heist-dance-cave-14.webp": 1.333,
+  "meteor-heist-dance-cave-15.webp": 1.333,
+  "meteor-heist-dance-cave-16.webp": 1.333,
+  "meteor-heist-dance-cave-17.webp": 1.333,
+  "meteor-heist-dance-cave-18.webp": 1.333,
+  "meteor-heist-dance-cave-19.webp": 1.333,
+  "meteor-heist-dance-cave-20.webp": 1.333,
+  "meteor-heist-dance-cave-21.webp": 1.5,
+  "meteor-heist-dance-cave-22.webp": 1.5,
+  "meteor-heist-dance-cave-23.webp": 1.5,
   "superstar-crush-the-baby-g-01.webp": 1.5,
   "superstar-crush-the-baby-g-02.webp": 1.5,
   "superstar-crush-the-baby-g-03.webp": 0.667,
@@ -833,6 +960,8 @@ const fullGallerySectionTitles = {
   [FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.id]: FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
   [FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.id]: FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.title,
+  [FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.id]: FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.title,
+  [FULL_GALLERY_TAPLIN_THE_BABY_G.id]: FULL_GALLERY_TAPLIN_THE_BABY_G.title,
   [FULL_GALLERY_STACKS_RATS_NEST.id]: FULL_GALLERY_STACKS_RATS_NEST.title,
   [FULL_GALLERY_PINNED_SHOW.id]: FULL_GALLERY_PINNED_SHOW.title,
   [FULL_GALLERY_MICO_HARD_LUCK.id]: FULL_GALLERY_MICO_HARD_LUCK.title,
@@ -1011,7 +1140,9 @@ function getFullGalleryFolderDefinitions() {
   const folders = FULL_GALLERY_PINNED_SHOWS.map((show) => ({
     label: show.id,
     order: show.order,
-    sources: sortPathsForPairedGridLayout(show.sources, { lockFirst: 2 }),
+    sources: sortPathsForPairedGridLayout(show.sources, {
+      lockFirst: show.preserveSourceOrder ? show.sources.length : 2,
+    }),
   }));
 
   const byNumber = new Map();
@@ -1220,6 +1351,8 @@ function normalizeAssetPath(path) {
 }
 
 const IMAGE_BASE_PATH = "assets/images/";
+/** Bump when replacing image bytes under the same filename (pinImagePath uses force-cache). */
+const ASSET_CACHE_VERSION = "meteor-swap-2";
 
 /** Show folders under `assets/images/shows/`; every photo filename is prefixed with its slug.
  *  Longest slug first so an added slug that extends another still matches the right folder. */
@@ -1231,11 +1364,13 @@ const SHOW_IMAGE_FOLDERS = [
   "daphne-the-drake",
   "izzy-flores-986-bathurst",
   "listening-room-longboat-hall",
+  "meteor-heist-dance-cave",
   "mico-hard-luck",
   "sam-william-thomas-burdock",
   "stacks-rats-nest",
   "superstar-crush-dinas-tavern",
   "superstar-crush-the-baby-g",
+  "taplin-the-baby-g",
 ].sort((a, b) => b.length - a.length);
 
 /**
@@ -1247,7 +1382,7 @@ function getAssetUrl(assetPath) {
   const filename = normalizeAssetPath(assetPath).split("/").pop() || "";
   if (!filename) return assetPath;
   const folder = SHOW_IMAGE_FOLDERS.find((slug) => filename.startsWith(`${slug}-`));
-  return `${IMAGE_BASE_PATH}${folder ? `shows/${folder}` : "site"}/${filename}`;
+  return `${IMAGE_BASE_PATH}${folder ? `shows/${folder}` : "site"}/${filename}?v=${ASSET_CACHE_VERSION}`;
 }
 
 function getAllFlowImagePaths() {
@@ -1816,6 +1951,10 @@ function closeLightbox() {
   lightbox.setAttribute("data-state", "closing");
   document.documentElement.style.overflow = "";
   lightboxCurrentIndex = null;
+
+  if (document.body.classList.contains("page-full-gallery")) {
+    activeGalleryItems = fullGalleryNumberedItems;
+  }
 
   if (lightboxVideo) {
     lightboxVideo.pause();
@@ -2587,6 +2726,20 @@ function createGridTile(item, mediaIndex) {
   }
 
   tile.addEventListener("click", () => {
+    // Full gallery: swipe through this folder in the same order as the grid.
+    if (document.body.classList.contains("page-full-gallery")) {
+      const path = typeof item === "string" ? item : item?.src;
+      const label = tile.dataset.groupLabel;
+      const folder = getFullGalleryFolderDefinitions().find((f) => f.label === label);
+      if (path && folder?.sources?.length) {
+        const folderIndex = folder.sources.indexOf(path);
+        if (folderIndex >= 0) {
+          activeGalleryItems = folder.sources;
+          openLightboxFromIndex(folderIndex);
+          return;
+        }
+      }
+    }
     openLightboxFromIndex(mediaIndex);
   });
   return tile;
@@ -2863,14 +3016,13 @@ function renderFolderPreview(parentEl, layoutTiles) {
   retainGalleryFolderPreviewTiles(preview);
 }
 
-/** Expanded folder body: pair by closest aspect (same rules as DAPHNE preview rows). */
+/** Expanded folder body: keep folder source order; row-split by orientation only. */
 function renderFolderBody(parentEl, tiles) {
   if (!tiles.length) return;
 
-  const orderedPaths = sortPathsForPairedGridLayout(tiles.map(getTileAssetPath));
-  const orderedTiles = sortTilesByAssetOrder(tiles, orderedPaths);
-
-  splitTilesIntoSourceOrderOrientationRuns(orderedTiles).forEach((run) => {
+  // Tiles arrive in folder source order from createGridTilesFromPaths — do not
+  // re-sort by aspect here, or the grid and lightbox swipe order diverge.
+  splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
     const gridEl = document.createElement("div");
     gridEl.className = "portfolio-date-grid";
     appendTilesToFullGalleryGrid(gridEl, run);
