@@ -1363,7 +1363,45 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 .home-bio-cycle {
-  display: none;
+  display: block;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s ease;
+}
+
+.home-bio-picture.is-cycling .home-bio-cycle {
+  opacity: 1;
+}
+
+.home-bio-picture.is-cycling .home-bio-picture__default {
+  opacity: 0;
+}
+
+.home-bio-cycle__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: inherit;
+  object-fit: cover;
+  object-position: center center;
+  opacity: 0;
+  transition: opacity 0.75s ease;
+}
+
+.home-bio-cycle__img.is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-bio-cycle,
+  .home-bio-picture__default,
+  .home-bio-cycle__img {
+    transition: none;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -1372,6 +1410,18 @@ body.page-full-gallery .onepage-section__heading {
     aspect-ratio: 4 / 5;
     height: auto;
     max-height: min(70vh, 36rem);
+  }
+
+  .home-bio-picture.is-cycling {
+    /* Keep the cycle frame locked to the portrait box while slides crossfade. */
+    aspect-ratio: 4 / 5;
+    max-height: min(70vh, 36rem);
+  }
+
+  .home-bio-picture.is-cycling .home-bio-picture__default,
+  .home-bio-picture.is-cycling .home-bio-image {
+    height: 100%;
+    max-height: none;
   }
 }
 
@@ -2072,48 +2122,6 @@ body.page-home .home-bio-row .home-intro {
     transition:
       object-position 0.55s cubic-bezier(0.22, 1, 0.36, 1),
       opacity 0.55s ease;
-  }
-
-  .home-bio-cycle {
-    display: block;
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.55s ease;
-  }
-
-  .home-bio-picture.is-cycling .home-bio-cycle {
-    opacity: 1;
-  }
-
-  .home-bio-picture.is-cycling .home-bio-picture__default {
-    opacity: 0;
-  }
-
-  .home-bio-cycle__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    border-radius: inherit;
-    object-fit: cover;
-    object-position: center center;
-    opacity: 0;
-    transition: opacity 0.75s ease;
-  }
-
-  .home-bio-cycle__img.is-active {
-    opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .home-bio-cycle,
-    .home-bio-picture__default,
-    .home-bio-cycle__img {
-      transition: none;
-    }
   }
 
   /* When rates opens, the left column grows with the panel — tighten the crop. */
