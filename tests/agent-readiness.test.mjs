@@ -111,7 +111,7 @@ test("homepage has brand H1 and 500+ chars without JS", () => {
   );
   assert.match(text, /Zach Savage/);
   assert.match(text, /Toronto/);
-  assert.match(text, /\$100|\$250|Mod Club|Longboat Hall/);
+  assert.match(text, /\$100|\$250/);
 });
 
 test("middleware negotiates Accept and sets Vary", () => {
