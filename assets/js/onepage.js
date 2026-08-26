@@ -2111,40 +2111,79 @@ function applyMagneticScale() {
 /** Pointer travel past this is a swipe, not a tap on a tile. */
 const TILE_TAP_SLOP_PX = 12;
 
-function isAndroidUserAgent() {
-  return /Android/i.test(navigator.userAgent || "");
+/**
+ * Visual hit-test for the CSS-marquee flow. Android Chrome often delivers
+ * pointer events to the untransformed layout box; getBoundingClientRect still
+ * reflects the animated position, so we resolve the photo from coordinates.
+ */
+function findFlowTileAtPoint(clientX, clientY) {
+  if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return null;
+  const tiles = document.querySelectorAll(".gallery-flow-track .media-item");
+  let best = null;
+  for (const tile of tiles) {
+    const rect = tile.getBoundingClientRect();
+    if (
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom
+    ) {
+      continue;
+    }
+    const area = rect.width * rect.height;
+    if (!best || area < best.area) best = { tile, area };
+  }
+  return best?.tile || null;
+}
+
+function getFlowTileAssetPath(tile) {
+  if (!tile) return "";
+  const imgPath = tile.querySelector("img[data-asset-path]")?.dataset.assetPath;
+  if (imgPath) return normalizeAssetPath(imgPath);
+  const mediaIndex = Number(tile.dataset.mediaIndex);
+  if (Number.isFinite(mediaIndex) && mediaItems[mediaIndex]) {
+    return normalizeAssetPath(flowItemPath(mediaItems[mediaIndex]));
+  }
+  return "";
+}
+
+function findLightboxIndexForPath(path) {
+  const key = normalizeAssetPath(path);
+  if (!key) return -1;
+  const inActive = activeGalleryItems.findIndex(
+    (item) => normalizeAssetPath(flowItemPath(item)) === key
+  );
+  if (inActive >= 0) return inActive;
+  if (!document.body.classList.contains("page-home")) return -1;
+  return mediaItems.findIndex(
+    (item) => normalizeAssetPath(flowItemPath(item)) === key
+  );
+}
+
+function openLightboxFromPath(path) {
+  if (document.body.classList.contains("page-home")) {
+    activeGalleryItems = mediaItems;
+  }
+  const index = findLightboxIndexForPath(path);
+  if (index < 0) return;
+  openLightboxFromIndex(index);
 }
 
 function attachHoverAndClickBehavior(wrapper, mediaIndex) {
-  // Temporary: Android marquee hit-testing opens the wrong flow photo. Keep scrolling
-  // the page over the strip, but don't open the lightbox from home flow tiles.
-  if (isAndroidUserAgent()) {
-    wrapper.classList.add("media-item--no-lightbox");
-    return;
-  }
-
   let lastActivateAt = 0;
   let pointerStartX = 0;
   let pointerStartY = 0;
   let pointerDragged = false;
   // Android fires pointerup then click; only open once for the gesture.
   let openedFromPointerUp = false;
+  let pressPath = "";
 
-  function resolveIndexFromTile(tile) {
-    const path = tile?.querySelector?.("img[data-asset-path]")?.dataset.assetPath;
-    if (path) {
-      const key = normalizeAssetPath(path);
-      const fromActive = activeGalleryItems.findIndex(
-        (item) => normalizeAssetPath(typeof item === "string" ? item : item.src) === key
-      );
-      if (fromActive >= 0) return fromActive;
-      const fromMedia = mediaItems.findIndex(
-        (item) => normalizeAssetPath(typeof item === "string" ? item : item.src) === key
-      );
-      if (fromMedia >= 0 && activeGalleryItems === mediaItems) return fromMedia;
-    }
-    if (typeof mediaIndex === "number" && activeGalleryItems[mediaIndex]) return mediaIndex;
-    return -1;
+  function capturePressPath(clientX, clientY) {
+    const visualTile = findFlowTileAtPoint(clientX, clientY) || wrapper;
+    pressPath =
+      getFlowTileAssetPath(visualTile) ||
+      getFlowTileAssetPath(wrapper) ||
+      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
   }
 
   function activateTile(e) {
@@ -2154,13 +2193,24 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     }
     const now = Date.now();
     if (now - lastActivateAt < 400) return;
-    const tile = e?.currentTarget || wrapper;
-    const index = resolveIndexFromTile(tile);
-    if (index < 0) return;
+
+    if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
+      // Re-resolve under the finger in case the marquee moved since pointerdown.
+      capturePressPath(e.clientX, e.clientY);
+    }
+
+    const path =
+      pressPath ||
+      getFlowTileAssetPath(e?.currentTarget || wrapper) ||
+      normalizeAssetPath(flowItemPath(mediaItems[mediaIndex] || ""));
+    if (!path) return;
+
     lastActivateAt = now;
-    openLightboxFromIndex(index);
+    pressPath = "";
+    openLightboxFromPath(path);
   }
 
+  wrapper.classList.remove("media-item--no-lightbox");
   wrapper.setAttribute("role", "button");
   wrapper.setAttribute("tabindex", "0");
   wrapper.setAttribute("aria-label", "Open image in lightbox");
@@ -2172,6 +2222,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
       pointerStartY = e.clientY;
       pointerDragged = false;
       openedFromPointerUp = false;
+      capturePressPath(e.clientX, e.clientY);
     },
     { passive: true }
   );
@@ -2185,6 +2236,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
         Math.abs(e.clientY - pointerStartY) > TILE_TAP_SLOP_PX
       ) {
         pointerDragged = true;
+        pressPath = "";
       }
     },
     { passive: true }
@@ -2194,6 +2246,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
     "pointercancel",
     () => {
       pointerDragged = true;
+      pressPath = "";
     },
     { passive: true }
   );
@@ -4842,6 +4895,10 @@ function setupRatesBioCycle() {
   let active = false;
   let ratesOpen = false;
   let bioCentered = false;
+  // Mobile: after the user scrolls *down* past the bio, keep the last cycle
+  // frame instead of snapping back to the portrait. Only reset when they
+  // scroll *up* past the bio (back toward the home flow).
+  let keepCycleFrame = false;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -4873,13 +4930,15 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
-  const stop = () => {
+  const stop = ({ resetPhoto = true } = {}) => {
     active = false;
     clearMobileStartTimer();
     if (timerId) {
       window.clearInterval(timerId);
       timerId = 0;
     }
+    if (!resetPhoto) return;
+    keepCycleFrame = false;
     picture.classList.remove("is-cycling");
     imgA.classList.remove("is-active");
     imgB.classList.remove("is-active");
@@ -4894,11 +4953,12 @@ function setupRatesBioCycle() {
 
   const start = () => {
     if (!shouldPlay()) {
-      stop();
+      stop({ resetPhoto: !keepCycleFrame });
       return;
     }
     if (active) return;
     active = true;
+    keepCycleFrame = false;
     showingA = true;
     // Resume from the last shown slide (index stays put across stop/start).
     const resumeIndex = ((index % paths.length) + paths.length) % paths.length;
@@ -4912,7 +4972,7 @@ function setupRatesBioCycle() {
 
     timerId = window.setInterval(() => {
       if (!active || !shouldPlay()) {
-        stop();
+        stop({ resetPhoto: !keepCycleFrame });
         return;
       }
       showIndex(index + 1);
@@ -4921,7 +4981,7 @@ function setupRatesBioCycle() {
 
   const syncPlayback = () => {
     if (!shouldPlay()) {
-      stop();
+      stop({ resetPhoto: isRatesBioCycleDesktop() || !keepCycleFrame });
       return;
     }
     // Desktop rates open: start immediately. Mobile scroll trigger: delayed start.
@@ -4969,15 +5029,35 @@ function setupRatesBioCycle() {
     bioRow ||
     picture;
   if (mobileTrigger && typeof IntersectionObserver === "function") {
+    // Matches rootMargin below: top inset 48%.
+    const MOBILE_BAND_TOP_RATIO = 0.48;
     const centerObserver = new IntersectionObserver(
       (entries) => {
-        const hit = entries.some((entry) => entry.isIntersecting);
         if (!isRatesBioCycleMobile()) {
           bioCentered = false;
+          keepCycleFrame = false;
           return;
         }
-        bioCentered = hit;
-        syncPlayback();
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting) {
+          bioCentered = true;
+          keepCycleFrame = false;
+          syncPlayback();
+          return;
+        }
+        bioCentered = false;
+        const rect = entry.boundingClientRect;
+        const bandTop = window.innerHeight * MOBILE_BAND_TOP_RATIO;
+        // Scrolled down past the bio: heading is above the active band.
+        if (rect.bottom < bandTop) {
+          keepCycleFrame = true;
+          stop({ resetPhoto: false });
+          return;
+        }
+        // Scrolled up past the bio (or not yet reached): show the portrait again.
+        keepCycleFrame = false;
+        stop({ resetPhoto: true });
       },
       {
         root: null,
