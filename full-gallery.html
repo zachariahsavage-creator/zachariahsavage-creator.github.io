@@ -15,6 +15,8 @@
       content="Concert and event photo galleries by Zach Savage — live shows at Longboat Hall, The Drake, Hard Luck, and more Toronto venues."
     />
     <link rel="canonical" href="https://www.zachsavagephotography.ca/full-gallery.html" />
+    <link rel="alternate" type="text/markdown" href="/full-gallery.md" title="Markdown" />
+    <link rel="describedby" href="/llms.txt" />
     <meta name="theme-color" content="#f0f0f0" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Gallery — Zach Savage Photography" />
@@ -111,7 +113,7 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=mobile-bio-cycle-1" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=menu-pill-90" />
     <script defer src="assets/js/gallery-menu.js"></script>
     <script defer src="assets/js/onepage.js?v=bio-cycle-resume"></script>
   </head>
@@ -173,9 +175,9 @@
     </header>
     <div class="gallery-bar__brand" id="gallery-bar-menu">
       <div class="gallery-bar__brand-row">
-        <h1 class="gallery-bar__title" id="section-title" aria-live="polite">
+        <p class="gallery-bar__title" id="section-title" aria-live="polite">
           gallery
-        </h1>
+        </p>
         <button
           class="gallery-bar__menu-trigger"
           type="button"
@@ -205,7 +207,18 @@
         data-section-label="gallery"
         aria-label="Gallery"
       >
-        <h1 class="full-gallery-heading">Gallery</h1>
+        <h1 class="full-gallery-heading">
+          Gallery<span class="visually-hidden"> — Zach Savage Photography</span>
+        </h1>
+        <noscript>
+          <p class="full-gallery-noscript">
+            Concert and event galleries by Toronto photographer Zach Savage, including Daniela Andrade @ Mod Club,
+            Concrete Breaks @ Standard Time, Taplin @ The Baby G, Listening Room @ Longboat Hall, Superstar Crush @
+            Dina’s Tavern, Meteor Heist @ Dance Cave, Stacks @ Rats Nest, Sam William Thomas @ Burdock, and MICO @ Hard
+            Luck. For a text overview see
+            <a href="/full-gallery.md">full-gallery.md</a> or <a href="/llms.txt">llms.txt</a>.
+          </p>
+        </noscript>
         <section class="portfolio">
           <div class="portfolio-controls" aria-label="Gallery controls">
             <div class="portfolio-meta" id="portfolio-meta" aria-hidden="true"></div>

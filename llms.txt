@@ -1,0 +1,30 @@
+# Zach Savage Photography
+
+> Solo freelance concert and event photography in Toronto / the Greater Toronto Area (founded 2022). Clean portfolio, rates, and booking for artists and organizers.
+
+## When to use this site
+
+Reach for this site when an agent or user needs:
+
+- To book or quote **concert / live-music / event photography in Toronto or the GTA**
+- Portfolio proof from **named Toronto venues** (Mod Club, Longboat Hall, The Drake, The Garrison, The Baby G, Dance Cave, and others)
+- Package facts: **Artist Set ($100 CAD, 30 edits)** or **Event Coverage ($250 CAD, 60 edits)**, typically **1-day turnaround**
+- Contact channels: **zachariahsavage@gmail.com** or Instagram [@zach.a.r.i.a.h](https://www.instagram.com/zach.a.r.i.a.h/)
+
+Do **not** treat this site as a stock library, press wire, or multi-photographer agency directory — it is one photographer’s booking and portfolio surface.
+
+Prefer Markdown siblings (`Accept: text/markdown` or `*.md` URLs) over HTML when summarizing content.
+
+## Primary files
+
+- [Home](https://www.zachsavagephotography.ca/index.md): bio, rates, venues, contact
+- [Gallery](https://www.zachsavagephotography.ca/full-gallery.md): show folders and venue list
+- [Home (HTML)](https://www.zachsavagephotography.ca/): visual experience
+- [Gallery (HTML)](https://www.zachsavagephotography.ca/full-gallery.html): interactive gallery
+- [Sitemap](https://www.zachsavagephotography.ca/sitemap.xml): indexable URLs
+- [404 recovery](https://www.zachsavagephotography.ca/404.md): recovery links for missing paths
+
+## Optional
+
+- [Instagram](https://www.instagram.com/zach.a.r.i.a.h/): recent work
+- [robots.txt](https://www.zachsavagephotography.ca/robots.txt)

@@ -2065,6 +2065,33 @@ body.page-home .home-bio-row .home-intro {
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.full-gallery-noscript {
+  max-width: min(40rem, 92%);
+  margin: 0 auto var(--space-4);
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.full-gallery-noscript a {
+  color: rgba(255, 255, 255, 0.98);
+}
+
 /* Force bio card/text theme regardless of downstream generic `.home-intro` rules. */
 .onepage-section--home .home-bio-row {
   background: #000000 !important;
@@ -4192,7 +4219,9 @@ body.page-profile {
 
 @media (max-width: 768px) {
   :root {
-    --gallery-pill-inner-min-height: 44px;
+    --gallery-pill-pad-block: 0.45rem;
+    --gallery-pill-pad-inline: 0.99rem;
+    --gallery-pill-inner-min-height: 39.6px;
   }
 
   .gallery-bar {
@@ -4206,19 +4235,28 @@ body.page-profile {
 
   .gallery-bar__title,
   .gallery-bar__menu-link {
-    font-size: clamp(1rem, 4.2vw, 1.45rem);
+    font-size: clamp(0.9rem, 3.78vw, 1.305rem);
     letter-spacing: 0.1em;
   }
 
   .gallery-bar__menu-trigger {
-    min-width: 44px;
-    min-height: 44px;
-    width: 44px;
-    height: 44px;
+    min-width: 39.6px;
+    min-height: 39.6px;
+    width: 39.6px;
+    height: 39.6px;
   }
 
   .gallery-bar__menu-link {
-    min-height: 40px;
+    min-height: 36px;
+  }
+
+  .gallery-bar__menu-icon {
+    gap: 4.5px;
+  }
+
+  .gallery-bar__menu-icon span {
+    width: 16.2px;
+    height: 1.35px;
   }
 
   /* Tighter vertical rhythm for stacked nav links on small screens */
@@ -4793,13 +4831,13 @@ body.page-profile {
   }
 
   .gallery-bar__brand {
-    padding: 0.35em 0.7em 0.35em;
+    padding: 0.315em 0.63em 0.315em;
     max-width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 0.5rem);
   }
 
   .gallery-bar__title,
   .gallery-bar__menu-link {
-    font-size: clamp(0.86rem, 4.2vw, 0.98rem);
+    font-size: clamp(0.774rem, 3.78vw, 0.882rem);
     letter-spacing: 0.08em;
   }
   .onepage-section--gallery {
@@ -4960,12 +4998,12 @@ body.page-profile {
 
 @media (max-width: 360px) {
   .gallery-bar__brand {
-    padding: 0.3em 0.55em 0.3em;
+    padding: 0.27em 0.495em 0.27em;
   }
 
   .gallery-bar__title,
   .gallery-bar__menu-link {
-    font-size: 0.82rem;
+    font-size: 0.738rem;
     letter-spacing: 0.06em;
   }
 
