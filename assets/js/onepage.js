@@ -4895,10 +4895,9 @@ function setupRatesBioCycle() {
   let active = false;
   let ratesOpen = false;
   let bioCentered = false;
-  // Mobile: after the user scrolls *down* past the bio, keep the last cycle
-  // frame instead of snapping back to the portrait. Only reset when they
-  // scroll *up* past the bio (back toward the home flow).
-  let keepCycleFrame = false;
+  // Mobile: once the slideshow has started, keep playing after the user scrolls
+  // *down* past the bio. Only reset to the portrait when they scroll *up* past it.
+  let playPastBioDown = false;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -4930,15 +4929,14 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
-  const stop = ({ resetPhoto = true } = {}) => {
+  const stop = () => {
     active = false;
+    playPastBioDown = false;
     clearMobileStartTimer();
     if (timerId) {
       window.clearInterval(timerId);
       timerId = 0;
     }
-    if (!resetPhoto) return;
-    keepCycleFrame = false;
     picture.classList.remove("is-cycling");
     imgA.classList.remove("is-active");
     imgB.classList.remove("is-active");
@@ -4947,18 +4945,17 @@ function setupRatesBioCycle() {
   const shouldPlay = () => {
     if (paths.length < 1) return false;
     if (isRatesBioCycleDesktop()) return ratesOpen;
-    if (isRatesBioCycleMobile()) return bioCentered;
+    if (isRatesBioCycleMobile()) return bioCentered || playPastBioDown;
     return false;
   };
 
   const start = () => {
     if (!shouldPlay()) {
-      stop({ resetPhoto: !keepCycleFrame });
+      stop();
       return;
     }
     if (active) return;
     active = true;
-    keepCycleFrame = false;
     showingA = true;
     // Resume from the last shown slide (index stays put across stop/start).
     const resumeIndex = ((index % paths.length) + paths.length) % paths.length;
@@ -4972,7 +4969,7 @@ function setupRatesBioCycle() {
 
     timerId = window.setInterval(() => {
       if (!active || !shouldPlay()) {
-        stop({ resetPhoto: !keepCycleFrame });
+        stop();
         return;
       }
       showIndex(index + 1);
@@ -4981,16 +4978,21 @@ function setupRatesBioCycle() {
 
   const syncPlayback = () => {
     if (!shouldPlay()) {
-      stop({ resetPhoto: isRatesBioCycleDesktop() || !keepCycleFrame });
+      stop();
       return;
     }
-    // Desktop rates open: start immediately. Mobile scroll trigger: delayed start.
+    // Desktop rates open: start immediately. Mobile scroll trigger: delayed start
+    // only for the first enter into the bio band (not when continuing past it).
     if (isRatesBioCycleDesktop()) {
       clearMobileStartTimer();
       start();
       return;
     }
     if (active || mobileStartTimerId) return;
+    if (playPastBioDown && !bioCentered) {
+      start();
+      return;
+    }
     mobileStartTimerId = window.setTimeout(() => {
       mobileStartTimerId = 0;
       if (shouldPlay()) start();
@@ -5000,7 +5002,10 @@ function setupRatesBioCycle() {
   const desktopMq = window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY);
   const mobileMq = window.matchMedia?.(RATES_BIO_CYCLE_MOBILE_QUERY);
   const onViewportChange = () => {
-    if (!isRatesBioCycleMobile()) bioCentered = false;
+    if (!isRatesBioCycleMobile()) {
+      bioCentered = false;
+      playPastBioDown = false;
+    }
     if (!isRatesBioCycleDesktop()) ratesOpen = Boolean(
       document.querySelector(".rates--reveal.is-open, .onepage-section--rates.is-open")
     );
@@ -5035,29 +5040,30 @@ function setupRatesBioCycle() {
       (entries) => {
         if (!isRatesBioCycleMobile()) {
           bioCentered = false;
-          keepCycleFrame = false;
+          playPastBioDown = false;
           return;
         }
         const entry = entries[0];
         if (!entry) return;
         if (entry.isIntersecting) {
           bioCentered = true;
-          keepCycleFrame = false;
+          // Still in / back in the bio band — normal play; don't need the "past" flag.
+          playPastBioDown = false;
           syncPlayback();
           return;
         }
         bioCentered = false;
         const rect = entry.boundingClientRect;
         const bandTop = window.innerHeight * MOBILE_BAND_TOP_RATIO;
-        // Scrolled down past the bio: heading is above the active band.
-        if (rect.bottom < bandTop) {
-          keepCycleFrame = true;
-          stop({ resetPhoto: false });
+        // Scrolled down past the bio: keep the slideshow running.
+        if (rect.bottom < bandTop && (active || picture.classList.contains("is-cycling"))) {
+          playPastBioDown = true;
+          syncPlayback();
           return;
         }
         // Scrolled up past the bio (or not yet reached): show the portrait again.
-        keepCycleFrame = false;
-        stop({ resetPhoto: true });
+        playPastBioDown = false;
+        stop();
       },
       {
         root: null,
