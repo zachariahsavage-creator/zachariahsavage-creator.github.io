@@ -4173,7 +4173,8 @@ body.page-profile {
 @media (min-width: 1101px) and (min-height: 921px) {
   .page--onepage .onepage-section--contact {
     --contact-card-max-width: min(720px, 56vw);
-    --contact-card-offset-y: -4in;
+    --contact-card-offset-y: 0px;
+    overflow: hidden;
   }
 }
 
