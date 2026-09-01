@@ -1757,6 +1757,34 @@ let lightboxVideo;
 let lightboxCurrentIndex = null;
 /** Android synthesizes a click after the pointerup that opened the lightbox; ignore it. */
 let lightboxInputQuietUntil = 0;
+/** History entry pushed while the lightbox is open (Android back gesture closes it first). */
+let lightboxHistoryActive = false;
+let lightboxHistoryIgnorePopstate = false;
+const LIGHTBOX_HISTORY_STATE = { zspLightbox: true };
+
+function isLightboxOpen() {
+  return lightbox?.getAttribute("data-state") === "open";
+}
+
+function pushLightboxHistory() {
+  if (typeof history.pushState !== "function") return;
+  try {
+    history.pushState(LIGHTBOX_HISTORY_STATE, "");
+    lightboxHistoryActive = true;
+  } catch (_e) {}
+}
+
+function setupLightboxHistory() {
+  window.addEventListener("popstate", () => {
+    if (lightboxHistoryIgnorePopstate) {
+      lightboxHistoryIgnorePopstate = false;
+      return;
+    }
+    if (!isLightboxOpen()) return;
+    lightboxHistoryActive = false;
+    closeLightbox({ fromHistory: true });
+  });
+}
 
 function isLightboxInputQuiet() {
   return performance.now() < lightboxInputQuietUntil;
@@ -1979,7 +2007,10 @@ function openLightboxFromIndex(index) {
   // Only swallow the opening gesture's ghost click — re-arming on every next/prev
   // made the following tap a no-op, so gallery fullscreen felt like it needed a double tap.
   const wasClosed = lightbox.getAttribute("data-state") !== "open";
-  if (wasClosed) armLightboxInputQuiet();
+  if (wasClosed) {
+    armLightboxInputQuiet();
+    pushLightboxHistory();
+  }
   lightboxCurrentIndex = index;
   lightbox.setAttribute("data-state", "open");
   document.documentElement.style.overflow = "hidden";
@@ -2001,10 +2032,24 @@ function openLightboxFromIndex(index) {
   }
 }
 
-function closeLightbox() {
+function closeLightbox({ fromHistory = false } = {}) {
   if (!lightbox) return;
   const state = lightbox.getAttribute("data-state");
   if (state === "closed" || state === "closing") return;
+
+  if (!fromHistory && lightboxHistoryActive) {
+    lightboxHistoryActive = false;
+    if (typeof history.back === "function") {
+      lightboxHistoryIgnorePopstate = true;
+      try {
+        history.back();
+      } catch (_e) {
+        lightboxHistoryIgnorePopstate = false;
+      }
+    }
+  } else if (fromHistory) {
+    lightboxHistoryActive = false;
+  }
 
   // Stay in the hit-testing stack briefly so the same tap can't fall through to the
   // menu under the × after display:none removes the overlay.
@@ -5097,6 +5142,7 @@ function initSharedPageUi() {
   lightboxImage = document.querySelector(".lightbox__image");
   lightboxVideo = document.querySelector(".lightbox__video");
   setupLightboxPointerNav();
+  setupLightboxHistory();
 
   window.addEventListener("keydown", (event) => {
     if (lightbox?.getAttribute("data-state") !== "open") return;
