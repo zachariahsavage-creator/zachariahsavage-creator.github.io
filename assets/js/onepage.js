@@ -1010,7 +1010,7 @@ function isInFullGallery(path) {
 }
 
 /** Contact section background — must be full-gallery images only. */
-const CONTACT_BG_HERO_PATH = "daniela-andrade-mod-club-18.webp";
+const CONTACT_BG_HERO_PATH = "daniela-andrade-mod-club-20.webp";
 const CONTACT_BG_IMAGES = [
   CONTACT_BG_HERO_PATH,
   "stacks-rats-nest-01.webp",
