@@ -4166,6 +4166,37 @@ function getContactCardContentHeight(card) {
   return Math.max(card.scrollHeight, card.offsetHeight);
 }
 
+/**
+ * Large-desktop contact card nudge: square heroes need more upward shift than
+ * wide landscapes. Always clamp so the card never rides up into the bio block.
+ */
+function getContactCardOffsetY(section, card) {
+  if (!section || !card) return 0;
+
+  const aspectRaw = getComputedStyle(section).getPropertyValue("--contact-bg-aspect").trim();
+  let aspect = 1.5;
+  const aspectMatch = aspectRaw.match(/([\d.]+)\s*\/\s*([\d.]+)/);
+  if (aspectMatch) {
+    const w = parseFloat(aspectMatch[1]);
+    const h = parseFloat(aspectMatch[2]);
+    if (w > 0 && h > 0) aspect = w / h;
+  }
+
+  const sectionH = section.getBoundingClientRect().height;
+  const cardH = getContactCardContentHeight(card);
+  if (!(sectionH > 0 && cardH > 0)) return 0;
+
+  let offsetPx = 0;
+  if (aspect <= 1.05) {
+    offsetPx = Math.min(384, Math.round(sectionH * 0.22));
+  } else if (aspect <= 1.35) {
+    offsetPx = Math.min(160, Math.round(sectionH * 0.08));
+  }
+
+  const maxUp = Math.max(0, Math.floor((sectionH - cardH) / 2 - 16));
+  return Math.min(offsetPx, maxUp);
+}
+
 function updateContactSectionLayout() {
   if (contactLayoutRafId) return;
   contactLayoutRafId = requestAnimationFrame(() => {
@@ -4203,11 +4234,10 @@ function updateContactSectionLayout() {
 
     section.style.removeProperty("--contact-section-min-height");
     section.style.setProperty("--contact-card-max-width", `${Math.min(720, Math.round(vw * 0.56))}px`);
-    section.style.setProperty("--contact-card-offset-y", "-4in");
+    const offsetPx = card ? getContactCardOffsetY(section, card) : 0;
+    section.style.setProperty("--contact-card-offset-y", `${-offsetPx}px`);
 
-    // Here the panel height comes from the backdrop's aspect ratio, and the card
-    // is capped to it. Grow the panel when the form needs more room, so the
-    // fields never end up behind a nested scrollbar.
+    // Panel height comes from the backdrop aspect ratio; grow when the form needs room.
     if (card) {
       const needed = getContactCardContentHeight(card) + 48;
       if (needed > section.getBoundingClientRect().height) {
