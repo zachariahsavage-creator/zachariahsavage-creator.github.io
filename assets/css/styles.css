@@ -1409,16 +1409,24 @@ body.page-full-gallery .onepage-section__heading {
     overflow-anchor: none;
   }
 
+  html.bio-frame-tweening,
+  html.bio-frame-tweening body,
   body.page-home:has(.home-bio-picture.is-cycling) {
     overflow-anchor: none;
   }
 
+  .home-bio-inner {
+    container-type: inline-size;
+  }
+
   .home-bio-picture {
-    aspect-ratio: 3 / 2;
-    max-height: min(70vh, 36rem);
+    width: 100%;
+    aspect-ratio: auto;
+    /* 3:2 resting height; layout grows downward so flow/text aren't covered. */
+    height: min(calc(100cqw * 2 / 3), 70vh, 36rem);
     overflow: hidden;
     overflow-anchor: none;
-    transition: aspect-ratio 0.45s ease;
+    transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .home-bio-picture__default {
@@ -1433,12 +1441,11 @@ body.page-full-gallery .onepage-section__heading {
     width: 100%;
     height: 100%;
     max-height: none;
-    /* Keep the subject centered while the frame grows from the middle. */
     object-position: center center;
   }
 
   .home-bio-picture.is-cycling {
-    aspect-ratio: 4 / 5;
+    height: min(calc(100cqw * 5 / 4), 70vh, 36rem);
   }
 }
 
