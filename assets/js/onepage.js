@@ -4038,6 +4038,16 @@ function scrollToSectionWithOffset(target, options) {
   const instant =
     opts.instant === true || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
+  // Contact/rates jumps pass the bio — don't let expand+pin steal the smooth scroll.
+  if (
+    isContactScrollTarget(target) ||
+    target.id === "rates-heading" ||
+    target.id === "rates-section" ||
+    Boolean(target.closest?.(".onepage-section--rates"))
+  ) {
+    suppressMobileBioExpand(instant ? 400 : 1800);
+  }
+
   if (root === document.body || root === document.documentElement) {
     window.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
     return;
@@ -4160,6 +4170,10 @@ function setupMenuAndSections() {
       if (target) {
         window.requestAnimationFrame(() => {
           if (navLabel === "home") {
+            // Smooth scroll up past the bio — don't let expand+pin interrupt.
+            suppressMobileBioExpand(1800);
+            if (!ratesBioCycleApi) ratesBioCycleApi = setupRatesBioCycle();
+            ratesBioCycleApi?.stop?.();
             const root = getOnePageScrollRoot();
             if (root === document.body || root === document.documentElement) {
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -5035,10 +5049,25 @@ function getRatesBioCyclePaths(limit = 8) {
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
 const RATES_BIO_CYCLE_MOBILE_QUERY = "(max-width: 1023px)";
 const RATES_BIO_CYCLE_INTERVAL_MS = 2560;
-/** Mobile: start as soon as the bio pic enters the top third (no delay). */
+/** Mobile: start when the bio pic midpoint reaches 2/5 from the top (no delay). */
 const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 0;
-/** Must stay in step with the mobile bio frame aspect-ratio transition. */
-const RATES_BIO_FRAME_EXPAND_MS = 450;
+/** Must stay in step with the mobile bio frame height transition. */
+const RATES_BIO_FRAME_EXPAND_MS = 600;
+const RATES_BIO_FRAME_TWEEN_CLASS = "bio-frame-tweening";
+
+/** Menu/hash jumps past the bio — skip expand/pin so smooth scroll isn't stalled. */
+let mobileBioExpandSuppressUntil = 0;
+/** Optional hook from setupRatesBioCycle to drop an in-flight center-pin. */
+let mobileBioExpandSuppressClearPin = null;
+
+function suppressMobileBioExpand(durationMs = 1600) {
+  mobileBioExpandSuppressUntil = performance.now() + Math.max(0, durationMs);
+  mobileBioExpandSuppressClearPin?.();
+}
+
+function isMobileBioExpandSuppressed() {
+  return performance.now() < mobileBioExpandSuppressUntil;
+}
 
 function isRatesBioCycleDesktop() {
   return window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY)?.matches ?? false;
@@ -5069,8 +5098,14 @@ function setupRatesBioCycle() {
   // *down* past the bio. Only reset to the portrait when they scroll *up* past it.
   let playPastBioDown = false;
   let expandPinRaf = 0;
-  let userScrollQuietUntil = 0;
-  let userScrollListenersBound = false;
+  let expandPinFallbackId = 0;
+  let ignoreTriggerUntil = 0;
+  let onExpandTransitionEnd = null;
+  let expandPinListenersBound = false;
+  /** True while center-pin is actively correcting scroll. */
+  let expandPinRunning = false;
+  /** Ignore yield until after the triggering scroll gesture settles. */
+  let expandPinYieldAfter = 0;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -5102,64 +5137,143 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
-  const markUserScroll = () => {
-    userScrollQuietUntil = performance.now() + 120;
-  };
-
-  const bindUserScrollListeners = () => {
-    if (userScrollListenersBound) return;
-    userScrollListenersBound = true;
-    const opts = { passive: true, capture: true };
-    window.addEventListener("wheel", markUserScroll, opts);
-    window.addEventListener("touchmove", markUserScroll, opts);
-    window.addEventListener("pointermove", markUserScroll, opts);
-    window.addEventListener("keydown", markUserScroll, opts);
-  };
-
-  /**
-   * Keep the frame's vertical center fixed while aspect-ratio tweens so growth
-   * reads as expanding both up and down. Yields to real user scroll gestures.
-   */
-  const pinPictureCenterDuringFrameTween = () => {
-    if (!isRatesBioCycleMobile() || getShouldReduceMotion()) return;
-    bindUserScrollListeners();
+  const clearExpandPin = () => {
+    expandPinRunning = false;
+    expandPinYieldAfter = 0;
     if (expandPinRaf) {
       window.cancelAnimationFrame(expandPinRaf);
       expandPinRaf = 0;
     }
-    const first = picture.getBoundingClientRect();
-    let pinCenterY = first.top + first.height / 2;
-    const t0 = performance.now();
-    const step = (now) => {
-      const rect = picture.getBoundingClientRect();
-      const centerY = rect.top + rect.height / 2;
-      if (now < userScrollQuietUntil) {
-        // User is scrolling — follow them; don't correct.
-        pinCenterY = centerY;
-      } else {
-        const drift = centerY - pinCenterY;
-        if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
-      }
-      if (now - t0 < RATES_BIO_FRAME_EXPAND_MS + 32) {
-        expandPinRaf = window.requestAnimationFrame(step);
-      } else {
+    if (expandPinFallbackId) {
+      window.clearTimeout(expandPinFallbackId);
+      expandPinFallbackId = 0;
+    }
+    if (onExpandTransitionEnd) {
+      picture.removeEventListener("transitionend", onExpandTransitionEnd);
+      onExpandTransitionEnd = null;
+    }
+    document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
+  };
+
+  mobileBioExpandSuppressClearPin = () => {
+    clearExpandPin();
+    ignoreTriggerUntil = Math.max(ignoreTriggerUntil, mobileBioExpandSuppressUntil);
+  };
+
+  /**
+   * User is still scrolling past — drop the pin so they aren't stalled.
+   * A short grace after pin-start ignores the same gesture that opened the expand.
+   */
+  const yieldExpandPinToUserScroll = () => {
+    if (!expandPinRunning) return;
+    if (performance.now() < expandPinYieldAfter) return;
+    clearExpandPin();
+    ignoreTriggerUntil = 0;
+  };
+
+  const bindExpandPinYieldListeners = () => {
+    if (expandPinListenersBound) return;
+    expandPinListenersBound = true;
+    const opts = { passive: true, capture: true };
+    window.addEventListener("wheel", yieldExpandPinToUserScroll, opts);
+    window.addEventListener("touchmove", yieldExpandPinToUserScroll, opts);
+    window.addEventListener("keydown", yieldExpandPinToUserScroll, opts);
+  };
+
+  const readPinY = (rect, mode) =>
+    mode === "top"
+      ? rect.top
+      : mode === "bottom"
+        ? rect.bottom
+        : rect.top + rect.height / 2;
+
+  /**
+   * Keep a viewport anchor fixed while height tweens (open = center), unless the
+   * user keeps scrolling after a short grace — then yield and don't re-pin.
+   */
+  const pinPictureDuringFrameTween = (mode = "center", pinY) => {
+    if (!isRatesBioCycleMobile() || getShouldReduceMotion()) return;
+    if (isMobileBioExpandSuppressed()) return;
+    clearExpandPin();
+    bindExpandPinYieldListeners();
+
+    if (!Number.isFinite(pinY)) {
+      pinY = readPinY(picture.getBoundingClientRect(), mode);
+    }
+
+    expandPinRunning = true;
+    // Let the opening scroll/touch settle before treating further input as "scroll past".
+    expandPinYieldAfter = performance.now() + 220;
+    document.documentElement.classList.add(RATES_BIO_FRAME_TWEEN_CLASS);
+    ignoreTriggerUntil = performance.now() + RATES_BIO_FRAME_EXPAND_MS + 200;
+    let finished = false;
+
+    const snap = () => {
+      if (!expandPinRunning) return;
+      ignoreTriggerUntil = performance.now() + 200;
+      const drift = readPinY(picture.getBoundingClientRect(), mode) - pinY;
+      if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
+    };
+
+    const finish = () => {
+      if (finished || !expandPinRunning) return;
+      finished = true;
+      if (expandPinRaf) {
+        window.cancelAnimationFrame(expandPinRaf);
         expandPinRaf = 0;
       }
+      if (expandPinFallbackId) {
+        window.clearTimeout(expandPinFallbackId);
+        expandPinFallbackId = 0;
+      }
+      if (onExpandTransitionEnd) {
+        picture.removeEventListener("transitionend", onExpandTransitionEnd);
+        onExpandTransitionEnd = null;
+      }
+      snap();
+      // One more frame after layout settles, then stop correcting.
+      window.requestAnimationFrame(() => {
+        if (!expandPinRunning) {
+          document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
+          return;
+        }
+        snap();
+        expandPinRunning = false;
+        expandPinYieldAfter = 0;
+        document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
+        ignoreTriggerUntil = performance.now() + 180;
+      });
+    };
+
+    const step = () => {
+      if (!expandPinRunning) return;
+      snap();
+      expandPinRaf = window.requestAnimationFrame(step);
     };
     expandPinRaf = window.requestAnimationFrame(step);
+
+    onExpandTransitionEnd = (event) => {
+      if (event.target !== picture) return;
+      if (event.propertyName && event.propertyName !== "height") return;
+      finish();
+    };
+    picture.addEventListener("transitionend", onExpandTransitionEnd);
+    expandPinFallbackId = window.setTimeout(finish, RATES_BIO_FRAME_EXPAND_MS + 80);
   };
 
   const stop = () => {
     active = false;
     playPastBioDown = false;
+    bioCentered = false;
     clearMobileStartTimer();
     if (timerId) {
       window.clearInterval(timerId);
       timerId = 0;
     }
-    const wasCycling = picture.classList.contains("is-cycling");
+    // No scroll-pin on close: layout already collapses upward (top stays put in
+    // document flow). Pinning here was causing a second post-tween settle.
+    clearExpandPin();
     picture.classList.remove("is-cycling");
-    if (wasCycling) pinPictureCenterDuringFrameTween();
     imgA.classList.remove("is-active");
     imgB.classList.remove("is-active");
   };
@@ -5186,8 +5300,12 @@ function setupRatesBioCycle() {
     imgA.classList.add("is-active");
     imgB.classList.remove("is-active");
     const wasCycling = picture.classList.contains("is-cycling");
+    // Capture center before height changes so the open expands from the true midpoint.
+    const pinCenterY = wasCycling
+      ? null
+      : readPinY(picture.getBoundingClientRect(), "center");
     picture.classList.add("is-cycling");
-    if (!wasCycling) pinPictureCenterDuringFrameTween();
+    if (!wasCycling) pinPictureDuringFrameTween("center", pinCenterY);
 
     if (getShouldReduceMotion() || paths.length < 2) return;
 
@@ -5205,7 +5323,6 @@ function setupRatesBioCycle() {
       stop();
       return;
     }
-    // Desktop rates open + mobile top-half trigger: start immediately.
     clearMobileStartTimer();
     if (isRatesBioCycleDesktop()) {
       start();
@@ -5254,48 +5371,75 @@ function setupRatesBioCycle() {
     }
   }
 
-  // Mobile: expand + play as soon as the bio pic intersects the top third of the screen.
-  const mobileTrigger = picture;
-  if (mobileTrigger && typeof IntersectionObserver === "function") {
-    const MOBILE_TOP_THIRD_RATIO = 1 / 3;
-    const centerObserver = new IntersectionObserver(
-      (entries) => {
-        if (!isRatesBioCycleMobile()) {
-          bioCentered = false;
-          playPastBioDown = false;
-          return;
-        }
-        const entry = entries[0];
-        if (!entry) return;
-        if (entry.isIntersecting) {
-          bioCentered = true;
-          // Still in / back in the top third — normal play; don't need the "past" flag.
-          playPastBioDown = false;
-          syncPlayback();
-          return;
-        }
+  // Mobile: open when midpoint hits top 2/5; close only when midpoint reaches
+  // the bottom 2/5 of the screen (from 3/5 down).
+  const MOBILE_ENTER_RATIO = 2 / 5;
+  const MOBILE_EXIT_RATIO = 3 / 5;
+  let mobileTriggerRaf = 0;
+  const updateMobileBioTrigger = () => {
+    mobileTriggerRaf = 0;
+    if (!isRatesBioCycleMobile()) {
+      bioCentered = false;
+      playPastBioDown = false;
+      return;
+    }
+    if (performance.now() < ignoreTriggerUntil || expandPinRunning) return;
+
+    const rect = picture.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const vh = window.innerHeight;
+    const enterLine = vh * MOBILE_ENTER_RATIO;
+    const exitLine = vh * MOBILE_EXIT_RATIO;
+    const isOpen = active || picture.classList.contains("is-cycling");
+
+    // Menu/hash jump past bio: never start expand/pin; don't fight smooth scroll.
+    if (isMobileBioExpandSuppressed()) {
+      clearExpandPin();
+      if (midY < 0 && (isOpen || bioCentered)) {
         bioCentered = false;
-        const rect = entry.boundingClientRect;
-        const bandBottom = window.innerHeight * MOBILE_TOP_THIRD_RATIO;
-        // Scrolled down past the top third: keep the slideshow running.
-        if (rect.bottom <= bandBottom && (active || picture.classList.contains("is-cycling"))) {
-          playPastBioDown = true;
-          syncPlayback();
-          return;
-        }
-        // Still below the top third, or scrolled up past the bio: show the portrait again.
-        playPastBioDown = false;
-        stop();
-      },
-      {
-        root: null,
-        // Only the top third of the viewport counts as the intersection root.
-        rootMargin: "0px 0px -66.666% 0px",
-        threshold: 0,
+        playPastBioDown = true;
+        syncPlayback();
       }
-    );
-    centerObserver.observe(mobileTrigger);
-  }
+      return;
+    }
+
+    if (midY < 0) {
+      if (isOpen || bioCentered) {
+        bioCentered = false;
+        playPastBioDown = true;
+        syncPlayback();
+      }
+      return;
+    }
+
+    if (!isOpen && !bioCentered) {
+      if (midY <= enterLine) {
+        bioCentered = true;
+        playPastBioDown = false;
+        syncPlayback();
+      }
+      return;
+    }
+
+    // Close only once the slideshow center is in the bottom 2/5 of the screen.
+    if (midY >= exitLine) {
+      bioCentered = false;
+      playPastBioDown = false;
+      stop();
+      return;
+    }
+
+    bioCentered = true;
+    playPastBioDown = false;
+    syncPlayback();
+  };
+  const scheduleMobileBioTrigger = () => {
+    if (mobileTriggerRaf) return;
+    mobileTriggerRaf = window.requestAnimationFrame(updateMobileBioTrigger);
+  };
+  window.addEventListener("scroll", scheduleMobileBioTrigger, { passive: true });
+  window.addEventListener("resize", scheduleMobileBioTrigger);
+  scheduleMobileBioTrigger();
 
   return {
     start,
