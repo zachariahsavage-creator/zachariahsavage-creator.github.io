@@ -5051,18 +5051,12 @@ const RATES_BIO_CYCLE_MOBILE_QUERY = "(max-width: 1023px)";
 const RATES_BIO_CYCLE_INTERVAL_MS = 2560;
 /** Mobile: start when the bio pic midpoint reaches 2/5 from the top (no delay). */
 const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 0;
-/** Must stay in step with the mobile bio frame height transition. */
-const RATES_BIO_FRAME_EXPAND_MS = 600;
-const RATES_BIO_FRAME_TWEEN_CLASS = "bio-frame-tweening";
 
-/** Menu/hash jumps past the bio — skip expand/pin so smooth scroll isn't stalled. */
+/** Menu/hash jumps past the bio — skip expand so smooth scroll isn't stalled. */
 let mobileBioExpandSuppressUntil = 0;
-/** Optional hook from setupRatesBioCycle to drop an in-flight center-pin. */
-let mobileBioExpandSuppressClearPin = null;
 
 function suppressMobileBioExpand(durationMs = 1600) {
   mobileBioExpandSuppressUntil = performance.now() + Math.max(0, durationMs);
-  mobileBioExpandSuppressClearPin?.();
 }
 
 function isMobileBioExpandSuppressed() {
@@ -5097,15 +5091,6 @@ function setupRatesBioCycle() {
   // Mobile: once the slideshow has started, keep playing after the user scrolls
   // *down* past the bio. Only reset to the portrait when they scroll *up* past it.
   let playPastBioDown = false;
-  let expandPinRaf = 0;
-  let expandPinFallbackId = 0;
-  let ignoreTriggerUntil = 0;
-  let onExpandTransitionEnd = null;
-  let expandPinListenersBound = false;
-  /** True while center-pin is actively correcting scroll. */
-  let expandPinRunning = false;
-  /** Ignore yield until after the triggering scroll gesture settles. */
-  let expandPinYieldAfter = 0;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -5137,128 +5122,18 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
-  const clearExpandPin = () => {
-    expandPinRunning = false;
-    expandPinYieldAfter = 0;
-    if (expandPinRaf) {
-      window.cancelAnimationFrame(expandPinRaf);
-      expandPinRaf = 0;
-    }
-    if (expandPinFallbackId) {
-      window.clearTimeout(expandPinFallbackId);
-      expandPinFallbackId = 0;
-    }
-    if (onExpandTransitionEnd) {
-      picture.removeEventListener("transitionend", onExpandTransitionEnd);
-      onExpandTransitionEnd = null;
-    }
-    document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
-  };
-
-  mobileBioExpandSuppressClearPin = () => {
-    clearExpandPin();
-    ignoreTriggerUntil = Math.max(ignoreTriggerUntil, mobileBioExpandSuppressUntil);
-  };
-
-  /**
-   * User is still scrolling past — drop the pin so they aren't stalled.
-   * A short grace after pin-start ignores the same gesture that opened the expand.
-   */
-  const yieldExpandPinToUserScroll = () => {
-    if (!expandPinRunning) return;
-    if (performance.now() < expandPinYieldAfter) return;
-    clearExpandPin();
-    ignoreTriggerUntil = 0;
-  };
-
-  const bindExpandPinYieldListeners = () => {
-    if (expandPinListenersBound) return;
-    expandPinListenersBound = true;
-    const opts = { passive: true, capture: true };
-    window.addEventListener("wheel", yieldExpandPinToUserScroll, opts);
-    window.addEventListener("touchmove", yieldExpandPinToUserScroll, opts);
-    window.addEventListener("keydown", yieldExpandPinToUserScroll, opts);
-  };
-
-  const readPinY = (rect, mode) =>
-    mode === "top"
-      ? rect.top
-      : mode === "bottom"
-        ? rect.bottom
-        : rect.top + rect.height / 2;
-
-  /**
-   * Keep a viewport anchor fixed while height tweens (open = center), unless the
-   * user keeps scrolling after a short grace — then yield and don't re-pin.
-   */
-  const pinPictureDuringFrameTween = (mode = "center", pinY) => {
-    if (!isRatesBioCycleMobile() || getShouldReduceMotion()) return;
-    if (isMobileBioExpandSuppressed()) return;
-    clearExpandPin();
-    bindExpandPinYieldListeners();
-
-    if (!Number.isFinite(pinY)) {
-      pinY = readPinY(picture.getBoundingClientRect(), mode);
-    }
-
-    expandPinRunning = true;
-    // Let the opening scroll/touch settle before treating further input as "scroll past".
-    expandPinYieldAfter = performance.now() + 220;
-    document.documentElement.classList.add(RATES_BIO_FRAME_TWEEN_CLASS);
-    ignoreTriggerUntil = performance.now() + RATES_BIO_FRAME_EXPAND_MS + 200;
-    let finished = false;
-
-    const snap = () => {
-      if (!expandPinRunning) return;
-      ignoreTriggerUntil = performance.now() + 200;
-      const drift = readPinY(picture.getBoundingClientRect(), mode) - pinY;
-      if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
-    };
-
-    const finish = () => {
-      if (finished || !expandPinRunning) return;
-      finished = true;
-      if (expandPinRaf) {
-        window.cancelAnimationFrame(expandPinRaf);
-        expandPinRaf = 0;
-      }
-      if (expandPinFallbackId) {
-        window.clearTimeout(expandPinFallbackId);
-        expandPinFallbackId = 0;
-      }
-      if (onExpandTransitionEnd) {
-        picture.removeEventListener("transitionend", onExpandTransitionEnd);
-        onExpandTransitionEnd = null;
-      }
-      snap();
-      // One more frame after layout settles, then stop correcting.
-      window.requestAnimationFrame(() => {
-        if (!expandPinRunning) {
-          document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
-          return;
-        }
-        snap();
-        expandPinRunning = false;
-        expandPinYieldAfter = 0;
-        document.documentElement.classList.remove(RATES_BIO_FRAME_TWEEN_CLASS);
-        ignoreTriggerUntil = performance.now() + 180;
-      });
-    };
-
-    const step = () => {
-      if (!expandPinRunning) return;
-      snap();
-      expandPinRaf = window.requestAnimationFrame(step);
-    };
-    expandPinRaf = window.requestAnimationFrame(step);
-
-    onExpandTransitionEnd = (event) => {
-      if (event.target !== picture) return;
-      if (event.propertyName && event.propertyName !== "height") return;
-      finish();
-    };
-    picture.addEventListener("transitionend", onExpandTransitionEnd);
-    expandPinFallbackId = window.setTimeout(finish, RATES_BIO_FRAME_EXPAND_MS + 80);
+  /** Keep row padding grow + picture margin using the same Δ/2. */
+  const syncBioFrameGrowHalf = () => {
+    const row = picture.closest(".home-bio-row");
+    if (!row) return;
+    const w = picture.getBoundingClientRect().width;
+    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const maxH = Math.min(window.innerHeight * 0.7, 36 * rem);
+    const h1 = Math.min((w * 2) / 3, maxH);
+    const h2 = Math.min((w * 5) / 4, maxH);
+    const halfPx = `${Math.max(0, (h2 - h1) / 2)}px`;
+    row.style.setProperty("--bio-grow-half", halfPx);
+    picture.style.setProperty("--bio-grow-half", halfPx);
   };
 
   const stop = () => {
@@ -5270,9 +5145,6 @@ function setupRatesBioCycle() {
       window.clearInterval(timerId);
       timerId = 0;
     }
-    // No scroll-pin on close: layout already collapses upward (top stays put in
-    // document flow). Pinning here was causing a second post-tween settle.
-    clearExpandPin();
     picture.classList.remove("is-cycling");
     imgA.classList.remove("is-active");
     imgB.classList.remove("is-active");
@@ -5291,6 +5163,8 @@ function setupRatesBioCycle() {
       return;
     }
     if (active) return;
+    // Menu jumps: don't start expand mid-scroll.
+    if (isRatesBioCycleMobile() && isMobileBioExpandSuppressed()) return;
     active = true;
     showingA = true;
     // Resume from the last shown slide (index stays put across stop/start).
@@ -5299,13 +5173,9 @@ function setupRatesBioCycle() {
     setLayerSrc(imgA, paths[resumeIndex]);
     imgA.classList.add("is-active");
     imgB.classList.remove("is-active");
-    const wasCycling = picture.classList.contains("is-cycling");
-    // Capture center before height changes so the open expands from the true midpoint.
-    const pinCenterY = wasCycling
-      ? null
-      : readPinY(picture.getBoundingClientRect(), "center");
+    // CSS height + translateY center open (no scroll pinning).
+    if (isRatesBioCycleMobile()) syncBioFrameGrowHalf();
     picture.classList.add("is-cycling");
-    if (!wasCycling) pinPictureDuringFrameTween("center", pinCenterY);
 
     if (getShouldReduceMotion() || paths.length < 2) return;
 
@@ -5329,6 +5199,7 @@ function setupRatesBioCycle() {
       return;
     }
     if (active) return;
+    if (isMobileBioExpandSuppressed()) return;
     if (RATES_BIO_CYCLE_MOBILE_START_DELAY_MS <= 0) {
       start();
       return;
@@ -5383,7 +5254,6 @@ function setupRatesBioCycle() {
       playPastBioDown = false;
       return;
     }
-    if (performance.now() < ignoreTriggerUntil || expandPinRunning) return;
 
     const rect = picture.getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
@@ -5392,9 +5262,8 @@ function setupRatesBioCycle() {
     const exitLine = vh * MOBILE_EXIT_RATIO;
     const isOpen = active || picture.classList.contains("is-cycling");
 
-    // Menu/hash jump past bio: never start expand/pin; don't fight smooth scroll.
+    // Menu/hash jump past bio: never start expand mid-scroll.
     if (isMobileBioExpandSuppressed()) {
-      clearExpandPin();
       if (midY < 0 && (isOpen || bioCentered)) {
         bioCentered = false;
         playPastBioDown = true;
@@ -5438,7 +5307,12 @@ function setupRatesBioCycle() {
     mobileTriggerRaf = window.requestAnimationFrame(updateMobileBioTrigger);
   };
   window.addEventListener("scroll", scheduleMobileBioTrigger, { passive: true });
-  window.addEventListener("resize", scheduleMobileBioTrigger);
+  window.addEventListener("resize", () => {
+    if (picture.classList.contains("is-cycling") && isRatesBioCycleMobile()) {
+      syncBioFrameGrowHalf();
+    }
+    scheduleMobileBioTrigger();
+  });
   scheduleMobileBioTrigger();
 
   return {

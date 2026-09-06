@@ -1311,14 +1311,18 @@ body.page-full-gallery .onepage-section__heading {
 
 /* Full-bleed black band under the flow — joins the rates band into one continuous block. */
 .home-bio-row {
+  --bio-row-pad-top: clamp(1.25rem, 3vw, 2rem);
+  --bio-row-pad-bottom: clamp(2.75rem, 5.5vw, 4rem);
+  --bio-row-margin-top: var(--space-3);
+  --bio-grow-half: 0px;
   width: 100vw;
   max-width: 100vw;
-  margin-top: var(--space-3);
+  margin-top: var(--bio-row-margin-top);
   margin-bottom: 0;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  padding: clamp(1.25rem, 3vw, 2rem) max(1.25rem, env(safe-area-inset-left, 0px))
-    clamp(2.75rem, 5.5vw, 4rem) max(1.25rem, env(safe-area-inset-right, 0px));
+  padding: var(--bio-row-pad-top) max(1.25rem, env(safe-area-inset-left, 0px))
+    var(--bio-row-pad-bottom) max(1.25rem, env(safe-area-inset-right, 0px));
   border: none;
   border-radius: 0;
   background: #000000;
@@ -1407,12 +1411,27 @@ body.page-full-gallery .onepage-section__heading {
 @media (max-width: 1023px) {
   .home-bio-row {
     overflow-anchor: none;
+    position: relative;
+    z-index: 1;
+    transition:
+      margin-top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      padding-top 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  html.bio-frame-tweening,
-  html.bio-frame-tweening body,
   body.page-home:has(.home-bio-picture.is-cycling) {
     overflow-anchor: none;
+  }
+
+  /*
+    Center open with the black band (not the image alone):
+    - row pulls up by Δ so the background expands with the frame
+    - padding-top grows by Δ/2 (more black above the photo)
+    - height grows by Δ downward from the raised top → opens from center
+    Never negative-margin the picture — that left the frame outside the band.
+  */
+  .home-bio-row:has(.home-bio-picture.is-cycling) {
+    margin-top: calc(var(--bio-row-margin-top) - (2 * var(--bio-grow-half)));
+    padding-top: calc(var(--bio-row-pad-top) + var(--bio-grow-half));
   }
 
   .home-bio-inner {
@@ -1420,13 +1439,16 @@ body.page-full-gallery .onepage-section__heading {
   }
 
   .home-bio-picture {
+    --bio-frame-h-rest: min(calc(100cqw * 2 / 3), 70vh, 36rem);
+    --bio-frame-h-open: min(calc(100cqw * 5 / 4), 70vh, 36rem);
+    --bio-grow-half: calc((var(--bio-frame-h-open) - var(--bio-frame-h-rest)) / 2);
     width: 100%;
     aspect-ratio: auto;
-    /* 3:2 resting height; layout grows downward so flow/text aren't covered. */
-    height: min(calc(100cqw * 2 / 3), 70vh, 36rem);
+    height: var(--bio-frame-h-rest);
     overflow: hidden;
     overflow-anchor: none;
-    transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateZ(0);
+    transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .home-bio-picture__default {
@@ -1445,11 +1467,12 @@ body.page-full-gallery .onepage-section__heading {
   }
 
   .home-bio-picture.is-cycling {
-    height: min(calc(100cqw * 5 / 4), 70vh, 36rem);
+    height: var(--bio-frame-h-open);
   }
 }
 
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
+  .home-bio-row,
   .home-bio-picture {
     transition: none;
   }
@@ -4748,14 +4771,17 @@ body.page-profile {
   }
 
   body.page-home .home-bio-row {
+    --bio-row-pad-top: 1.35rem;
+    --bio-row-pad-bottom: 1.35rem;
+    --bio-row-margin-top: 0px;
     width: 100vw;
     max-width: 100vw;
-    margin-top: 0;
+    margin-top: var(--bio-row-margin-top);
     margin-bottom: 0;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    padding: 1.35rem max(1.15rem, env(safe-area-inset-left, 0px))
-      1.35rem max(1.15rem, env(safe-area-inset-right, 0px));
+    padding: var(--bio-row-pad-top) max(1.15rem, env(safe-area-inset-left, 0px))
+      var(--bio-row-pad-bottom) max(1.15rem, env(safe-area-inset-right, 0px));
     border-radius: 0;
   }
 
@@ -4930,13 +4956,15 @@ body.page-profile {
   }
 
   .home-bio-row {
+    --bio-row-pad-top: 1.25rem;
+    --bio-row-pad-bottom: 1.25rem;
     width: 100vw;
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-bottom: 0;
-    padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px))
-      1.25rem max(1rem, env(safe-area-inset-right, 0px));
+    padding: var(--bio-row-pad-top) max(1rem, env(safe-area-inset-left, 0px))
+      var(--bio-row-pad-bottom) max(1rem, env(safe-area-inset-right, 0px));
     border-radius: 0;
   }
 
