@@ -245,9 +245,9 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=bio-band-grow-up" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=lightbox-gallery-align" />
     <script defer src="assets/js/gallery-menu.js"></script>
-    <script defer src="assets/js/onepage.js?v=bio-band-grow-up"></script>
+    <script defer src="assets/js/onepage.js?v=lightbox-gallery-align"></script>
   </head>
   <body class="page-home">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
@@ -358,11 +358,15 @@
             </div>
             <div class="home-bio-copy">
               <h2 class="home-bio-heading">Who Am I?</h2>
-              <p class="home-intro">
-                Zach Savage is a Toronto-based Photographer, specializing in concert and event photography. Shooting since
-                2022, Zach's eye is tuned to follow the energy of each performance. His photographic styling aims to serve
-                the unique personality and aesthetics of every artist and event he shoots.
-              </p>
+              <div class="home-bio-expand-reveal">
+                <div class="home-bio-expand-reveal__inner">
+                  <p class="home-intro">
+                    Zach Savage is a Toronto-based Photographer, specializing in concert and event photography. Shooting since
+                    2022, Zach's eye is tuned to follow the energy of each performance. His photographic styling aims to serve
+                    the unique personality and aesthetics of every artist and event he shoots.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <section
@@ -372,50 +376,54 @@
               aria-labelledby="rates-heading"
             >
               <div class="rates rates--reveal">
-                <div class="home-bio-actions">
-                  <a class="home-cta home-start-btn home-start-btn--pov" href="full-gallery.html"
-                    ><span class="home-start-btn__label">Gallery</span
-                    ><span class="home-start-btn__arrow" aria-hidden="true"
-                      ><span class="home-start-btn__arrow-rest">→</span
-                      ><span class="home-start-btn__arrow-pop">⮕</span></span
-                    ></a
-                  >
-                  <button
-                    type="button"
-                    class="home-cta home-cta--rates rates__toggle"
-                    id="rates-heading"
-                    aria-expanded="false"
-                    aria-controls="rates-panel"
-                    aria-label="Show pricing"
-                  >
-                    <span class="home-cta__label">Rates</span>
-                    <span class="home-cta__arrow rates__toggle-arrow" aria-hidden="true">→</span>
-                  </button>
-                </div>
+                <div class="home-bio-expand-reveal">
+                  <div class="home-bio-expand-reveal__inner">
+                    <div class="home-bio-actions">
+                      <a class="home-cta home-start-btn home-start-btn--pov" href="full-gallery.html"
+                        ><span class="home-start-btn__label">Gallery</span
+                        ><span class="home-start-btn__arrow" aria-hidden="true"
+                          ><span class="home-start-btn__arrow-rest">→</span
+                          ><span class="home-start-btn__arrow-pop">⮕</span></span
+                        ></a
+                      >
+                      <button
+                        type="button"
+                        class="home-cta home-cta--rates rates__toggle"
+                        id="rates-heading"
+                        aria-expanded="false"
+                        aria-controls="rates-panel"
+                        aria-label="Show pricing"
+                      >
+                        <span class="home-cta__label">Rates</span>
+                        <span class="home-cta__arrow rates__toggle-arrow" aria-hidden="true">→</span>
+                      </button>
+                    </div>
 
-                <div class="rates__panel" id="rates-panel" aria-hidden="true" inert>
-                  <div class="rates__panel-inner">
-                    <table class="rates__table">
-                      <thead>
-                        <tr>
-                          <th scope="col">Artist Set</th>
-                          <th scope="col">Event Coverage</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr class="rates__row--price">
-                          <td><span class="rates__price">$100*</span></td>
-                          <td><span class="rates__price">$250</span></td>
-                        </tr>
-                        <tr>
-                          <td>30 edited photos from your set</td>
-                          <td>60 edited photos covering the night</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div class="rates__panel" id="rates-panel" aria-hidden="true" inert>
+                      <div class="rates__panel-inner">
+                        <table class="rates__table">
+                          <thead>
+                            <tr>
+                              <th scope="col">Artist Set</th>
+                              <th scope="col">Event Coverage</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr class="rates__row--price">
+                              <td><span class="rates__price">$100*</span></td>
+                              <td><span class="rates__price">$250</span></td>
+                            </tr>
+                            <tr>
+                              <td>30 edited photos from your set</td>
+                              <td>60 edited photos covering the night</td>
+                            </tr>
+                          </tbody>
+                        </table>
 
-                    <p class="rates__note">Toronto concert &amp; event coverage · Book via the form below</p>
-                    <p class="rates__note">*Open to Negotiating with Artists!</p>
+                        <p class="rates__note">Toronto concert &amp; event coverage · Book via the form below</p>
+                        <p class="rates__note">*Open to Negotiating with Artists!</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -562,6 +570,12 @@
       data-state="closed"
     >
       <div class="lightbox__backdrop"></div>
+      <a
+        class="lightbox__gallery-link"
+        href="full-gallery.html"
+        hidden
+        aria-label="View show in gallery"
+      ></a>
       <button type="button" class="lightbox__close" aria-label="Close photo">
         <svg class="lightbox__close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path

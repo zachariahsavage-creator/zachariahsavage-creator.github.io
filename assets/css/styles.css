@@ -209,6 +209,23 @@ body.page-home .onepage-section--contact .contact__card {
   animation: none !important;
 }
 
+/* Contact fades in with scroll (opacity driven by --contact-scroll-opacity). */
+@property --contact-scroll-opacity {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+body.page-home .page--onepage .onepage-section--contact {
+  opacity: var(--contact-scroll-opacity, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.page-home .page--onepage .onepage-section--contact {
+    opacity: 1;
+  }
+}
+
 /* Twin CTAs: skip scroll-reveal fade, keep hover/press motion. */
 body.page-home .home-bio-actions .home-cta,
 body.page-home .home-bio-actions .home-start-btn {
@@ -271,12 +288,12 @@ body.page-contact {
 }
 
 html:has(body.page-full-gallery) {
-  background-color: #141414;
+  background-color: #000000;
   scroll-behavior: auto;
 }
 
 body.page-full-gallery {
-  background-color: #141414;
+  background-color: #000000;
 }
 
 /* Fixed layer (not background-attachment: fixed) — avoids scroll jitter in Safari. */
@@ -300,11 +317,21 @@ body.page-full-gallery {
 }
 
 .home-page-bg {
-  background-color: #050505;
+  background-color: #000000;
+}
+
+/* Keep the img in the boot decode path; hide it so the shell stays solid black. */
+.home-page-bg img {
+  opacity: 0;
 }
 
 .full-gallery-page-bg {
-  background-color: #141414;
+  background-color: #000000;
+}
+
+/* Original gallery atmosphere over the black shell. */
+.full-gallery-page-bg img {
+  opacity: 0.3;
 }
 
 /* <picture> is inline by default, which would leave the img's 100% height with no
@@ -379,8 +406,8 @@ body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost {
   z-index: 9;
   background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(15px) saturate(1.35);
-  -webkit-backdrop-filter: blur(15px) saturate(1.35);
+  backdrop-filter: blur(10.5px) saturate(1.35);
+  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
   box-shadow: var(--shadow-md);
 }
 
@@ -393,10 +420,13 @@ body.page-full-gallery .gallery-bar__plate {
 }
 
 body.page-home .gallery-bar__frost.is-ready,
-body.page-full-gallery .gallery-bar__frost.is-ready,
+body.page-full-gallery .gallery-bar__frost.is-ready {
+  opacity: 1;
+}
+
 body.page-home .gallery-bar__plate.is-ready,
 body.page-full-gallery .gallery-bar__plate.is-ready {
-  opacity: 1;
+  opacity: 0.8;
 }
 
 body.page-home .gallery-bar__brand,
@@ -612,13 +642,13 @@ body:not(.page-contact):not(.page-profile):not(.page-home):not(.page-full-galler
   filter: none;
 }
 
-/* Home one-page: film-grain texture shell (full gallery keeps its own photo bg). */
+/* Home one-page: black shell (matches bio / contact bands). */
 html:has(body.page-home) {
-  background-color: #050505;
+  background-color: #000000;
 }
 
 body.page-home {
-  background: transparent;
+  background: #000000;
   background-attachment: scroll;
 }
 
@@ -839,8 +869,8 @@ a.page-center-title:hover {
   border-radius: 50px;
   /* Frosted pill only (small compositing region — scrolls stay smooth on desktop). */
   background: rgba(250, 248, 245, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(9.8px);
+  -webkit-backdrop-filter: blur(9.8px);
   border: none;
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -857,8 +887,8 @@ a.page-center-title:hover {
 /* When menu is open, show white pill backing around heading + menu */
 .gallery-bar__brand.gallery-bar__brand--open {
   background: rgba(250, 248, 245, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(11.2px);
+  -webkit-backdrop-filter: blur(11.2px);
   border-radius: 20px;
   /* Same vertical rhythm as between menu links */
   gap: var(--space-3);
@@ -1088,6 +1118,7 @@ body.page-contact .gallery-bar__menu-link:visited {
   padding-bottom: 0;
   height: auto;
   min-height: 0;
+  background: #000000;
   /* Prevent scroll anchoring from snapping to top when flow rows reflow above the bio. */
   overflow-anchor: none;
 }
@@ -1132,6 +1163,7 @@ body.page-full-gallery .onepage-section--gallery {
 body.page-full-gallery .onepage-section__heading {
   font-weight: 900;
   letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* Rates lives inside the bio band (under the portrait), not as a separate full-bleed strip. */
@@ -1263,6 +1295,15 @@ body.page-full-gallery .onepage-section__heading {
   display: none;
 }
 
+/* Atmosphere lives on the card only — hide section-wide contact photo layers. */
+body.page-home .page--onepage .onepage-section--contact .contact-bg {
+  display: none;
+}
+
+body.page-home .page--onepage .onepage-section--contact {
+  background: #000000;
+}
+
 .page--onepage .onepage-section--contact .contact {
   flex: 0 0 auto;
   width: 100%;
@@ -1281,7 +1322,7 @@ body.page-full-gallery .onepage-section__heading {
 
 .page--onepage .onepage-section--contact .contact__card {
   max-height: 100%;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .gallery {
@@ -1313,11 +1354,9 @@ body.page-full-gallery .onepage-section__heading {
 .home-bio-row {
   --bio-row-pad-top: clamp(1.25rem, 3vw, 2rem);
   --bio-row-pad-bottom: clamp(2.75rem, 5.5vw, 4rem);
-  --bio-row-margin-top: var(--space-3);
-  --bio-grow-half: 0px;
   width: 100vw;
   max-width: 100vw;
-  margin-top: var(--bio-row-margin-top);
+  margin-top: var(--space-3);
   margin-bottom: 0;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -1410,45 +1449,42 @@ body.page-full-gallery .onepage-section__heading {
 
 @media (max-width: 1023px) {
   .home-bio-row {
+    --bio-reveal-dur: 1.15s;
+    --bio-reveal-dur-close: 0.69s; /* open × 0.6 → 40% faster close */
+    --bio-frame-dur: 0.92s; /* 20% faster photo expand */
+    --bio-frame-dur-close: 0.55s; /* open × 0.6 → 40% faster close */
+    --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+    --bio-row-pad-bottom-collapsed: 0.55rem;
     overflow-anchor: none;
-    position: relative;
-    z-index: 1;
-    transition:
-      margin-top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-      padding-top 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: padding-bottom var(--bio-reveal-dur-close) var(--bio-reveal-ease);
   }
 
-  body.page-home:has(.home-bio-picture.is-cycling) {
+  /* Kill scroll anchoring while copy/frame opens so the bio image isn't shoved up. */
+  body.page-home:has(.home-bio-row.is-bio-copy-open),
+  body.page-home:has(.home-bio-picture.is-bio-frame-open) {
     overflow-anchor: none;
   }
 
-  /*
-    Center open with the black band (not the image alone):
-    - row pulls up by Δ so the background expands with the frame
-    - padding-top grows by Δ/2 (more black above the photo)
-    - height grows by Δ downward from the raised top → opens from center
-    Never negative-margin the picture — that left the frame outside the band.
-  */
-  .home-bio-row:has(.home-bio-picture.is-cycling) {
-    margin-top: calc(var(--bio-row-margin-top) - (2 * var(--bio-grow-half)));
-    padding-top: calc(var(--bio-row-pad-top) + var(--bio-grow-half));
+  .home-bio-expand-reveal,
+  .home-bio-expand-reveal__inner,
+  .home-bio-row.is-bio-copy-open,
+  .home-bio-row.is-bio-copy-open * {
+    overflow-anchor: none;
   }
 
   .home-bio-inner {
     container-type: inline-size;
   }
 
+  /* Height-only open: frame grows downward from 3:2 → 4:5. */
   .home-bio-picture {
-    --bio-frame-h-rest: min(calc(100cqw * 2 / 3), 70vh, 36rem);
-    --bio-frame-h-open: min(calc(100cqw * 5 / 4), 70vh, 36rem);
-    --bio-grow-half: calc((var(--bio-frame-h-open) - var(--bio-frame-h-rest)) / 2);
     width: 100%;
     aspect-ratio: auto;
-    height: var(--bio-frame-h-rest);
+    height: min(calc(100cqw * 2 / 3), 70vh, 36rem);
     overflow: hidden;
     overflow-anchor: none;
     transform: translateZ(0);
-    transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: height var(--bio-frame-dur-close) var(--bio-reveal-ease);
   }
 
   .home-bio-picture__default {
@@ -1466,15 +1502,79 @@ body.page-full-gallery .onepage-section__heading {
     object-position: center center;
   }
 
-  .home-bio-picture.is-cycling {
-    height: var(--bio-frame-h-open);
+  .home-bio-picture.is-bio-frame-open {
+    height: min(calc(100cqw * 5 / 4), 70vh, 36rem);
+    transition: height var(--bio-frame-dur) var(--bio-reveal-ease);
+  }
+
+  /*
+    Collapsed: hide intro + CTAs.
+    Expanded: grows down the page. Use grid 0fr→1fr so close tracks real
+    content height (max-height: 48rem made closes feel sluggish).
+  */
+  .home-bio-expand-reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease),
+      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease);
+  }
+
+  .home-bio-expand-reveal__inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .home-bio-row.is-bio-copy-open {
+    transition: padding-bottom var(--bio-reveal-dur) var(--bio-reveal-ease);
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    overflow: visible;
+    transition:
+      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease),
+      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease);
+  }
+
+  /* Buttons wait until bio text has mostly settled, then open (0.5s sooner than full bio dur). */
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal:has(.home-bio-actions) {
+    transition:
+      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) calc(var(--bio-reveal-dur) - 0.5s),
+      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) calc(var(--bio-reveal-dur) - 0.5s);
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal__inner {
+    overflow: visible;
+  }
+
+  .home-bio-row .home-bio-copy {
+    gap: 0;
+    transition: gap var(--bio-reveal-dur-close) var(--bio-reveal-ease);
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-copy {
+    gap: var(--space-3);
+    transition: gap var(--bio-reveal-dur) var(--bio-reveal-ease);
   }
 }
 
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
   .home-bio-row,
-  .home-bio-picture {
+  .home-bio-picture,
+  .home-bio-expand-reveal,
+  .home-bio-row .home-bio-copy {
     transition: none;
+  }
+}
+
+/* Desktop: wrappers don't affect the two-column grid. */
+@media (min-width: 1024px) {
+  .home-bio-expand-reveal,
+  .home-bio-expand-reveal__inner {
+    display: contents;
   }
 }
 
@@ -1915,14 +2015,26 @@ body.page-home .home-bio-row .home-intro {
   display: grid;
   grid-template-rows: 0fr;
   min-width: 0;
+  margin-top: 0;
   overflow: hidden;
-  transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .rates.is-open .rates__panel,
 .onepage-section--rates.is-open .rates__panel {
   grid-template-rows: 1fr;
   margin-top: clamp(1.1rem, 2.8vw, 1.65rem);
+  overflow: visible;
+}
+
+.rates.is-collapsing .rates__panel,
+.onepage-section--rates.is-collapsing .rates__panel {
+  /* Collapse height + top gap together; keep overflow open for full-bleed glow. */
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  overflow: visible;
 }
 
 .rates__panel-inner {
@@ -1939,13 +2051,22 @@ body.page-home .home-bio-row .home-intro {
 .onepage-section--rates.is-open .rates__panel-inner {
   opacity: 1;
   transform: translateY(0);
+  overflow: visible;
+}
+
+.rates.is-collapsing .rates__panel-inner,
+.onepage-section--rates.is-collapsing .rates__panel-inner {
+  opacity: 0;
+  transform: translateY(-0.65rem);
+  overflow: visible;
 }
 
 .rates__table {
   width: 100%;
   max-width: 52rem;
   margin-inline: auto;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
 }
 
@@ -1959,23 +2080,53 @@ body.page-home .home-bio-row .home-intro {
 }
 
 .rates__table thead th {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  padding-top: 1rem;
   padding-bottom: 1rem;
   font-family: var(--font-heading);
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  font-size: clamp(1.1875rem, 2.5vw, 1.375rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background-color: #000000;
+  border: none;
+}
+
+/* Soft bloom under the heading — full viewport width. */
+.rates__table thead th::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 100vw;
+  height: 1px;
+  z-index: -1;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 42px 118px 17px rgba(255, 196, 150, 0.58);
+  /* Keep glow below the bar; allow it to reach the viewport sides. */
+  clip-path: inset(0 -1px -100vh -1px);
+}
+
+/* Heading bars sit above their own (and neighboring) glow. */
+.rates__table thead th:nth-child(1) {
+  z-index: 2;
+}
+
+.rates__table thead th:nth-child(2) {
+  z-index: 3;
 }
 
 .rates__table thead th + th,
 .rates__table tbody td + td {
-  border-left: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: none;
 }
 
 .rates__table tbody tr + tr td {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
 }
 
 .rates__row--price td {
@@ -1995,7 +2146,7 @@ body.page-home .home-bio-row .home-intro {
 
 .rates__table tbody td {
   font-family: var(--font-body);
-  font-size: clamp(1rem, 2.2vw, 1.15rem);
+  font-size: clamp(1.25rem, 2.75vw, 1.4375rem);
   font-weight: 400;
   line-height: 1.55;
   color: rgba(238, 238, 238, 0.92);
@@ -2006,7 +2157,7 @@ body.page-home .home-bio-row .home-intro {
   margin: clamp(1.1rem, 2.5vw, 1.5rem) auto 0;
   max-width: 36rem;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 1.015625rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2062,12 +2213,16 @@ body.page-home .home-bio-row .home-intro {
   }
 
   .rates__table thead th {
+    padding-top: 0.65rem;
     padding-bottom: 0.65rem;
     margin-bottom: 0.25rem;
+    border: none !important;
+    background-color: #000000;
   }
 
   .rates__table thead th:nth-child(1) {
     grid-row: 1;
+    z-index: 2;
   }
 
   .rates__table tbody tr:nth-child(1) td:nth-child(1) {
@@ -2078,12 +2233,13 @@ body.page-home .home-bio-row .home-intro {
     grid-row: 3;
     padding-bottom: 1.75rem;
     margin-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
   }
 
   .rates__table thead th:nth-child(2) {
     grid-row: 4;
     padding-top: 0.5rem;
+    z-index: 3;
+    background-color: #000000;
   }
 
   .rates__table tbody tr:nth-child(1) td:nth-child(2) {
@@ -2561,12 +2717,12 @@ html.site-boot-locked body {
 }
 
 body.page-full-gallery .site-boot-gate {
-  background: #f0f0f0;
+  background: #000000;
 }
 
 body.page-full-gallery .site-boot-gate::after {
-  border-color: rgba(0, 0, 0, 0.14);
-  border-top-color: rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.7);
 }
 
 @keyframes site-boot-spin {
@@ -3285,6 +3441,62 @@ body.page-full-gallery .portfolio-date-toggle--expanded .portfolio-date-toggle__
   width: 100%;
 }
 
+/* Collapsed folders: dissolve the preview into the View More bar.
+   Mask the preview grid so tile edges actually disappear (not just darken). */
+body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-preview-grid {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 35%,
+    rgba(0, 0, 0, 0.55) 62%,
+    rgba(0, 0, 0, 0.15) 82%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 35%,
+    rgba(0, 0, 0, 0.55) 62%,
+    rgba(0, 0, 0, 0.15) 82%,
+    transparent 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-rows {
+  position: relative;
+}
+
+body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-rows::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55%;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.35) 35%,
+    rgba(0, 0, 0, 0.85) 70%,
+    #000 100%
+  );
+}
+
+body.page-full-gallery .portfolio-date-group--expanded .portfolio-date-preview-grid {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+body.page-full-gallery .portfolio-date-group--expanded .portfolio-date-rows::after {
+  content: none;
+}
+
 .portfolio-date-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3873,11 +4085,43 @@ body.page-profile {
   background: rgba(12, 12, 14, 0.62);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: var(--shadow-md);
+  border: none;
+  box-shadow: 0 10px 28px rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-md);
   padding: var(--space-6) var(--space-6) var(--space-5);
   color: #f5f5f5;
+}
+
+/* Home contact form: atmosphere clipped strictly inside the card. */
+body.page-home .page--onepage .onepage-section--contact .contact__card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #050505;
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: #050505;
+  background-image:
+    linear-gradient(rgba(8, 8, 10, 0.42), rgba(8, 8, 10, 0.42)),
+    url("../images/site/home-hero-backdrop.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .contact__heading {
@@ -4317,8 +4561,8 @@ body.page-profile {
   .gallery-bar__brand.gallery-bar__brand--open {
     gap: var(--space-1);
     background: rgba(250, 248, 245, 0.96);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(11.2px);
+    -webkit-backdrop-filter: blur(11.2px);
   }
 
   /*
@@ -4420,6 +4664,11 @@ body.page-profile {
   }
 
   body.page-home .home-bio-row {
+    /* Collapsed pad; open state grows this with the curtain reveal. */
+    padding-bottom: var(--bio-row-pad-bottom-collapsed, 0.55rem);
+  }
+
+  body.page-home .home-bio-row.is-bio-copy-open {
     padding-bottom: clamp(3rem, 6.5vh, 4.5rem);
   }
 
@@ -4485,7 +4734,11 @@ body.page-profile {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
-  /* Mobile one-page contact: no photo layers; gradient scrims off. */
+  /* Mobile one-page contact: solid black outside the card; atmosphere stays on the card only. */
+  .page--onepage .onepage-section--contact {
+    background: #000000;
+  }
+
   .page--onepage .onepage-section--contact .contact-bg {
     display: none;
   }
@@ -4495,7 +4748,25 @@ body.page-profile {
     display: none;
   }
 
-  /* Mobile standalone contact page: hide crossfade background. */
+  body.page-home .page--onepage .onepage-section--contact .contact__card {
+    overflow: hidden;
+    background: #050505;
+    background-image: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__card::before {
+    background-image:
+      linear-gradient(rgba(8, 8, 10, 0.48), rgba(8, 8, 10, 0.48)),
+      url("../images/site/home-hero-backdrop.webp");
+  }
+
+  /* Mobile standalone contact page: hide crossfade background; black fill. */
+  body.page-contact {
+    background: #000000;
+  }
+
   body.page-contact .contact-bg {
     display: none;
   }
@@ -4752,13 +5023,12 @@ body.page-profile {
     text-align: center;
     white-space: nowrap;
     text-wrap: nowrap;
-    background: rgba(0, 0, 0, 0.5);
+    background: #000000;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    border: 1px solid rgba(0, 0, 0, 0.35);
-    border-top: none;
+    border: none;
     border-radius: 0;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 50px 140px rgba(0, 0, 0, 0.7);
   }
 
   .home-intro {
@@ -4772,17 +5042,21 @@ body.page-profile {
 
   body.page-home .home-bio-row {
     --bio-row-pad-top: 1.35rem;
-    --bio-row-pad-bottom: 1.35rem;
-    --bio-row-margin-top: 0px;
+    --bio-row-pad-bottom: clamp(3rem, 6.5vh, 4.5rem);
+    --bio-row-pad-bottom-collapsed: 0.55rem;
     width: 100vw;
     max-width: 100vw;
-    margin-top: var(--bio-row-margin-top);
+    margin-top: 0;
     margin-bottom: 0;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     padding: var(--bio-row-pad-top) max(1.15rem, env(safe-area-inset-left, 0px))
-      var(--bio-row-pad-bottom) max(1.15rem, env(safe-area-inset-right, 0px));
+      var(--bio-row-pad-bottom-collapsed) max(1.15rem, env(safe-area-inset-right, 0px));
     border-radius: 0;
+  }
+
+  body.page-home .home-bio-row.is-bio-copy-open {
+    padding-bottom: var(--bio-row-pad-bottom);
   }
 
   .home-bio-copy {
@@ -4957,15 +5231,20 @@ body.page-profile {
 
   .home-bio-row {
     --bio-row-pad-top: 1.25rem;
-    --bio-row-pad-bottom: 1.25rem;
+    --bio-row-pad-bottom: clamp(2.75rem, 6.5vh, 4rem);
+    --bio-row-pad-bottom-collapsed: 0.5rem;
     width: 100vw;
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-bottom: 0;
     padding: var(--bio-row-pad-top) max(1rem, env(safe-area-inset-left, 0px))
-      var(--bio-row-pad-bottom) max(1rem, env(safe-area-inset-right, 0px));
+      var(--bio-row-pad-bottom-collapsed) max(1rem, env(safe-area-inset-right, 0px));
     border-radius: 0;
+  }
+
+  .home-bio-row.is-bio-copy-open {
+    padding-bottom: var(--bio-row-pad-bottom);
   }
 
   .home-bio-heading {
@@ -5157,6 +5436,52 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
+/* Match expanded-folder “Show Less” pill; same top/height as × for alignment. */
+.lightbox__gallery-link {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: max(0.75rem, env(safe-area-inset-left, 0px));
+  right: auto;
+  z-index: 20;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: auto;
+  max-width: min(20rem, calc(100vw - 5.5rem));
+  height: 3rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #e8e8e8;
+  color: #000000;
+  font-family: var(--font-sans);
+  font-size: 0.83rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.lightbox__gallery-link[hidden] {
+  display: none !important;
+}
+
 .lightbox__close-icon {
   display: block;
   width: 1.15rem;
@@ -5174,6 +5499,32 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.85),
     0 6px 22px rgba(0, 0, 0, 0.45);
+}
+
+.lightbox__gallery-link:hover,
+.lightbox__gallery-link:focus-visible {
+  background: #dcdcdc;
+  color: #000000;
+  outline: none;
+}
+
+.lightbox__gallery-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 420px) {
+  .lightbox__gallery-link {
+    max-width: calc(100vw - 5.25rem);
+    padding: 0 0.85rem;
+    font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .lightbox__gallery-link {
+    font-size: clamp(0.83rem, 1.25vw, 1.05rem);
+    padding: 0 1.1rem;
+  }
 }
 
 .lightbox__backdrop {

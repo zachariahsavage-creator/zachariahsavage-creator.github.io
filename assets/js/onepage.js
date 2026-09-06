@@ -1321,6 +1321,105 @@ function getFullGalleryFolderDefinitions() {
   return folders.sort((a, b) => a.order - b.order);
 }
 
+/** Artist / show name for UI copy — text before " @ " when present. */
+function getGalleryFolderArtistName(title) {
+  const raw = String(title || "").trim();
+  if (!raw) return "";
+  const at = raw.indexOf(" @ ");
+  return (at >= 0 ? raw.slice(0, at) : raw).trim();
+}
+
+let galleryFolderByPathCache = null;
+
+/** Map an asset path to its gallery folder label + title. */
+function findGalleryFolderForPath(path) {
+  const key = normalizeAssetPath(path);
+  if (!key) return null;
+
+  if (!galleryFolderByPathCache) {
+    galleryFolderByPathCache = new Map();
+    FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
+      (show.sources || []).forEach((source) => {
+        galleryFolderByPathCache.set(normalizeAssetPath(source), {
+          label: show.id,
+          title: show.title,
+        });
+      });
+    });
+    Object.entries(FULL_GALLERY_NUMBERED_SHOW_SOURCES).forEach(([label, sources]) => {
+      const title = fullGallerySectionTitles[label] || `Show ${label}`;
+      sources.forEach((source) => {
+        galleryFolderByPathCache.set(normalizeAssetPath(source), { label, title });
+      });
+    });
+  }
+
+  return galleryFolderByPathCache.get(key) || null;
+}
+
+function getLightboxGalleryLinkEl() {
+  return lightbox?.querySelector(".lightbox__gallery-link") || null;
+}
+
+function hideLightboxGalleryLink() {
+  const link = getLightboxGalleryLinkEl();
+  if (!link) return;
+  link.hidden = true;
+  link.removeAttribute("href");
+  link.textContent = "";
+  link.setAttribute("aria-label", "View show in gallery");
+}
+
+/** Home flow lightbox only: pill linking the open photo to its gallery folder. */
+function updateLightboxGalleryLink(item) {
+  const link = getLightboxGalleryLinkEl();
+  if (!link) return;
+
+  if (!document.body.classList.contains("page-home") || typeof item !== "string") {
+    hideLightboxGalleryLink();
+    return;
+  }
+
+  const folder = findGalleryFolderForPath(item);
+  const artist = getGalleryFolderArtistName(folder?.title);
+  if (!folder?.label || !artist) {
+    hideLightboxGalleryLink();
+    return;
+  }
+
+  const label = `View ${artist} in Gallery`;
+  link.hidden = false;
+  link.href = `full-gallery.html#folder-${encodeURIComponent(folder.label)}`;
+  link.textContent = label;
+  link.setAttribute("aria-label", label);
+}
+
+/** Deep-link: #folder-{id} scrolls to (and expands) that gallery section. */
+function focusGalleryFolderFromHash() {
+  if (!document.body.classList.contains("page-full-gallery")) return false;
+  const raw = (window.location.hash || "").trim();
+  if (!raw.startsWith("#folder-")) return false;
+  let label = raw.slice("#folder-".length);
+  try {
+    label = decodeURIComponent(label);
+  } catch (_e) {
+    /* keep raw label */
+  }
+  if (!label) return false;
+
+  const section = document.querySelector(
+    `.portfolio-date-group[data-folder-label="${CSS.escape(label)}"]`
+  );
+  if (!section) return false;
+
+  section.id = `folder-${label}`;
+  // Jump to the folder preview; leave expand to the visitor.
+  requestAnimationFrame(() => {
+    scrollToFolderPreview(section);
+  });
+  return true;
+}
+
 function getMediaIndexForAssetPath(path) {
   const idx = fullGalleryNumberedItems.indexOf(path);
   return idx >= 0 ? idx : 0;
@@ -2117,6 +2216,7 @@ function openLightboxFromIndex(index) {
     lightboxVideo.setAttribute("data-active", "true");
     lightboxVideo.play().catch(() => {});
   }
+  updateLightboxGalleryLink(item);
 }
 
 function closeLightbox({ fromHistory = false } = {}) {
@@ -2157,6 +2257,7 @@ function closeLightbox({ fromHistory = false } = {}) {
     lightboxImage.removeAttribute("src");
     lightboxImage.removeAttribute("data-active");
   }
+  hideLightboxGalleryLink();
 
   window.setTimeout(() => {
     if (lightbox?.getAttribute("data-state") === "closing") {
@@ -2213,8 +2314,24 @@ function setupLightboxPointerNav() {
   closeBtn?.addEventListener("pointerdown", handleCloseGesture, { passive: false });
   closeBtn?.addEventListener("click", handleCloseGesture);
 
+  const galleryLink = getLightboxGalleryLinkEl();
+  galleryLink?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const href = galleryLink.getAttribute("href");
+    if (!href) return;
+    // Replace the lightbox history entry so Back from gallery returns to home closed.
+    lightboxHistoryActive = false;
+    document.documentElement.style.overflow = "";
+    try {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch (_e) {}
+    window.location.assign(href);
+  });
+
   lightbox.addEventListener("click", (event) => {
     if (event.target.closest?.(".lightbox__close")) return;
+    if (event.target.closest?.(".lightbox__gallery-link")) return;
     if (lightbox.getAttribute("data-state") !== "open") return;
     if (isLightboxInputQuiet()) return;
     const zone = getLightboxPointerZone(event);
@@ -3460,6 +3577,7 @@ function createPortfolioDateGroupSection(folderDef, gap, isFullGalleryPage) {
   section.className = "portfolio-date-group";
   section.dataset.folderLabel = label;
   if (isFullGalleryPage) {
+    section.id = `folder-${label}`;
     section.style.setProperty("--portfolio-section-gap", `${gap}px`);
   }
 
@@ -4046,6 +4164,9 @@ function scrollToSectionWithOffset(target, options) {
     Boolean(target.closest?.(".onepage-section--rates"))
   ) {
     suppressMobileBioExpand(instant ? 400 : 1800);
+  }
+  if (isContactScrollTarget(target)) {
+    unlockContactFadeForNav();
   }
 
   if (root === document.body || root === document.documentElement) {
@@ -4674,6 +4795,148 @@ function setupContactForm() {
   });
 }
 
+/**
+ * Fade the home contact section from hidden → fully opaque as the
+ * "Get in touch" heading scrolls to the vertical center of the viewport.
+ * On mobile, stays at 0 until Gallery/Rates buttons have appeared; if the
+ * user has already scrolled into the fade zone by then, ease to the
+ * scroll-correct opacity instead of snapping.
+ */
+function setupContactScrollFade() {
+  if (!document.body.classList.contains("page-home")) return;
+
+  const section = document.querySelector(".page--onepage .onepage-section--contact");
+  const heading = document.getElementById("contact-heading");
+  if (!section || !heading) return;
+
+  const UNLOCK_FADE_MS = 900;
+  let ticking = false;
+  let wasGated = true;
+  let unlockRaf = 0;
+  let unlockStart = 0;
+  let unlockFrom = 0;
+  let displayedOpacity = 0;
+
+  function applyOpacity(opacity) {
+    const next = Math.max(0, Math.min(1, opacity));
+    displayedOpacity = next;
+    section.style.setProperty("--contact-scroll-opacity", String(next));
+  }
+
+  function getScrollTargetOpacity() {
+    if (getShouldReduceMotion()) return 1;
+
+    const rect = heading.getBoundingClientRect();
+    if (rect.height < 1 && rect.width < 1) return 0;
+
+    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
+    const fadeEnd = vh * 0.5;
+    const fadeStart = vh;
+    const headingCenter = rect.top + rect.height / 2;
+
+    if (headingCenter >= fadeStart) return 0;
+    if (headingCenter <= fadeEnd) return 1;
+    return (fadeStart - headingCenter) / (fadeStart - fadeEnd);
+  }
+
+  function stopUnlockFade() {
+    if (!unlockRaf) return;
+    window.cancelAnimationFrame(unlockRaf);
+    unlockRaf = 0;
+  }
+
+  function startUnlockFade(fromOpacity) {
+    stopUnlockFade();
+    unlockFrom = fromOpacity;
+    unlockStart = performance.now();
+    applyOpacity(fromOpacity);
+
+    const tick = (now) => {
+      unlockRaf = 0;
+      const liveTarget =
+        contactFullyVisibleAfterRates || isRatesSectionOpen()
+          ? 1
+          : getScrollTargetOpacity();
+      const t = Math.min(1, (now - unlockStart) / UNLOCK_FADE_MS);
+      const eased = 1 - (1 - t) * (1 - t);
+      applyOpacity(unlockFrom + (liveTarget - unlockFrom) * eased);
+      if (t < 1) {
+        unlockRaf = window.requestAnimationFrame(tick);
+        return;
+      }
+      applyOpacity(liveTarget);
+    };
+
+    unlockRaf = window.requestAnimationFrame(tick);
+  }
+
+  function isContactFadeGated() {
+    if (contactFullyVisibleAfterRates || isRatesSectionOpen()) return false;
+    return !isBioFullyExpandedForContact();
+  }
+
+  function update() {
+    ticking = false;
+
+    const rect = heading.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
+    const fadeStart = vh;
+    const headingCenter =
+      rect.height < 1 && rect.width < 1 ? fadeStart + 1 : rect.top + rect.height / 2;
+
+    // Left the contact approach zone — clear menu/hash bypass.
+    if (headingCenter >= fadeStart) {
+      contactFadeBypassBioGate = false;
+    }
+
+    const gated = isContactFadeGated();
+
+    if (gated) {
+      wasGated = true;
+      stopUnlockFade();
+      applyOpacity(0);
+      return;
+    }
+
+    // Gate just opened (buttons appeared, rates, or nav) — ease to scroll target.
+    if (wasGated) {
+      wasGated = false;
+      startUnlockFade(displayedOpacity);
+      return;
+    }
+
+    if (unlockRaf) return;
+
+    if (contactFullyVisibleAfterRates || isRatesSectionOpen() || getShouldReduceMotion()) {
+      applyOpacity(1);
+      return;
+    }
+
+    applyOpacity(getScrollTargetOpacity());
+  }
+
+  contactScrollFadeUpdate = update;
+
+  function schedule() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }
+
+  if (isFlowMobileLayout()) {
+    registerMobileScrollHandler(update);
+  } else {
+    const scrollRoot = getOnePageScrollRoot();
+    scrollRoot.addEventListener("scroll", schedule, { passive: true });
+    if (scrollRoot !== window) {
+      window.addEventListener("scroll", schedule, { passive: true });
+    }
+  }
+
+  window.addEventListener("resize", schedule, { passive: true });
+  update();
+}
+
 function setupHeaderPillsScrollFade() {
   const centerTitle = document.querySelector(".page-center-title");
   const menuPill = document.querySelector(".gallery-bar__brand");
@@ -4991,7 +5254,40 @@ function setupRatesReveal() {
     ratesFollowRaf = window.requestAnimationFrame(tick);
   }
 
+  let collapseClearTimer = 0;
+
+  const clearCollapsing = () => {
+    if (collapseClearTimer) {
+      window.clearTimeout(collapseClearTimer);
+      collapseClearTimer = 0;
+    }
+    root.classList.remove("is-collapsing");
+    section?.classList.remove("is-collapsing");
+  };
+
   const setOpen = (open) => {
+    const wasOpen = root.classList.contains("is-open");
+
+    if (!open && wasOpen) {
+      // Hold overflow:visible through the close so the heading glow stays full-bleed.
+      clearCollapsing();
+      root.classList.add("is-collapsing");
+      section?.classList.add("is-collapsing");
+      const onPanelTransitionEnd = (event) => {
+        if (event.target !== panel) return;
+        if (event.propertyName !== "grid-template-rows") return;
+        panel.removeEventListener("transitionend", onPanelTransitionEnd);
+        clearCollapsing();
+      };
+      panel.addEventListener("transitionend", onPanelTransitionEnd);
+      collapseClearTimer = window.setTimeout(() => {
+        panel.removeEventListener("transitionend", onPanelTransitionEnd);
+        clearCollapsing();
+      }, 700);
+    }
+
+    if (open) clearCollapsing();
+
     root.classList.toggle("is-open", open);
     section?.classList.toggle("is-open", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
@@ -5001,6 +5297,8 @@ function setupRatesReveal() {
     if (open) panel.removeAttribute("inert");
     else panel.setAttribute("inert", "");
     setRatesBioCycleActive(open);
+    if (open) contactFullyVisibleAfterRates = true;
+    contactScrollFadeUpdate?.();
   };
 
   const toggleOpen = (event) => {
@@ -5049,11 +5347,17 @@ function getRatesBioCyclePaths(limit = 8) {
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
 const RATES_BIO_CYCLE_MOBILE_QUERY = "(max-width: 1023px)";
 const RATES_BIO_CYCLE_INTERVAL_MS = 2560;
-/** Mobile: start when the bio pic midpoint reaches 2/5 from the top (no delay). */
+/** Mobile: start when the bio pic midpoint reaches viewport center (no delay). */
 const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 0;
 
 /** Menu/hash jumps past the bio — skip expand so smooth scroll isn't stalled. */
 let mobileBioExpandSuppressUntil = 0;
+/** Intentional contact nav (menu/hash) — show contact without waiting for bio expand. */
+let contactFadeBypassBioGate = false;
+/** Once Rates has been opened, keep contact fully opaque for the rest of the session. */
+let contactFullyVisibleAfterRates = false;
+/** Recompute contact scroll opacity when bio expand state changes. */
+let contactScrollFadeUpdate = null;
 
 function suppressMobileBioExpand(durationMs = 1600) {
   mobileBioExpandSuppressUntil = performance.now() + Math.max(0, durationMs);
@@ -5061,6 +5365,24 @@ function suppressMobileBioExpand(durationMs = 1600) {
 
 function isMobileBioExpandSuppressed() {
   return performance.now() < mobileBioExpandSuppressUntil;
+}
+
+function unlockContactFadeForNav() {
+  contactFadeBypassBioGate = true;
+  contactScrollFadeUpdate?.();
+}
+
+function isBioFullyExpandedForContact() {
+  if (!isRatesBioCycleMobile()) return true;
+  if (contactFadeBypassBioGate) return true;
+  // Contact may only fade in after Gallery/Rates buttons have finished appearing.
+  return Boolean(document.querySelector(".home-bio-row.is-bio-actions-ready"));
+}
+
+function isRatesSectionOpen() {
+  return Boolean(
+    document.querySelector(".rates--reveal.is-open, .onepage-section--rates.is-open")
+  );
 }
 
 function isRatesBioCycleDesktop() {
@@ -5122,32 +5444,145 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
-  /** Keep row padding grow + picture margin using the same Δ/2. */
-  const syncBioFrameGrowHalf = () => {
+  const syncBioExpandRevealA11y = () => {
     const row = picture.closest(".home-bio-row");
     if (!row) return;
-    const w = picture.getBoundingClientRect().width;
-    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    const maxH = Math.min(window.innerHeight * 0.7, 36 * rem);
-    const h1 = Math.min((w * 2) / 3, maxH);
-    const h2 = Math.min((w * 5) / 4, maxH);
-    const halfPx = `${Math.max(0, (h2 - h1) / 2)}px`;
-    row.style.setProperty("--bio-grow-half", halfPx);
-    picture.style.setProperty("--bio-grow-half", halfPx);
+    const reveals = row.querySelectorAll(".home-bio-expand-reveal");
+    const open = !isRatesBioCycleMobile() || row.classList.contains("is-bio-copy-open");
+    reveals.forEach((el) => {
+      el.toggleAttribute("inert", !open);
+      el.setAttribute("aria-hidden", open ? "false" : "true");
+    });
   };
 
-  const stop = () => {
+  // Mobile: two independent scroll gates (do not share start/stop).
+  // 1) Frame/slideshow — bio image center at viewport center (1/2)
+  // 2) Copy/CTAs — bio image center at 2/5 from top
+  const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
+  const MOBILE_EXIT_RATIO = 3 / 5;
+  const MOBILE_COPY_ENTER_RATIO = 2 / 5;
+  let frameExpandSettleId = 0;
+  let actionsReadyTimerId = 0;
+  /** Matches CSS: buttons delay (--bio-reveal-dur - 0.5s), then animate --bio-reveal-dur. */
+  const BIO_ACTIONS_READY_MS = 1800;
+
+  const getBioPicMidY = () => {
+    const rect = picture.getBoundingClientRect();
+    return rect.top + rect.height / 2;
+  };
+
+  const markBioFullyExpanded = () => {
+    if (!picture.classList.contains("is-bio-frame-open")) return;
+    if (picture.classList.contains("is-bio-fully-expanded")) return;
+    picture.classList.add("is-bio-fully-expanded");
+    contactScrollFadeUpdate?.();
+  };
+
+  const clearFrameExpandSettle = () => {
+    if (!frameExpandSettleId) return;
+    window.clearTimeout(frameExpandSettleId);
+    frameExpandSettleId = 0;
+  };
+
+  const clearActionsReadyTimer = () => {
+    if (!actionsReadyTimerId) return;
+    window.clearTimeout(actionsReadyTimerId);
+    actionsReadyTimerId = 0;
+  };
+
+  const markBioActionsReady = (row) => {
+    if (!row || row.classList.contains("is-bio-actions-ready")) return;
+    row.classList.add("is-bio-actions-ready");
+    contactScrollFadeUpdate?.();
+  };
+
+  const setBioCopyOpen = (open) => {
+    const row = picture.closest(".home-bio-row");
+    if (!row) return;
+    const next = Boolean(open);
+    const wasOpen = row.classList.contains("is-bio-copy-open");
+    row.classList.toggle("is-bio-copy-open", next);
+
+    if (next && !wasOpen) {
+      clearActionsReadyTimer();
+      row.classList.remove("is-bio-actions-ready");
+      if (getShouldReduceMotion()) {
+        markBioActionsReady(row);
+      } else {
+        actionsReadyTimerId = window.setTimeout(() => {
+          actionsReadyTimerId = 0;
+          if (row.classList.contains("is-bio-copy-open")) markBioActionsReady(row);
+        }, BIO_ACTIONS_READY_MS);
+      }
+    }
+
+    if (!next) {
+      clearActionsReadyTimer();
+      if (row.classList.contains("is-bio-actions-ready")) {
+        row.classList.remove("is-bio-actions-ready");
+        contactScrollFadeUpdate?.();
+      }
+    }
+
+    syncBioExpandRevealA11y();
+  };
+
+  const setBioFrameOpen = (open) => {
+    const next = Boolean(open);
+    const wasOpen = picture.classList.contains("is-bio-frame-open");
+    picture.classList.toggle("is-bio-frame-open", next);
+    if (!next) {
+      clearFrameExpandSettle();
+      picture.classList.remove("is-cycling");
+      picture.classList.remove("is-bio-fully-expanded");
+      imgA.classList.remove("is-active");
+      imgB.classList.remove("is-active");
+      contactScrollFadeUpdate?.();
+      return;
+    }
+    if (next && !wasOpen) {
+      picture.classList.remove("is-bio-fully-expanded");
+      clearFrameExpandSettle();
+      if (getShouldReduceMotion()) {
+        markBioFullyExpanded();
+      } else {
+        // Fallback if transitionend is skipped (tab background, interrupted layout).
+        frameExpandSettleId = window.setTimeout(() => {
+          frameExpandSettleId = 0;
+          markBioFullyExpanded();
+        }, 1100);
+      }
+    }
+  };
+
+  picture.addEventListener("transitionend", (event) => {
+    if (event.target !== picture) return;
+    if (event.propertyName !== "height") return;
+    clearFrameExpandSettle();
+    if (picture.classList.contains("is-bio-frame-open")) {
+      markBioFullyExpanded();
+    } else {
+      picture.classList.remove("is-bio-fully-expanded");
+      contactScrollFadeUpdate?.();
+    }
+  });
+
+  const stopFrame = () => {
     active = false;
-    playPastBioDown = false;
     bioCentered = false;
     clearMobileStartTimer();
+    clearFrameExpandSettle();
     if (timerId) {
       window.clearInterval(timerId);
       timerId = 0;
     }
-    picture.classList.remove("is-cycling");
-    imgA.classList.remove("is-active");
-    imgB.classList.remove("is-active");
+    setBioFrameOpen(false);
+  };
+
+  const stop = () => {
+    playPastBioDown = false;
+    stopFrame();
+    setBioCopyOpen(false);
   };
 
   const shouldPlay = () => {
@@ -5159,29 +5594,31 @@ function setupRatesBioCycle() {
 
   const start = () => {
     if (!shouldPlay()) {
-      stop();
+      stopFrame();
       return;
     }
     if (active) return;
-    // Menu jumps: don't start expand mid-scroll.
     if (isRatesBioCycleMobile() && isMobileBioExpandSuppressed()) return;
+    // Frame may only open at/above the center line (or past the bio).
+    if (isRatesBioCycleMobile() && !playPastBioDown) {
+      const midY = getBioPicMidY();
+      if (midY >= 0 && midY > window.innerHeight * MOBILE_FRAME_ENTER_RATIO) return;
+    }
     active = true;
     showingA = true;
-    // Resume from the last shown slide (index stays put across stop/start).
     const resumeIndex = ((index % paths.length) + paths.length) % paths.length;
     index = resumeIndex;
     setLayerSrc(imgA, paths[resumeIndex]);
     imgA.classList.add("is-active");
     imgB.classList.remove("is-active");
-    // CSS height + translateY center open (no scroll pinning).
-    if (isRatesBioCycleMobile()) syncBioFrameGrowHalf();
+    setBioFrameOpen(true);
     picture.classList.add("is-cycling");
 
     if (getShouldReduceMotion() || paths.length < 2) return;
 
     timerId = window.setInterval(() => {
       if (!active || !shouldPlay()) {
-        stop();
+        stopFrame();
         return;
       }
       showIndex(index + 1);
@@ -5190,7 +5627,8 @@ function setupRatesBioCycle() {
 
   const syncPlayback = () => {
     if (!shouldPlay()) {
-      stop();
+      // Never tear down copy here — only the frame/slideshow.
+      stopFrame();
       return;
     }
     clearMobileStartTimer();
@@ -5221,6 +5659,7 @@ function setupRatesBioCycle() {
     if (!isRatesBioCycleMobile()) {
       bioCentered = false;
       playPastBioDown = false;
+      stop();
     }
     if (!isRatesBioCycleDesktop()) ratesOpen = Boolean(
       document.querySelector(".rates--reveal.is-open, .onepage-section--rates.is-open")
@@ -5242,65 +5681,72 @@ function setupRatesBioCycle() {
     }
   }
 
-  // Mobile: open when midpoint hits top 2/5; close only when midpoint reaches
-  // the bottom 2/5 of the screen (from 3/5 down).
-  const MOBILE_ENTER_RATIO = 2 / 5;
-  const MOBILE_EXIT_RATIO = 3 / 5;
   let mobileTriggerRaf = 0;
   const updateMobileBioTrigger = () => {
     mobileTriggerRaf = 0;
     if (!isRatesBioCycleMobile()) {
       bioCentered = false;
       playPastBioDown = false;
-      return;
-    }
-
-    const rect = picture.getBoundingClientRect();
-    const midY = rect.top + rect.height / 2;
-    const vh = window.innerHeight;
-    const enterLine = vh * MOBILE_ENTER_RATIO;
-    const exitLine = vh * MOBILE_EXIT_RATIO;
-    const isOpen = active || picture.classList.contains("is-cycling");
-
-    // Menu/hash jump past bio: never start expand mid-scroll.
-    if (isMobileBioExpandSuppressed()) {
-      if (midY < 0 && (isOpen || bioCentered)) {
-        bioCentered = false;
-        playPastBioDown = true;
-        syncPlayback();
-      }
-      return;
-    }
-
-    if (midY < 0) {
-      if (isOpen || bioCentered) {
-        bioCentered = false;
-        playPastBioDown = true;
-        syncPlayback();
-      }
-      return;
-    }
-
-    if (!isOpen && !bioCentered) {
-      if (midY <= enterLine) {
-        bioCentered = true;
-        playPastBioDown = false;
-        syncPlayback();
-      }
-      return;
-    }
-
-    // Close only once the slideshow center is in the bottom 2/5 of the screen.
-    if (midY >= exitLine) {
-      bioCentered = false;
-      playPastBioDown = false;
       stop();
       return;
     }
 
-    bioCentered = true;
-    playPastBioDown = false;
-    syncPlayback();
+    const midY = getBioPicMidY();
+    const vh = window.innerHeight;
+    const copyEnterLine = vh * MOBILE_COPY_ENTER_RATIO;
+    const frameEnterLine = vh * MOBILE_FRAME_ENTER_RATIO;
+    const exitLine = vh * MOBILE_EXIT_RATIO;
+    const row = picture.closest(".home-bio-row");
+    const copyOpen = Boolean(row?.classList.contains("is-bio-copy-open"));
+    const frameOpen = picture.classList.contains("is-bio-frame-open");
+
+    if (isMobileBioExpandSuppressed()) {
+      if (midY < 0 && (frameOpen || copyOpen || bioCentered)) {
+        playPastBioDown = true;
+        bioCentered = false;
+        setBioCopyOpen(true);
+        syncPlayback();
+      }
+      return;
+    }
+
+    // Exit: image center in the bottom 2/5 — collapse both.
+    if (midY >= exitLine) {
+      playPastBioDown = false;
+      bioCentered = false;
+      stop();
+      return;
+    }
+
+    // Scrolled past bio downward — keep slideshow, keep copy.
+    if (midY < 0) {
+      playPastBioDown = true;
+      bioCentered = false;
+      setBioCopyOpen(true);
+      if (!frameOpen) syncPlayback();
+      return;
+    }
+
+    // --- Gate A: frame/slideshow at screen center (independent) ---
+    if (midY <= frameEnterLine) {
+      const tryOpenFrame = () => {
+        if (!isRatesBioCycleMobile()) return;
+        if (isMobileBioExpandSuppressed()) return;
+        const y = getBioPicMidY();
+        if (y < 0) return;
+        if (y > window.innerHeight * MOBILE_FRAME_ENTER_RATIO) return;
+        bioCentered = true;
+        playPastBioDown = false;
+        if (!picture.classList.contains("is-bio-frame-open")) syncPlayback();
+      };
+
+      if (!frameOpen) tryOpenFrame();
+    }
+
+    // --- Gate B: copy/CTAs at 2/5 from top (independent) ---
+    if (midY <= copyEnterLine) {
+      setBioCopyOpen(true);
+    }
   };
   const scheduleMobileBioTrigger = () => {
     if (mobileTriggerRaf) return;
@@ -5308,11 +5754,10 @@ function setupRatesBioCycle() {
   };
   window.addEventListener("scroll", scheduleMobileBioTrigger, { passive: true });
   window.addEventListener("resize", () => {
-    if (picture.classList.contains("is-cycling") && isRatesBioCycleMobile()) {
-      syncBioFrameGrowHalf();
-    }
+    syncBioExpandRevealA11y();
     scheduleMobileBioTrigger();
   });
+  syncBioExpandRevealA11y();
   scheduleMobileBioTrigger();
 
   return {
@@ -5351,6 +5796,7 @@ function initSharedPageUi() {
   setupMenuAndSections();
   setupContactBackgroundCrossfade();
   setupContactForm();
+  setupContactScrollFade();
   setupHeaderPillsScrollFade();
   setupRatesReveal();
   setupHomeBioImageMediaSwap();
@@ -5368,6 +5814,10 @@ async function initFullGalleryPage() {
   initSharedPageUi();
   ensureGalleryPreviewRewarmListener();
   maybeRewarmGalleryFolderPreviews();
+  // After unlock so folder scroll/expand isn't fighting the boot gate.
+  requestAnimationFrame(() => {
+    focusGalleryFolderFromHash();
+  });
 }
 
 function scheduleFullGalleryInit() {
