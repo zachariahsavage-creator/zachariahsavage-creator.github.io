@@ -245,9 +245,9 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=lightbox-gallery-align" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=lightbox-pill-fixed" />
     <script defer src="assets/js/gallery-menu.js"></script>
-    <script defer src="assets/js/onepage.js?v=lightbox-gallery-align"></script>
+    <script defer src="assets/js/onepage.js?v=lightbox-pill-fixed"></script>
   </head>
   <body class="page-home">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
@@ -570,12 +570,6 @@
       data-state="closed"
     >
       <div class="lightbox__backdrop"></div>
-      <a
-        class="lightbox__gallery-link"
-        href="full-gallery.html"
-        hidden
-        aria-label="View show in gallery"
-      ></a>
       <button type="button" class="lightbox__close" aria-label="Close photo">
         <svg class="lightbox__close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path
@@ -587,12 +581,20 @@
           />
         </svg>
       </button>
-      <div class="lightbox__content">
-        <div class="lightbox__media">
-          <img class="lightbox__image" alt="" />
-          <video class="lightbox__video" muted playsinline loop></video>
+      <div class="lightbox__stage">
+        <div class="lightbox__content">
+          <div class="lightbox__media">
+            <img class="lightbox__image" alt="" />
+            <video class="lightbox__video" muted playsinline loop></video>
+          </div>
         </div>
       </div>
+      <a
+        class="lightbox__gallery-link"
+        href="full-gallery.html"
+        hidden
+        aria-label="View show in gallery"
+      ></a>
     </div>
 
   </body>

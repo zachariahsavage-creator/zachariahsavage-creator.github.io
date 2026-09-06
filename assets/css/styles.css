@@ -5387,6 +5387,8 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   touch-action: manipulation;
   /* Anywhere off the photo dismisses, so say so. */
   cursor: zoom-out;
+  --lightbox-gallery-link-bottom: max(1.1rem, env(safe-area-inset-bottom, 0px));
+  --lightbox-gallery-link-space: calc(3rem + 1.35rem + env(safe-area-inset-bottom, 0px));
 }
 
 .lightbox[data-state="open"] {
@@ -5436,12 +5438,24 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
-/* Match expanded-folder “Show Less” pill; same top/height as × for alignment. */
+/* Photo stage stays centered; gallery pill is pinned to one viewport spot. */
+.lightbox__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: min(95vw, 1200px);
+  max-height: min(96vh, 100%);
+  min-width: 0;
+}
+
+/* Same viewport anchor for every flow photo (bottom-center). */
 .lightbox__gallery-link {
   position: absolute;
-  top: max(0.75rem, env(safe-area-inset-top, 0px));
-  left: max(0.75rem, env(safe-area-inset-left, 0px));
-  right: auto;
+  left: 50%;
+  bottom: var(--lightbox-gallery-link-bottom);
   z-index: 20;
   box-sizing: border-box;
   display: inline-flex;
@@ -5449,7 +5463,7 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   justify-content: center;
   gap: 0.45rem;
   width: auto;
-  max-width: min(20rem, calc(100vw - 5.5rem));
+  max-width: min(20rem, calc(100vw - 2rem));
   height: 3rem;
   min-height: 3rem;
   margin: 0;
@@ -5473,6 +5487,7 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
+  transform: translateX(-50%);
   transition:
     background 0.2s ease,
     color 0.2s ease;
@@ -5480,6 +5495,15 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
 
 .lightbox__gallery-link[hidden] {
   display: none !important;
+}
+
+/* Keep the photo clear of the fixed pill. */
+.lightbox:has(.lightbox__gallery-link:not([hidden])) {
+  padding-bottom: var(--lightbox-gallery-link-space);
+}
+
+.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__stage {
+  max-height: 100%;
 }
 
 .lightbox__close-icon {
@@ -5514,7 +5538,7 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
 
 @media (max-width: 420px) {
   .lightbox__gallery-link {
-    max-width: calc(100vw - 5.25rem);
+    max-width: calc(100vw - 2rem);
     padding: 0 0.85rem;
     font-size: 0.78rem;
   }
@@ -5539,7 +5563,7 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   position: relative;
   z-index: 1;
   width: auto;
-  max-width: min(95vw, 1200px);
+  max-width: 100%;
   max-height: 90vh;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -5550,6 +5574,11 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   align-items: center;
   justify-content: center;
   touch-action: manipulation;
+  min-width: 0;
+}
+
+.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__content {
+  max-height: calc(90vh - var(--lightbox-gallery-link-space, 4.5rem));
 }
 
 .lightbox__media {
@@ -5577,6 +5606,11 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   cursor: pointer;
 }
 
+.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
+.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
+  max-height: calc(90vh - var(--lightbox-gallery-link-space, 4.5rem));
+}
+
 .lightbox__image[data-active="true"],
 .lightbox__video[data-active="true"] {
   display: block;
@@ -5589,6 +5623,18 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
       env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   }
 
+  .lightbox__stage {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(96dvh, 100%);
+    padding-inline: 0.65rem;
+    box-sizing: border-box;
+  }
+
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__stage {
+    max-height: 100%;
+  }
+
   .lightbox__content {
     width: 100%;
     max-width: 100%;
@@ -5596,9 +5642,18 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
     border-radius: 0.65rem;
   }
 
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__content {
+    max-height: min(calc(92dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
+  }
+
   .lightbox__image,
   .lightbox__video {
     max-height: min(82dvh, 100%);
+  }
+
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
+    max-height: min(calc(82dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
   }
 }
 
@@ -5607,5 +5662,10 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   .lightbox__image,
   .lightbox__video {
     max-height: min(90dvh, 100%);
+  }
+
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
+    max-height: min(calc(90dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
   }
 }

@@ -5455,14 +5455,14 @@ function setupRatesBioCycle() {
     });
   };
 
-  // Mobile: two independent scroll gates (do not share start/stop).
-  // 1) Frame/slideshow — bio image center at viewport center (1/2)
-  // 2) Copy/CTAs — bio image center at 2/5 from top
+  // Mobile: frame opens when bio image center hits viewport center.
+  // Copy/CTAs stagger open ~0.5s after the frame expand starts (not a second scroll gate).
   const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
   const MOBILE_EXIT_RATIO = 3 / 5;
-  const MOBILE_COPY_ENTER_RATIO = 2 / 5;
+  const BIO_COPY_STAGGER_MS = 500;
   let frameExpandSettleId = 0;
   let actionsReadyTimerId = 0;
+  let copyStaggerTimerId = 0;
   /** Matches CSS: buttons delay (--bio-reveal-dur - 0.5s), then animate --bio-reveal-dur. */
   const BIO_ACTIONS_READY_MS = 1800;
 
@@ -5488,6 +5488,12 @@ function setupRatesBioCycle() {
     if (!actionsReadyTimerId) return;
     window.clearTimeout(actionsReadyTimerId);
     actionsReadyTimerId = 0;
+  };
+
+  const clearCopyStaggerTimer = () => {
+    if (!copyStaggerTimerId) return;
+    window.clearTimeout(copyStaggerTimerId);
+    copyStaggerTimerId = 0;
   };
 
   const markBioActionsReady = (row) => {
@@ -5527,12 +5533,30 @@ function setupRatesBioCycle() {
     syncBioExpandRevealA11y();
   };
 
+  const scheduleBioCopyAfterFrame = () => {
+    clearCopyStaggerTimer();
+    if (getShouldReduceMotion()) {
+      setBioCopyOpen(true);
+      return;
+    }
+    copyStaggerTimerId = window.setTimeout(() => {
+      copyStaggerTimerId = 0;
+      if (
+        picture.classList.contains("is-bio-frame-open") ||
+        playPastBioDown
+      ) {
+        setBioCopyOpen(true);
+      }
+    }, BIO_COPY_STAGGER_MS);
+  };
+
   const setBioFrameOpen = (open) => {
     const next = Boolean(open);
     const wasOpen = picture.classList.contains("is-bio-frame-open");
     picture.classList.toggle("is-bio-frame-open", next);
     if (!next) {
       clearFrameExpandSettle();
+      clearCopyStaggerTimer();
       picture.classList.remove("is-cycling");
       picture.classList.remove("is-bio-fully-expanded");
       imgA.classList.remove("is-active");
@@ -5543,6 +5567,7 @@ function setupRatesBioCycle() {
     if (next && !wasOpen) {
       picture.classList.remove("is-bio-fully-expanded");
       clearFrameExpandSettle();
+      scheduleBioCopyAfterFrame();
       if (getShouldReduceMotion()) {
         markBioFullyExpanded();
       } else {
@@ -5581,6 +5606,7 @@ function setupRatesBioCycle() {
 
   const stop = () => {
     playPastBioDown = false;
+    clearCopyStaggerTimer();
     stopFrame();
     setBioCopyOpen(false);
   };
@@ -5693,7 +5719,6 @@ function setupRatesBioCycle() {
 
     const midY = getBioPicMidY();
     const vh = window.innerHeight;
-    const copyEnterLine = vh * MOBILE_COPY_ENTER_RATIO;
     const frameEnterLine = vh * MOBILE_FRAME_ENTER_RATIO;
     const exitLine = vh * MOBILE_EXIT_RATIO;
     const row = picture.closest(".home-bio-row");
@@ -5704,6 +5729,7 @@ function setupRatesBioCycle() {
       if (midY < 0 && (frameOpen || copyOpen || bioCentered)) {
         playPastBioDown = true;
         bioCentered = false;
+        clearCopyStaggerTimer();
         setBioCopyOpen(true);
         syncPlayback();
       }
@@ -5722,12 +5748,13 @@ function setupRatesBioCycle() {
     if (midY < 0) {
       playPastBioDown = true;
       bioCentered = false;
+      clearCopyStaggerTimer();
       setBioCopyOpen(true);
       if (!frameOpen) syncPlayback();
       return;
     }
 
-    // --- Gate A: frame/slideshow at screen center (independent) ---
+    // Frame/slideshow at screen center; copy opens on a stagger after expand.
     if (midY <= frameEnterLine) {
       const tryOpenFrame = () => {
         if (!isRatesBioCycleMobile()) return;
@@ -5741,11 +5768,6 @@ function setupRatesBioCycle() {
       };
 
       if (!frameOpen) tryOpenFrame();
-    }
-
-    // --- Gate B: copy/CTAs at 2/5 from top (independent) ---
-    if (midY <= copyEnterLine) {
-      setBioCopyOpen(true);
     }
   };
   const scheduleMobileBioTrigger = () => {
