@@ -224,8 +224,8 @@ const FULL_GALLERY_ARLO_PARKS_HISTORY = {
   order: -5,
   title: "Arlo Parks @ History",
   preserveSourceOrder: true,
-  /* Rates / bio slideshow: use shot 7 instead of the folder cover. */
-  ratesBioCycleSource: "arlo-parks-history-07.webp",
+  /* Rates / bio slideshow: use shot 21 instead of the folder cover. */
+  ratesBioCycleSource: "arlo-parks-history-21.webp",
   /* Home flow: specific picks rather than the first N covers. */
   homeFlowSources: [
     "arlo-parks-history-05.webp",
@@ -561,7 +561,7 @@ const HOME_FLOW_SHUFFLE_SEED = 20260810;
 /** First shots mobile (and desktop) users see when the flow opens. */
 const HOME_FLOW_OPENING_PATHS = [
   "daniela-andrade-mod-club-01.webp",
-  "superstar-crush-dinas-tavern-01.webp",
+  "arlo-parks-history-05.webp",
   "taplin-the-baby-g-01.webp",
   "listening-room-longboat-hall-01.webp",
 ];
@@ -1472,25 +1472,15 @@ async function pinGalleryFolderPreviewImages() {
 const FLOW_PRIORITY_PRELOAD_PATHS = buildFlowPriorityPreloadPaths();
 
 const HOME_BIO_IMAGE_PATH = "zach-savage-portrait.webp";
+/** Kept for legacy asset maps; bio uses the desktop portrait on all breakpoints. */
 const HOME_BIO_IMAGE_MOBILE_PATH = "zach-savage-portrait-mobile.webp";
-/** Must stay in step with the <picture> source in index.html. */
-const HOME_BIO_MOBILE_QUERY = "(max-width: 1023px)";
 
 function getHomeBioImagePath() {
-  const narrow = window.matchMedia?.(HOME_BIO_MOBILE_QUERY)?.matches ?? false;
-  return narrow ? HOME_BIO_IMAGE_MOBILE_PATH : HOME_BIO_IMAGE_PATH;
+  return HOME_BIO_IMAGE_PATH;
 }
 
 function setupHomeBioImageMediaSwap() {
-  const mq = window.matchMedia?.(HOME_BIO_MOBILE_QUERY);
-  if (!mq) return;
-  const sync = () => {
-    document.querySelectorAll(".home-bio-image").forEach((img) => {
-      assignPinnedImageAttributes(img, getHomeBioImagePath());
-    });
-  };
-  if (typeof mq.addEventListener === "function") mq.addEventListener("change", sync);
-  else mq.addListener?.(sync);
+  // No mobile/desktop swap — both use the desktop portrait.
 }
 
 /** Blob + in-memory Image() refs so WebKit cannot discard decoded hero tiles. */
