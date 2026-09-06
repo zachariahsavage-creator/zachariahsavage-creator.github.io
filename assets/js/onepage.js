@@ -219,6 +219,53 @@ function getNumberedShowGroup(src) {
   return numberedShowGroupByPath.get(filename) || null;
 }
 
+const FULL_GALLERY_ARLO_PARKS_HISTORY = {
+  id: "arlo-parks-history",
+  order: -5,
+  title: "Arlo Parks @ History",
+  preserveSourceOrder: true,
+  sources: [
+    "arlo-parks-history-01.webp",
+    "arlo-parks-history-02.webp",
+    "arlo-parks-history-03.webp",
+    "arlo-parks-history-04.webp",
+    "arlo-parks-history-05.webp",
+    "arlo-parks-history-06.webp",
+    "arlo-parks-history-07.webp",
+    "arlo-parks-history-08.webp",
+    "arlo-parks-history-09.webp",
+    "arlo-parks-history-10.webp",
+    "arlo-parks-history-11.webp",
+    "arlo-parks-history-12.webp",
+    "arlo-parks-history-13.webp",
+    "arlo-parks-history-14.webp",
+    "arlo-parks-history-15.webp",
+    "arlo-parks-history-16.webp",
+    "arlo-parks-history-17.webp",
+    "arlo-parks-history-18.webp",
+    "arlo-parks-history-19.webp",
+    "arlo-parks-history-20.webp",
+    "arlo-parks-history-21.webp",
+    "arlo-parks-history-22.webp",
+    "arlo-parks-history-23.webp",
+    "arlo-parks-history-24.webp",
+    "arlo-parks-history-25.webp",
+    "arlo-parks-history-26.webp",
+    "arlo-parks-history-27.webp",
+    "arlo-parks-history-28.webp",
+    "arlo-parks-history-29.webp",
+    "arlo-parks-history-30.webp",
+    "arlo-parks-history-31.webp",
+    "arlo-parks-history-32.webp",
+    "arlo-parks-history-33.webp",
+    "arlo-parks-history-34.webp",
+    "arlo-parks-history-35.webp",
+    "arlo-parks-history-36.webp",
+    "arlo-parks-history-37.webp",
+    "arlo-parks-history-38.webp",
+  ],
+};
+
 const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
   id: "daniela-andrade-mod-club",
   order: -4,
@@ -483,6 +530,7 @@ const FULL_GALLERY_MICO_HARD_LUCK = {
 };
 
 const FULL_GALLERY_PINNED_SHOWS = [
+  FULL_GALLERY_ARLO_PARKS_HISTORY,
   FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB,
   FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME,
   FULL_GALLERY_LISTENING_ROOM,
@@ -662,6 +710,7 @@ FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
 });
 
 const fullGalleryNumberedItems = [
+  ...FULL_GALLERY_ARLO_PARKS_HISTORY.sources,
   ...FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.sources,
   ...FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
@@ -707,6 +756,44 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "angelique-the-ivy-03.webp": 1.5,
   "angelique-the-ivy-04.webp": 1.5,
   "angelique-the-ivy-05.webp": 1.5,
+  "arlo-parks-history-01.webp": 1.333,
+  "arlo-parks-history-02.webp": 1.501,
+  "arlo-parks-history-03.webp": 1.333,
+  "arlo-parks-history-04.webp": 0.75,
+  "arlo-parks-history-05.webp": 1.333,
+  "arlo-parks-history-06.webp": 0.75,
+  "arlo-parks-history-07.webp": 0.75,
+  "arlo-parks-history-08.webp": 1.333,
+  "arlo-parks-history-09.webp": 1.333,
+  "arlo-parks-history-10.webp": 0.75,
+  "arlo-parks-history-11.webp": 1.333,
+  "arlo-parks-history-12.webp": 0.75,
+  "arlo-parks-history-13.webp": 1.333,
+  "arlo-parks-history-14.webp": 1.333,
+  "arlo-parks-history-15.webp": 1.333,
+  "arlo-parks-history-16.webp": 0.75,
+  "arlo-parks-history-17.webp": 1.333,
+  "arlo-parks-history-18.webp": 1.333,
+  "arlo-parks-history-19.webp": 0.75,
+  "arlo-parks-history-20.webp": 1.333,
+  "arlo-parks-history-21.webp": 0.75,
+  "arlo-parks-history-22.webp": 0.75,
+  "arlo-parks-history-23.webp": 0.75,
+  "arlo-parks-history-24.webp": 0.75,
+  "arlo-parks-history-25.webp": 1.333,
+  "arlo-parks-history-26.webp": 1.333,
+  "arlo-parks-history-27.webp": 0.75,
+  "arlo-parks-history-28.webp": 0.75,
+  "arlo-parks-history-29.webp": 1.333,
+  "arlo-parks-history-30.webp": 0.75,
+  "arlo-parks-history-31.webp": 1.333,
+  "arlo-parks-history-32.webp": 1.333,
+  "arlo-parks-history-33.webp": 1.333,
+  "arlo-parks-history-34.webp": 1.333,
+  "arlo-parks-history-35.webp": 1.333,
+  "arlo-parks-history-36.webp": 0.75,
+  "arlo-parks-history-37.webp": 0.75,
+  "arlo-parks-history-38.webp": 0.75,
   "boston-church-scandal-the-drake-01.webp": 0.667,
   "boston-church-scandal-the-drake-02.webp": 0.667,
   "boston-church-scandal-the-drake-03.webp": 0.667,
@@ -1025,6 +1112,7 @@ const mediaItems = dedupeFlowItems(buildHomeFlowItemsFromPinnedShows()).filter(i
 let activeGalleryItems = mediaItems;
 const fullGalleryExpandedGroups = new Set();
 const fullGallerySectionTitles = {
+  [FULL_GALLERY_ARLO_PARKS_HISTORY.id]: FULL_GALLERY_ARLO_PARKS_HISTORY.title,
   [FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.id]: FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.title,
   [FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.id]: FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
@@ -1412,12 +1500,13 @@ function normalizeAssetPath(path) {
 
 const IMAGE_BASE_PATH = "assets/images/";
 /** Bump when replacing image bytes under the same filename (pinImagePath uses force-cache). */
-const ASSET_CACHE_VERSION = "meteor-swap-2";
+const ASSET_CACHE_VERSION = "arlo-parks-1";
 
 /** Show folders under `assets/images/shows/`; every photo filename is prefixed with its slug.
  *  Longest slug first so an added slug that extends another still matches the right folder. */
 const SHOW_IMAGE_FOLDERS = [
   "angelique-the-ivy",
+  "arlo-parks-history",
   "boston-church-scandal-the-drake",
   "concrete-breaks-standard-time",
   "daniela-andrade-mod-club",
