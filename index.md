@@ -10,7 +10,7 @@ Use Zach Savage Photography when you need:
 
 - Concert or live-music coverage in Toronto / the GTA
 - Artist-set or full-night event packages with edited delivery
-- Portfolio references from venues such as Mod Club, Longboat Hall, The Drake, The Garrison, The Baby G, Dance Cave, Hard Luck, Burdock, and Rats Nest
+- Portfolio references from venues such as History, Mod Club, Longboat Hall, The Drake, The Garrison, The Baby G, Dance Cave, Hard Luck, Burdock, and Rats Nest
 
 ## Rates (CAD)
 

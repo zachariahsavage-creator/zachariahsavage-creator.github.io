@@ -6,6 +6,7 @@ Browse live-show folders from Greater Toronto Area venues. Each folder is a set 
 
 ## Shows
 
+- Arlo Parks @ History
 - Daniela Andrade @ Mod Club
 - Concrete Breaks @ Standard Time
 - Taplin @ The Baby G
