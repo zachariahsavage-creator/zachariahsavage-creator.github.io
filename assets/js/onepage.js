@@ -224,6 +224,14 @@ const FULL_GALLERY_ARLO_PARKS_HISTORY = {
   order: -5,
   title: "Arlo Parks @ History",
   preserveSourceOrder: true,
+  /* Rates / bio slideshow: use shot 7 instead of the folder cover. */
+  ratesBioCycleSource: "arlo-parks-history-07.webp",
+  /* Home flow: specific picks rather than the first N covers. */
+  homeFlowSources: [
+    "arlo-parks-history-05.webp",
+    "arlo-parks-history-07.webp",
+    "arlo-parks-history-21.webp",
+  ],
   sources: [
     "arlo-parks-history-01.webp",
     "arlo-parks-history-02.webp",
@@ -5020,10 +5028,16 @@ function setupRatesReveal() {
 }
 
 /** Lead image from each of the top N gallery folders (Rates / bio slideshow). */
-function getRatesBioCyclePaths(limit = 5) {
-  const folderLeads = getFullGalleryFolderDefinitions()
+function getRatesBioCyclePaths(limit = 8) {
+  const folderLeads = [...FULL_GALLERY_PINNED_SHOWS]
+    .sort((a, b) => a.order - b.order)
     .slice(0, limit)
-    .map((folder) => folder.sources?.[0])
+    .map((show) => {
+      if (typeof show.ratesBioCycleSource === "string" && show.ratesBioCycleSource) {
+        return show.ratesBioCycleSource;
+      }
+      return show.sources?.[0];
+    })
     .filter((path) => typeof path === "string" && path.length > 0);
   return dedupeFlowItems(folderLeads);
 }
