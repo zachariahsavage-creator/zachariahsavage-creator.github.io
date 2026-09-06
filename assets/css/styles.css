@@ -1405,23 +1405,46 @@ body.page-full-gallery .onepage-section__heading {
 }
 
 @media (max-width: 1023px) {
-  .home-bio-picture .home-bio-image,
-  .home-bio-row .home-bio-image {
-    aspect-ratio: 4 / 5;
-    height: auto;
+  .home-bio-row {
+    overflow-anchor: none;
+  }
+
+  body.page-home:has(.home-bio-picture.is-cycling) {
+    overflow-anchor: none;
+  }
+
+  .home-bio-picture {
+    aspect-ratio: 3 / 2;
     max-height: min(70vh, 36rem);
+    overflow: hidden;
+    overflow-anchor: none;
+    transition: aspect-ratio 0.45s ease;
+  }
+
+  .home-bio-picture__default {
+    position: absolute;
+    inset: 0;
+  }
+
+  .home-bio-picture .home-bio-image,
+  .home-bio-row .home-bio-image,
+  .home-bio-cycle__img {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    /* Keep the subject centered while the frame grows from the middle. */
+    object-position: center center;
   }
 
   .home-bio-picture.is-cycling {
-    /* Keep the cycle frame locked to the portrait box while slides crossfade. */
     aspect-ratio: 4 / 5;
-    max-height: min(70vh, 36rem);
   }
+}
 
-  .home-bio-picture.is-cycling .home-bio-picture__default,
-  .home-bio-picture.is-cycling .home-bio-image {
-    height: 100%;
-    max-height: none;
+@media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
+  .home-bio-picture {
+    transition: none;
   }
 }
 

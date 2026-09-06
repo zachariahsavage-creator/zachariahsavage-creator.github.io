@@ -5035,7 +5035,10 @@ function getRatesBioCyclePaths(limit = 8) {
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
 const RATES_BIO_CYCLE_MOBILE_QUERY = "(max-width: 1023px)";
 const RATES_BIO_CYCLE_INTERVAL_MS = 2560;
-const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 1500;
+/** Mobile: start as soon as the bio pic enters the top third (no delay). */
+const RATES_BIO_CYCLE_MOBILE_START_DELAY_MS = 0;
+/** Must stay in step with the mobile bio frame aspect-ratio transition. */
+const RATES_BIO_FRAME_EXPAND_MS = 450;
 
 function isRatesBioCycleDesktop() {
   return window.matchMedia?.(RATES_BIO_CYCLE_DESKTOP_QUERY)?.matches ?? false;
@@ -5047,7 +5050,6 @@ function isRatesBioCycleMobile() {
 
 function setupRatesBioCycle() {
   const picture = document.querySelector(".home-bio-picture");
-  const bioRow = document.querySelector(".home-bio-row");
   const cycle = picture?.querySelector(".home-bio-cycle");
   const imgA = cycle?.querySelector(".home-bio-cycle__img--a");
   const imgB = cycle?.querySelector(".home-bio-cycle__img--b");
@@ -5066,6 +5068,9 @@ function setupRatesBioCycle() {
   // Mobile: once the slideshow has started, keep playing after the user scrolls
   // *down* past the bio. Only reset to the portrait when they scroll *up* past it.
   let playPastBioDown = false;
+  let expandPinRaf = 0;
+  let userScrollQuietUntil = 0;
+  let userScrollListenersBound = false;
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -5097,6 +5102,53 @@ function setupRatesBioCycle() {
     mobileStartTimerId = 0;
   };
 
+  const markUserScroll = () => {
+    userScrollQuietUntil = performance.now() + 120;
+  };
+
+  const bindUserScrollListeners = () => {
+    if (userScrollListenersBound) return;
+    userScrollListenersBound = true;
+    const opts = { passive: true, capture: true };
+    window.addEventListener("wheel", markUserScroll, opts);
+    window.addEventListener("touchmove", markUserScroll, opts);
+    window.addEventListener("pointermove", markUserScroll, opts);
+    window.addEventListener("keydown", markUserScroll, opts);
+  };
+
+  /**
+   * Keep the frame's vertical center fixed while aspect-ratio tweens so growth
+   * reads as expanding both up and down. Yields to real user scroll gestures.
+   */
+  const pinPictureCenterDuringFrameTween = () => {
+    if (!isRatesBioCycleMobile() || getShouldReduceMotion()) return;
+    bindUserScrollListeners();
+    if (expandPinRaf) {
+      window.cancelAnimationFrame(expandPinRaf);
+      expandPinRaf = 0;
+    }
+    const first = picture.getBoundingClientRect();
+    let pinCenterY = first.top + first.height / 2;
+    const t0 = performance.now();
+    const step = (now) => {
+      const rect = picture.getBoundingClientRect();
+      const centerY = rect.top + rect.height / 2;
+      if (now < userScrollQuietUntil) {
+        // User is scrolling — follow them; don't correct.
+        pinCenterY = centerY;
+      } else {
+        const drift = centerY - pinCenterY;
+        if (Math.abs(drift) > 0.5) window.scrollBy(0, drift);
+      }
+      if (now - t0 < RATES_BIO_FRAME_EXPAND_MS + 32) {
+        expandPinRaf = window.requestAnimationFrame(step);
+      } else {
+        expandPinRaf = 0;
+      }
+    };
+    expandPinRaf = window.requestAnimationFrame(step);
+  };
+
   const stop = () => {
     active = false;
     playPastBioDown = false;
@@ -5105,7 +5157,9 @@ function setupRatesBioCycle() {
       window.clearInterval(timerId);
       timerId = 0;
     }
+    const wasCycling = picture.classList.contains("is-cycling");
     picture.classList.remove("is-cycling");
+    if (wasCycling) pinPictureCenterDuringFrameTween();
     imgA.classList.remove("is-active");
     imgB.classList.remove("is-active");
   };
@@ -5131,7 +5185,9 @@ function setupRatesBioCycle() {
     setLayerSrc(imgA, paths[resumeIndex]);
     imgA.classList.add("is-active");
     imgB.classList.remove("is-active");
+    const wasCycling = picture.classList.contains("is-cycling");
     picture.classList.add("is-cycling");
+    if (!wasCycling) pinPictureCenterDuringFrameTween();
 
     if (getShouldReduceMotion() || paths.length < 2) return;
 
@@ -5149,14 +5205,18 @@ function setupRatesBioCycle() {
       stop();
       return;
     }
-    // Desktop rates open: start immediately. Mobile scroll trigger: delayed start
-    // only for the first enter into the bio band (not when continuing past it).
+    // Desktop rates open + mobile top-half trigger: start immediately.
+    clearMobileStartTimer();
     if (isRatesBioCycleDesktop()) {
-      clearMobileStartTimer();
       start();
       return;
     }
-    if (active || mobileStartTimerId) return;
+    if (active) return;
+    if (RATES_BIO_CYCLE_MOBILE_START_DELAY_MS <= 0) {
+      start();
+      return;
+    }
+    if (mobileStartTimerId) return;
     if (playPastBioDown && !bioCentered) {
       start();
       return;
@@ -5194,16 +5254,10 @@ function setupRatesBioCycle() {
     }
   }
 
-  // Mobile: only start once "Who Am I?" reaches the lower-mid viewport
-  // (portrait still in view, copy/CTAs visible — not when the photo alone scrolls in).
-  const mobileTrigger =
-    bioRow?.querySelector(".home-bio-heading") ||
-    bioRow?.querySelector(".home-bio-copy") ||
-    bioRow ||
-    picture;
+  // Mobile: expand + play as soon as the bio pic intersects the top third of the screen.
+  const mobileTrigger = picture;
   if (mobileTrigger && typeof IntersectionObserver === "function") {
-    // Matches rootMargin below: top inset 48%.
-    const MOBILE_BAND_TOP_RATIO = 0.48;
+    const MOBILE_TOP_THIRD_RATIO = 1 / 3;
     const centerObserver = new IntersectionObserver(
       (entries) => {
         if (!isRatesBioCycleMobile()) {
@@ -5215,28 +5269,28 @@ function setupRatesBioCycle() {
         if (!entry) return;
         if (entry.isIntersecting) {
           bioCentered = true;
-          // Still in / back in the bio band — normal play; don't need the "past" flag.
+          // Still in / back in the top third — normal play; don't need the "past" flag.
           playPastBioDown = false;
           syncPlayback();
           return;
         }
         bioCentered = false;
         const rect = entry.boundingClientRect;
-        const bandTop = window.innerHeight * MOBILE_BAND_TOP_RATIO;
-        // Scrolled down past the bio: keep the slideshow running.
-        if (rect.bottom < bandTop && (active || picture.classList.contains("is-cycling"))) {
+        const bandBottom = window.innerHeight * MOBILE_TOP_THIRD_RATIO;
+        // Scrolled down past the top third: keep the slideshow running.
+        if (rect.bottom <= bandBottom && (active || picture.classList.contains("is-cycling"))) {
           playPastBioDown = true;
           syncPlayback();
           return;
         }
-        // Scrolled up past the bio (or not yet reached): show the portrait again.
+        // Still below the top third, or scrolled up past the bio: show the portrait again.
         playPastBioDown = false;
         stop();
       },
       {
         root: null,
-        // Active when the heading sits roughly mid-lower on screen.
-        rootMargin: "-48% 0px -18% 0px",
+        // Only the top third of the viewport counts as the intersection root.
+        rootMargin: "0px 0px -66.666% 0px",
         threshold: 0,
       }
     );
