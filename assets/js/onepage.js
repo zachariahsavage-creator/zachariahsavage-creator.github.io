@@ -1400,7 +1400,7 @@ function updateLightboxGalleryLink(item) {
   link.setAttribute("aria-label", label);
 }
 
-/** Deep-link: #folder-{id} scrolls to (and expands) that gallery section. */
+/** Deep-link: #folder-{id} scrolls to and expands that gallery section. */
 function focusGalleryFolderFromHash() {
   if (!document.body.classList.contains("page-full-gallery")) return false;
   const raw = (window.location.hash || "").trim();
@@ -1419,7 +1419,10 @@ function focusGalleryFolderFromHash() {
   if (!section) return false;
 
   section.id = `folder-${label}`;
-  // Jump to the folder preview; leave expand to the visitor.
+  if (typeof section.expandFolder === "function") {
+    section.expandFolder();
+  }
+  // Expand changes layout height — scroll after the open class is applied.
   requestAnimationFrame(() => {
     scrollToFolderPreview(section);
   });
