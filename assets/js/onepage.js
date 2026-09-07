@@ -1380,6 +1380,12 @@ function updateLightboxGalleryLink(item) {
     return;
   }
 
+  // Desktop lightbox: no gallery deep-link pill.
+  if (window.matchMedia("(min-width: 769px)").matches) {
+    hideLightboxGalleryLink();
+    return;
+  }
+
   const folder = findGalleryFolderForPath(item);
   const artist = getGalleryFolderArtistName(folder?.title);
   if (!folder?.label || !artist) {
@@ -4166,7 +4172,7 @@ function scrollToSectionWithOffset(target, options) {
     suppressMobileBioExpand(instant ? 400 : 1800);
   }
   if (isContactScrollTarget(target)) {
-    unlockContactFadeForNav();
+    revealContactFromNav();
   }
 
   if (root === document.body || root === document.documentElement) {
@@ -4798,9 +4804,10 @@ function setupContactForm() {
 /**
  * Fade the home contact section from hidden → fully opaque as the
  * "Get in touch" heading scrolls to the vertical center of the viewport.
- * On mobile, stays at 0 until Gallery/Rates buttons have appeared; if the
+ * On mobile, stays at 0 until bio text has finished revealing; if the
  * user has already scrolled into the fade zone by then, ease to the
- * scroll-correct opacity instead of snapping.
+ * scroll-correct opacity instead of snapping. Once fully shown (or reached
+ * via menu), it stays opaque for the rest of the session.
  */
 function setupContactScrollFade() {
   if (!document.body.classList.contains("page-home")) return;
@@ -4824,7 +4831,7 @@ function setupContactScrollFade() {
   }
 
   function getScrollTargetOpacity() {
-    if (getShouldReduceMotion()) return 1;
+    if (isContactForcedVisible() || getShouldReduceMotion()) return 1;
 
     const rect = heading.getBoundingClientRect();
     if (rect.height < 1 && rect.width < 1) return 0;
@@ -4853,10 +4860,7 @@ function setupContactScrollFade() {
 
     const tick = (now) => {
       unlockRaf = 0;
-      const liveTarget =
-        contactFullyVisibleAfterRates || isRatesSectionOpen()
-          ? 1
-          : getScrollTargetOpacity();
+      const liveTarget = getScrollTargetOpacity();
       const t = Math.min(1, (now - unlockStart) / UNLOCK_FADE_MS);
       const eased = 1 - (1 - t) * (1 - t);
       applyOpacity(unlockFrom + (liveTarget - unlockFrom) * eased);
@@ -4865,26 +4869,36 @@ function setupContactScrollFade() {
         return;
       }
       applyOpacity(liveTarget);
+      if (liveTarget >= 0.995) contactStayVisible = true;
     };
 
     unlockRaf = window.requestAnimationFrame(tick);
   }
 
   function isContactFadeGated() {
-    if (contactFullyVisibleAfterRates || isRatesSectionOpen()) return false;
+    if (isContactForcedVisible()) return false;
     return !isBioFullyExpandedForContact();
   }
 
   function update() {
     ticking = false;
 
+    // Already latched (finished a scroll-in, menu jump, or rates) — stay opaque.
+    if (isContactForcedVisible()) {
+      wasGated = false;
+      stopUnlockFade();
+      applyOpacity(1);
+      return;
+    }
+
     const rect = heading.getBoundingClientRect();
     const vh = window.innerHeight || document.documentElement.clientHeight || 1;
     const fadeStart = vh;
+    const fadeEnd = vh * 0.5;
     const headingCenter =
       rect.height < 1 && rect.width < 1 ? fadeStart + 1 : rect.top + rect.height / 2;
 
-    // Left the contact approach zone — clear menu/hash bypass.
+    // Left the contact approach zone — clear temporary bio-gate bypass.
     if (headingCenter >= fadeStart) {
       contactFadeBypassBioGate = false;
     }
@@ -4898,7 +4912,7 @@ function setupContactScrollFade() {
       return;
     }
 
-    // Gate just opened (buttons appeared, rates, or nav) — ease to scroll target.
+    // Gate just opened (bio text ready) — ease to the current scroll-based opacity.
     if (wasGated) {
       wasGated = false;
       startUnlockFade(displayedOpacity);
@@ -4907,12 +4921,18 @@ function setupContactScrollFade() {
 
     if (unlockRaf) return;
 
-    if (contactFullyVisibleAfterRates || isRatesSectionOpen() || getShouldReduceMotion()) {
+    if (getShouldReduceMotion()) {
+      contactStayVisible = true;
       applyOpacity(1);
       return;
     }
 
-    applyOpacity(getScrollTargetOpacity());
+    const target = getScrollTargetOpacity();
+    applyOpacity(target);
+    // Latch only after a full scroll fade-in — then never fade out again.
+    if (target >= 0.995 || headingCenter <= fadeEnd) {
+      contactStayVisible = true;
+    }
   }
 
   contactScrollFadeUpdate = update;
@@ -5297,7 +5317,11 @@ function setupRatesReveal() {
     if (open) panel.removeAttribute("inert");
     else panel.setAttribute("inert", "");
     setRatesBioCycleActive(open);
-    if (open) contactFullyVisibleAfterRates = true;
+    if (open) {
+      contactFullyVisibleAfterRates = true;
+      contactStayVisible = true;
+      contactScrollFadeUpdate?.();
+    }
     contactScrollFadeUpdate?.();
   };
 
@@ -5356,6 +5380,8 @@ let mobileBioExpandSuppressUntil = 0;
 let contactFadeBypassBioGate = false;
 /** Once Rates has been opened, keep contact fully opaque for the rest of the session. */
 let contactFullyVisibleAfterRates = false;
+/** Once contact has been shown (scroll or nav), keep it opaque — never fade out again. */
+let contactStayVisible = false;
 /** Recompute contact scroll opacity when bio expand state changes. */
 let contactScrollFadeUpdate = null;
 
@@ -5367,16 +5393,28 @@ function isMobileBioExpandSuppressed() {
   return performance.now() < mobileBioExpandSuppressUntil;
 }
 
+function isContactForcedVisible() {
+  return contactStayVisible || contactFullyVisibleAfterRates || isRatesSectionOpen();
+}
+
+/** Bypass the bio-text gate so scroll fade can run (does not lock opacity to 1). */
 function unlockContactFadeForNav() {
   contactFadeBypassBioGate = true;
   contactScrollFadeUpdate?.();
 }
 
+/** Menu/hash jump to contact — show the card now and keep it for the session. */
+function revealContactFromNav() {
+  contactFadeBypassBioGate = true;
+  contactStayVisible = true;
+  contactScrollFadeUpdate?.();
+}
+
 function isBioFullyExpandedForContact() {
   if (!isRatesBioCycleMobile()) return true;
-  if (contactFadeBypassBioGate) return true;
-  // Contact may only fade in after Gallery/Rates buttons have finished appearing.
-  return Boolean(document.querySelector(".home-bio-row.is-bio-actions-ready"));
+  if (contactFadeBypassBioGate || contactStayVisible) return true;
+  // Contact fades in only after heading + bio text have finished revealing.
+  return Boolean(document.querySelector(".home-bio-row.is-bio-copy-ready"));
 }
 
 function isRatesSectionOpen() {
@@ -5413,6 +5451,10 @@ function setupRatesBioCycle() {
   // Mobile: once the slideshow has started, keep playing after the user scrolls
   // *down* past the bio. Only reset to the portrait when they scroll *up* past it.
   let playPastBioDown = false;
+  // Flinged past the bio without opening — stay collapsed until they scroll back up to it.
+  let skipBioExpandUntilReturn = false;
+  let lastBioScrollY = getPageScrollTop();
+  let lastBioScrollTs = performance.now();
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -5456,15 +5498,15 @@ function setupRatesBioCycle() {
   };
 
   // Mobile: frame opens when bio image center hits viewport center.
-  // Copy/CTAs stagger open ~0.5s after the frame expand starts (not a second scroll gate).
+  // Heading + intro stagger open ~0.5s after the frame expand starts.
   const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
   const MOBILE_EXIT_RATIO = 3 / 5;
   const BIO_COPY_STAGGER_MS = 500;
+  /** Matches CSS: --bio-reveal-dur (1.15s) + intro delay (0.22s). */
+  const BIO_COPY_READY_MS = 1400;
   let frameExpandSettleId = 0;
-  let actionsReadyTimerId = 0;
   let copyStaggerTimerId = 0;
-  /** Matches CSS: buttons delay (--bio-reveal-dur - 0.5s), then animate --bio-reveal-dur. */
-  const BIO_ACTIONS_READY_MS = 1800;
+  let copyReadyTimerId = 0;
 
   const getBioPicMidY = () => {
     const rect = picture.getBoundingClientRect();
@@ -5484,21 +5526,21 @@ function setupRatesBioCycle() {
     frameExpandSettleId = 0;
   };
 
-  const clearActionsReadyTimer = () => {
-    if (!actionsReadyTimerId) return;
-    window.clearTimeout(actionsReadyTimerId);
-    actionsReadyTimerId = 0;
-  };
-
   const clearCopyStaggerTimer = () => {
     if (!copyStaggerTimerId) return;
     window.clearTimeout(copyStaggerTimerId);
     copyStaggerTimerId = 0;
   };
 
-  const markBioActionsReady = (row) => {
-    if (!row || row.classList.contains("is-bio-actions-ready")) return;
-    row.classList.add("is-bio-actions-ready");
+  const clearCopyReadyTimer = () => {
+    if (!copyReadyTimerId) return;
+    window.clearTimeout(copyReadyTimerId);
+    copyReadyTimerId = 0;
+  };
+
+  const markBioCopyReady = (row) => {
+    if (!row || row.classList.contains("is-bio-copy-ready")) return;
+    row.classList.add("is-bio-copy-ready");
     contactScrollFadeUpdate?.();
   };
 
@@ -5506,27 +5548,28 @@ function setupRatesBioCycle() {
     const row = picture.closest(".home-bio-row");
     if (!row) return;
     const next = Boolean(open);
-    const wasOpen = row.classList.contains("is-bio-copy-open");
-    row.classList.toggle("is-bio-copy-open", next);
 
-    if (next && !wasOpen) {
-      clearActionsReadyTimer();
-      row.classList.remove("is-bio-actions-ready");
-      if (getShouldReduceMotion()) {
-        markBioActionsReady(row);
-      } else {
-        actionsReadyTimerId = window.setTimeout(() => {
-          actionsReadyTimerId = 0;
-          if (row.classList.contains("is-bio-copy-open")) markBioActionsReady(row);
-        }, BIO_ACTIONS_READY_MS);
-      }
+    // Once heading + text have revealed, keep them for the session.
+    if (!next) {
+      if (row.classList.contains("is-bio-copy-open")) return;
+      clearCopyReadyTimer();
+      syncBioExpandRevealA11y();
+      return;
     }
 
-    if (!next) {
-      clearActionsReadyTimer();
-      if (row.classList.contains("is-bio-actions-ready")) {
-        row.classList.remove("is-bio-actions-ready");
-        contactScrollFadeUpdate?.();
+    const wasOpen = row.classList.contains("is-bio-copy-open");
+    row.classList.add("is-bio-copy-open");
+
+    if (!wasOpen) {
+      clearCopyReadyTimer();
+      row.classList.remove("is-bio-copy-ready");
+      if (getShouldReduceMotion()) {
+        markBioCopyReady(row);
+      } else {
+        copyReadyTimerId = window.setTimeout(() => {
+          copyReadyTimerId = 0;
+          if (row.classList.contains("is-bio-copy-open")) markBioCopyReady(row);
+        }, BIO_COPY_READY_MS);
       }
     }
 
@@ -5608,13 +5651,19 @@ function setupRatesBioCycle() {
     playPastBioDown = false;
     clearCopyStaggerTimer();
     stopFrame();
-    setBioCopyOpen(false);
+    // Heading + bio text stay once revealed; only the image frame collapses.
   };
+
+  /** px/ms — only a hard fling through the bio gate skips expand. */
+  const BIO_FAST_DOWN_VELOCITY = 2.4;
 
   const shouldPlay = () => {
     if (paths.length < 1) return false;
     if (isRatesBioCycleDesktop()) return ratesOpen;
-    if (isRatesBioCycleMobile()) return bioCentered || playPastBioDown;
+    if (isRatesBioCycleMobile()) {
+      if (skipBioExpandUntilReturn) return false;
+      return bioCentered || playPastBioDown;
+    }
     return false;
   };
 
@@ -5685,6 +5734,7 @@ function setupRatesBioCycle() {
     if (!isRatesBioCycleMobile()) {
       bioCentered = false;
       playPastBioDown = false;
+      skipBioExpandUntilReturn = false;
       stop();
     }
     if (!isRatesBioCycleDesktop()) ratesOpen = Boolean(
@@ -5711,11 +5761,22 @@ function setupRatesBioCycle() {
   const updateMobileBioTrigger = () => {
     mobileTriggerRaf = 0;
     if (!isRatesBioCycleMobile()) {
+      // Desktop playback is driven by ratesOpen — never tear it down on scroll.
       bioCentered = false;
       playPastBioDown = false;
-      stop();
+      skipBioExpandUntilReturn = false;
       return;
     }
+
+    const now = performance.now();
+    const scrollY = getPageScrollTop();
+    const dt = Math.max(1, now - lastBioScrollTs);
+    const dy = scrollY - lastBioScrollY;
+    const velocity = dy / dt;
+    lastBioScrollY = scrollY;
+    lastBioScrollTs = now;
+    const scrollingDownFast = velocity >= BIO_FAST_DOWN_VELOCITY;
+    const scrollingUp = dy < -1;
 
     const midY = getBioPicMidY();
     const vh = window.innerHeight;
@@ -5724,9 +5785,10 @@ function setupRatesBioCycle() {
     const row = picture.closest(".home-bio-row");
     const copyOpen = Boolean(row?.classList.contains("is-bio-copy-open"));
     const frameOpen = picture.classList.contains("is-bio-frame-open");
+    const bioWasOpen = frameOpen || copyOpen || bioCentered;
 
     if (isMobileBioExpandSuppressed()) {
-      if (midY < 0 && (frameOpen || copyOpen || bioCentered)) {
+      if (midY < 0 && bioWasOpen) {
         playPastBioDown = true;
         bioCentered = false;
         clearCopyStaggerTimer();
@@ -5736,21 +5798,46 @@ function setupRatesBioCycle() {
       return;
     }
 
-    // Exit: image center in the bottom 2/5 — collapse both.
+    // Back above the bio — collapse the image only; keep heading + text if revealed.
     if (midY >= exitLine) {
+      skipBioExpandUntilReturn = false;
       playPastBioDown = false;
       bioCentered = false;
-      stop();
+      stopFrame();
+      return;
+    }
+    if (skipBioExpandUntilReturn && scrollingUp && midY > 0 && midY <= frameEnterLine) {
+      skipBioExpandUntilReturn = false;
+    }
+
+    // Scrolled past bio downward.
+    if (midY < 0) {
+      if (bioWasOpen) {
+        // Already opened — keep slideshow/copy while past.
+        playPastBioDown = true;
+        bioCentered = false;
+        clearCopyStaggerTimer();
+        setBioCopyOpen(true);
+        if (!frameOpen) syncPlayback();
+      } else {
+        // Flew past without opening — stay collapsed until they scroll back up.
+        skipBioExpandUntilReturn = true;
+        playPastBioDown = false;
+        bioCentered = false;
+        unlockContactFadeForNav();
+      }
       return;
     }
 
-    // Scrolled past bio downward — keep slideshow, keep copy.
-    if (midY < 0) {
-      playPastBioDown = true;
-      bioCentered = false;
-      clearCopyStaggerTimer();
-      setBioCopyOpen(true);
-      if (!frameOpen) syncPlayback();
+    if (skipBioExpandUntilReturn) {
+      // Still in the bio band after a skip — don't expand on the way through.
+      return;
+    }
+
+    // Fast fling down through the gate: skip expand for this pass.
+    if (scrollingDownFast && midY <= frameEnterLine && !bioWasOpen) {
+      skipBioExpandUntilReturn = true;
+      unlockContactFadeForNav();
       return;
     }
 
@@ -5759,6 +5846,7 @@ function setupRatesBioCycle() {
       const tryOpenFrame = () => {
         if (!isRatesBioCycleMobile()) return;
         if (isMobileBioExpandSuppressed()) return;
+        if (skipBioExpandUntilReturn) return;
         const y = getBioPicMidY();
         if (y < 0) return;
         if (y > window.innerHeight * MOBILE_FRAME_ENTER_RATIO) return;

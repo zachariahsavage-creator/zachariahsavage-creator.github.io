@@ -1295,7 +1295,7 @@ body.page-full-gallery .onepage-section__heading {
   display: none;
 }
 
-/* Atmosphere lives on the card only — hide section-wide contact photo layers. */
+/* Atmosphere lives on the card only on mobile — hide section-wide contact photo layers. */
 body.page-home .page--onepage .onepage-section--contact .contact-bg {
   display: none;
 }
@@ -1322,7 +1322,9 @@ body.page-home .page--onepage .onepage-section--contact {
 
 .page--onepage .onepage-section--contact .contact__card {
   max-height: 100%;
-  overflow: hidden;
+  /* clip keeps the card atmosphere contained without creating a scrollport
+     that steals wheel events from the page (overflow: hidden does). */
+  overflow: clip;
 }
 
 .gallery {
@@ -1508,14 +1510,15 @@ body.page-home .page--onepage .onepage-section--contact {
   }
 
   /*
-    Collapsed: hide intro + CTAs.
-    Expanded: grows down the page. Use grid 0fr→1fr so close tracks real
-    content height (max-height: 48rem made closes feel sluggish).
+    Collapsed: hide heading + intro (separate curtains).
+    Heading opens first; intro follows on a short stagger.
+    Keep overflow hidden so growing copy pushes CTAs instead of overlapping them.
   */
   .home-bio-expand-reveal {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
+    overflow: hidden;
     transition:
       grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease),
       opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease);
@@ -1533,21 +1536,24 @@ body.page-home .page--onepage .onepage-section--contact {
   .home-bio-row.is-bio-copy-open .home-bio-expand-reveal {
     grid-template-rows: 1fr;
     opacity: 1;
-    overflow: visible;
+    overflow: hidden;
     transition:
       grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease),
       opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease);
   }
 
-  /* Buttons wait until bio text has mostly settled, then open (0.5s sooner than full bio dur). */
-  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal:has(.home-bio-actions) {
+  /* Intro starts a beat after the heading so type reads top-down. */
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro {
     transition:
-      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) calc(var(--bio-reveal-dur) - 0.5s),
-      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) calc(var(--bio-reveal-dur) - 0.5s);
+      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s,
+      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s;
   }
 
-  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal__inner {
-    overflow: visible;
+  /* Closing: intro folds first, then heading (reverse stagger). */
+  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading {
+    transition:
+      grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease) 0.12s,
+      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) 0.12s;
   }
 
   .home-bio-row .home-bio-copy {
@@ -2111,6 +2117,13 @@ body.page-home .home-bio-row .home-intro {
   clip-path: inset(0 -1px -100vh -1px);
 }
 
+@media (min-width: 1024px) {
+  .rates__table thead th::after {
+    content: none;
+    box-shadow: none;
+  }
+}
+
 /* Heading bars sit above their own (and neighboring) glow. */
 .rates__table thead th:nth-child(1) {
   z-index: 2;
@@ -2330,6 +2343,17 @@ body.page-home .home-bio-row .home-intro {
     row-gap: clamp(0.85rem, 1.6vw, 1.35rem);
     /* Stretch so the portrait can fill the full left column height. */
     align-items: stretch;
+  }
+
+  /* ~1in less space between the bio band and the contact card. */
+  body.page-home .home-bio-row {
+    --bio-row-pad-bottom: max(1.1rem, calc(clamp(2.75rem, 5.5vw, 4rem) - 0.55in));
+  }
+
+  .page--onepage .onepage-section--home:has(.onepage-section--rates) + .onepage-section--contact,
+  .page--onepage .onepage-section--contact {
+    --contact-card-offset-y: -0.45in;
+    padding-top: 0.35rem;
   }
 
   .home-bio-inner > .home-bio-picture,
@@ -4096,7 +4120,7 @@ body.page-profile {
 body.page-home .page--onepage .onepage-section--contact .contact__card {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: clip;
   background: #050505;
   background-image: none;
   backdrop-filter: none;
@@ -4122,6 +4146,68 @@ body.page-home .page--onepage .onepage-section--contact .contact__card::before {
 body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   position: relative;
   z-index: 1;
+}
+
+/* Desktop home contact: Daniela Andrade section photo, black→opaque vertical fade. */
+@media (min-width: 1024px) {
+  body.page-home .page--onepage .onepage-section--contact .contact-bg {
+    display: block;
+    z-index: 0;
+    background: #000000;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact-bg__layer,
+  body.page-home .page--onepage .onepage-section--contact .contact-bg__image {
+    object-position: center 35%;
+    background-position: center 35%;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact-bg::before {
+    content: none;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      #000000 0%,
+      rgba(0, 0, 0, 0.94) 16%,
+      rgba(0, 0, 0, 0.55) 45%,
+      rgba(0, 0, 0, 0.12) 72%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-mask-image: none;
+    mask-image: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact {
+    z-index: 1;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__card {
+    /* ~30% less opaque than prior 0.72 fill so Daniela reads through the padding. */
+    background: rgba(5, 5, 5, 0.5);
+    background-image: none;
+    box-shadow: none;
+    isolation: auto;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__card::before {
+    content: none;
+  }
 }
 
 .contact__heading {
@@ -4471,7 +4557,8 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   .page--onepage .onepage-section--contact {
     --contact-card-max-width: min(720px, 56vw);
     --contact-card-offset-y: 0px;
-    overflow: hidden;
+    /* Must stay visible/clip — hidden traps wheel scroll over the tall contact panel. */
+    overflow: visible;
   }
 }
 
@@ -4749,7 +4836,7 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__card {
-    overflow: hidden;
+    overflow: clip;
     background: #050505;
     background-image: none;
     backdrop-filter: none;
@@ -5544,10 +5631,18 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   }
 }
 
+/* Desktop: no gallery deep-link pill. */
 @media (min-width: 769px) {
+  .lightbox {
+    --lightbox-gallery-link-space: 0px;
+  }
+
+  .lightbox:has(.lightbox__gallery-link:not([hidden])) {
+    padding-bottom: 0;
+  }
+
   .lightbox__gallery-link {
-    font-size: clamp(0.83rem, 1.25vw, 1.05rem);
-    padding: 0 1.1rem;
+    display: none !important;
   }
 }
 
