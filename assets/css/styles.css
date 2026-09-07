@@ -1453,9 +1453,11 @@ body.page-home .page--onepage .onepage-section--contact {
   .home-bio-row {
     --bio-reveal-dur: 1.15s;
     --bio-reveal-dur-close: 0.69s; /* open × 0.6 → 40% faster close */
-    --bio-frame-dur: 0.92s; /* 20% faster photo expand */
-    --bio-frame-dur-close: 0.55s; /* open × 0.6 → 40% faster close */
+    --bio-frame-dur: 1.12s;
+    --bio-frame-dur-close: 0.67s; /* open × 0.6 → 40% faster close */
+    /* Ease-out for height: soft settle, less “linear stretch” than the old S-curve. */
     --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+    --bio-frame-ease: cubic-bezier(0.22, 1, 0.36, 1);
     --bio-row-pad-bottom-collapsed: 0.55rem;
     overflow-anchor: none;
     transition: padding-bottom var(--bio-reveal-dur-close) var(--bio-reveal-ease);
@@ -1486,7 +1488,7 @@ body.page-home .page--onepage .onepage-section--contact {
     overflow: hidden;
     overflow-anchor: none;
     transform: translateZ(0);
-    transition: height var(--bio-frame-dur-close) var(--bio-reveal-ease);
+    transition: height var(--bio-frame-dur-close) var(--bio-frame-ease);
   }
 
   .home-bio-picture__default {
@@ -1506,7 +1508,7 @@ body.page-home .page--onepage .onepage-section--contact {
 
   .home-bio-picture.is-bio-frame-open {
     height: min(calc(100cqw * 5 / 4), 70vh, 36rem);
-    transition: height var(--bio-frame-dur) var(--bio-reveal-ease);
+    transition: height var(--bio-frame-dur) var(--bio-frame-ease);
   }
 
   /*

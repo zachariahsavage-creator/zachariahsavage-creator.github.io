@@ -5621,7 +5621,7 @@ function setupRatesBioCycle() {
         frameExpandSettleId = window.setTimeout(() => {
           frameExpandSettleId = 0;
           markBioFullyExpanded();
-        }, 1100);
+        }, 1300);
       }
     }
   };
@@ -5779,7 +5779,8 @@ function setupRatesBioCycle() {
     lastBioScrollY = scrollY;
     lastBioScrollTs = now;
     const scrollingDownFast = velocity >= BIO_FAST_DOWN_VELOCITY;
-    const scrollingUp = dy < -1;
+    const scrollingUpFast = velocity <= -BIO_FAST_DOWN_VELOCITY;
+    const scrollingFast = scrollingDownFast || scrollingUpFast;
 
     const midY = getBioPicMidY();
     const vh = window.innerHeight;
@@ -5809,12 +5810,26 @@ function setupRatesBioCycle() {
       stopFrame();
       return;
     }
-    if (skipBioExpandUntilReturn && scrollingUp && midY > 0 && midY <= frameEnterLine) {
+
+    // Slow return into the gate clears a prior fast-pass skip (either direction).
+    if (
+      skipBioExpandUntilReturn &&
+      !scrollingFast &&
+      midY > 0 &&
+      midY <= frameEnterLine
+    ) {
       skipBioExpandUntilReturn = false;
     }
 
     // Scrolled past bio downward.
     if (midY < 0) {
+      if (skipBioExpandUntilReturn && !frameOpen) {
+        // Fast-skipped the frame (first pass or after text is latched) — stay collapsed.
+        playPastBioDown = false;
+        bioCentered = false;
+        if (!copyOpen) unlockContactFadeForNav();
+        return;
+      }
       if (bioWasOpen) {
         // Already opened — keep slideshow/copy while past.
         playPastBioDown = true;
@@ -5837,10 +5852,11 @@ function setupRatesBioCycle() {
       return;
     }
 
-    // Fast fling down through the gate: skip expand for this pass.
-    if (scrollingDownFast && midY <= frameEnterLine && !bioWasOpen) {
+    // Fast fling through the gate (up or down): skip opening the frame for this pass.
+    // Copy can stay latched; the image only re-opens on a slow return to center.
+    if (scrollingFast && midY <= frameEnterLine && !frameOpen) {
       skipBioExpandUntilReturn = true;
-      unlockContactFadeForNav();
+      if (!copyOpen && scrollingDownFast) unlockContactFadeForNav();
       return;
     }
 
