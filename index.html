@@ -245,9 +245,9 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=bio-frame-fast-up" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=bio-frame-top-3s" />
     <script defer src="assets/js/gallery-menu.js"></script>
-    <script defer src="assets/js/onepage.js?v=bio-frame-fast-up"></script>
+    <script defer src="assets/js/onepage.js?v=bio-frame-top-3s"></script>
   </head>
   <body class="page-home">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
@@ -337,23 +337,27 @@
         </div>
         <div class="home-bio-row">
           <div class="home-bio-inner">
-            <div class="home-bio-picture">
-              <picture class="home-bio-picture__default">
-                <img
-                  class="home-bio-image"
-                  src="assets/images/site/zach-savage-portrait.webp"
-                  alt="Portrait of Zach Savage, Toronto concert and event photographer"
-                  width="1600"
-                  height="1067"
-                  loading="eager"
-                  decoding="sync"
-                  data-asset-path="zach-savage-portrait.webp"
-                />
-              </picture>
-              <!-- Desktop-only: crossfades lead shots from the top gallery folders while Rates is open. -->
-              <div class="home-bio-cycle" aria-hidden="true">
-                <img class="home-bio-cycle__img home-bio-cycle__img--a" alt="" decoding="async" />
-                <img class="home-bio-cycle__img home-bio-cycle__img--b" alt="" decoding="async" />
+            <div class="home-bio-expand-reveal home-bio-expand-reveal--picture">
+              <div class="home-bio-expand-reveal__inner">
+                <div class="home-bio-picture">
+                  <picture class="home-bio-picture__default">
+                    <img
+                      class="home-bio-image"
+                      src="assets/images/site/zach-savage-portrait.webp"
+                      alt="Portrait of Zach Savage, Toronto concert and event photographer"
+                      width="1600"
+                      height="1067"
+                      loading="eager"
+                      decoding="sync"
+                      data-asset-path="zach-savage-portrait.webp"
+                    />
+                  </picture>
+                  <!-- Desktop-only: crossfades lead shots from the top gallery folders while Rates is open. -->
+                  <div class="home-bio-cycle" aria-hidden="true">
+                    <img class="home-bio-cycle__img home-bio-cycle__img--a" alt="" decoding="async" />
+                    <img class="home-bio-cycle__img home-bio-cycle__img--b" alt="" decoding="async" />
+                  </div>
+                </div>
               </div>
             </div>
             <div class="home-bio-copy">
@@ -380,25 +384,29 @@
               aria-labelledby="rates-heading"
             >
               <div class="rates rates--reveal">
-                <div class="home-bio-actions">
-                  <a class="home-cta home-start-btn home-start-btn--pov" href="full-gallery.html"
-                    ><span class="home-start-btn__label">Gallery</span
-                    ><span class="home-start-btn__arrow" aria-hidden="true"
-                      ><span class="home-start-btn__arrow-rest">→</span
-                      ><span class="home-start-btn__arrow-pop">⮕</span></span
-                    ></a
-                  >
-                  <button
-                    type="button"
-                    class="home-cta home-cta--rates rates__toggle"
-                    id="rates-heading"
-                    aria-expanded="false"
-                    aria-controls="rates-panel"
-                    aria-label="Show pricing"
-                  >
-                    <span class="home-cta__label">Rates</span>
-                    <span class="home-cta__arrow rates__toggle-arrow" aria-hidden="true">→</span>
-                  </button>
+                <div class="home-bio-expand-reveal home-bio-expand-reveal--actions">
+                  <div class="home-bio-expand-reveal__inner">
+                    <div class="home-bio-actions">
+                      <a class="home-cta home-start-btn home-start-btn--pov" href="full-gallery.html"
+                        ><span class="home-start-btn__label">Gallery</span
+                        ><span class="home-start-btn__arrow" aria-hidden="true"
+                          ><span class="home-start-btn__arrow-rest">→</span
+                          ><span class="home-start-btn__arrow-pop">⮕</span></span
+                        ></a
+                      >
+                      <button
+                        type="button"
+                        class="home-cta home-cta--rates rates__toggle"
+                        id="rates-heading"
+                        aria-expanded="false"
+                        aria-controls="rates-panel"
+                        aria-label="Show pricing"
+                      >
+                        <span class="home-cta__label">Rates</span>
+                        <span class="home-cta__arrow rates__toggle-arrow" aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="rates__panel" id="rates-panel" aria-hidden="true" inert>
