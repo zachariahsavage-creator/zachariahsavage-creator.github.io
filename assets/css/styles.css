@@ -1630,11 +1630,30 @@ body.page-home .home-bio-row.is-bio-copy-open * {
       clip-path var(--bio-reveal-dur) var(--bio-reveal-ease);
   }
 
+  /* CTAs curtain in with intro; force hit-testing on once the bio is open. */
   .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro,
   .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions {
     transition:
       opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s,
       clip-path var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions {
+    pointer-events: auto;
+    overflow: visible;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions .home-cta,
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions .home-start-btn {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Portrait curtain is visual-only — don't let it intercept CTA clicks. */
+  .home-bio-expand-reveal--picture,
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--picture {
+    pointer-events: none;
   }
 
   .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading,
@@ -2435,15 +2454,17 @@ body.page-home .home-bio-row .home-intro {
     align-items: stretch;
   }
 
-  /* Tighten bio→contact gap on desktop (~half the prior band padding). */
+  /* Bio band padding is already tight; pull the card up ~1in to close the
+     empty gap above it inside the tall contact panel. Menu scroll still
+     centers the card itself in the viewport. */
   body.page-home .home-bio-row {
-    --bio-row-pad-bottom: max(0.55rem, calc(clamp(2.75rem, 5.5vw, 4rem) - 0.85in));
+    --bio-row-pad-bottom: 0.35rem;
   }
 
   .page--onepage .onepage-section--home:has(.onepage-section--rates) + .onepage-section--contact,
   .page--onepage .onepage-section--contact {
-    --contact-card-offset-y: -0.45in;
-    padding-top: 0.15rem;
+    --contact-card-offset-y: -1in;
+    padding-top: 0.25rem;
   }
 
   .home-bio-inner > .home-bio-expand-reveal--picture {
@@ -2513,6 +2534,8 @@ body.page-home .home-bio-row .home-intro {
     justify-self: stretch;
     width: 100%;
     align-self: start;
+    position: relative;
+    z-index: 2;
   }
 
   .home-bio-actions {
