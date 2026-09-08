@@ -4459,7 +4459,18 @@ function updateContactSectionLayout() {
 
     section.style.removeProperty("--contact-section-min-height");
     section.style.setProperty("--contact-card-max-width", `${Math.min(720, Math.round(vw * 0.56))}px`);
-    const offsetPx = card ? getContactCardOffsetY(section, card) : 0;
+    let offsetPx = card ? getContactCardOffsetY(section, card) : 0;
+    // Home desktop: halve the default centered top gap above the contact card.
+    if (document.body.classList.contains("page-home") && vw >= 1024 && card) {
+      const sectionH = section.getBoundingClientRect().height;
+      const cardH = getContactCardContentHeight(card);
+      if (sectionH > 0 && cardH > 0) {
+        const free = Math.max(0, sectionH - cardH);
+        const halfGapUp = Math.floor(free / 4);
+        const maxUp = Math.max(0, Math.floor(free / 2 - 16));
+        offsetPx = Math.min(Math.max(offsetPx, halfGapUp), maxUp);
+      }
+    }
     section.style.setProperty("--contact-card-offset-y", `${-offsetPx}px`);
 
     // Panel height comes from the backdrop aspect ratio; grow when the form needs room.

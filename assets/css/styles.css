@@ -2435,15 +2435,15 @@ body.page-home .home-bio-row .home-intro {
     align-items: stretch;
   }
 
-  /* ~1in less space between the bio band and the contact card. */
+  /* Tighten bio→contact gap on desktop (~half the prior band padding). */
   body.page-home .home-bio-row {
-    --bio-row-pad-bottom: max(1.1rem, calc(clamp(2.75rem, 5.5vw, 4rem) - 0.55in));
+    --bio-row-pad-bottom: max(0.55rem, calc(clamp(2.75rem, 5.5vw, 4rem) - 0.85in));
   }
 
   .page--onepage .onepage-section--home:has(.onepage-section--rates) + .onepage-section--contact,
   .page--onepage .onepage-section--contact {
     --contact-card-offset-y: -0.45in;
-    padding-top: 0.35rem;
+    padding-top: 0.15rem;
   }
 
   .home-bio-inner > .home-bio-expand-reveal--picture {
