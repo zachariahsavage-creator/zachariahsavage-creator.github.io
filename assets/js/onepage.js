@@ -4125,6 +4125,7 @@ function preserveScrollPosition(fn) {
 
 /**
  * Same scroll math as gallery menu in-page links (fixed header offset).
+ * Contact jumps center the contact card in the viewport (menu / hash).
  * @param {Element} target
  * @param {{ instant?: boolean }} [options] Pass `{ instant: true }` for immediate jump (e.g. hire pill).
  */
@@ -4134,42 +4135,67 @@ function isContactScrollTarget(target) {
   return Boolean(target.closest?.(".onepage-section--contact"));
 }
 
-function getContactDesktopScrollLiftPx() {
-  const probe = document.createElement("div");
-  probe.style.cssText = "position:absolute;visibility:hidden;width:1.5in;height:0";
-  document.documentElement.appendChild(probe);
-  const px = probe.getBoundingClientRect().width;
-  probe.remove();
-  return px;
+function scrollContactCardToViewportCenter(options) {
+  const opts = options || {};
+  const section =
+    document.querySelector(".page--onepage .onepage-section--contact") ||
+    document.getElementById("contact-section");
+  const card = section?.querySelector(".contact__card");
+  if (!card) return false;
+
+  const root = getOnePageScrollRoot();
+  const instant =
+    opts.instant === true || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+  suppressMobileBioExpand(instant ? 400 : 1800);
+  revealContactFromNav();
+  scheduleContactSectionLayout();
+
+  const run = () => {
+    const currentTop = getPageScrollTop();
+    const rect = card.getBoundingClientRect();
+    if (!(rect.height > 0)) return;
+    const cardCenterDoc = rect.top + currentTop + rect.height / 2;
+    const destination = Math.max(0, Math.round(cardCenterDoc - window.innerHeight / 2));
+    if (root === document.body || root === document.documentElement) {
+      window.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
+      return;
+    }
+    root.scrollTo({ top: destination, behavior: instant ? "auto" : "smooth" });
+  };
+
+  // Let contact reveal + layout offset settle before measuring the card.
+  if (instant) {
+    run();
+  } else {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(run));
+  }
+  return true;
 }
 
 function scrollToSectionWithOffset(target, options) {
   if (!target) return;
+  if (isContactScrollTarget(target) && scrollContactCardToViewportCenter(options)) {
+    return;
+  }
+
   const opts = options || {};
   const root = getOnePageScrollRoot();
   const currentTop = getPageScrollTop();
   const targetTop = target.getBoundingClientRect().top + currentTop;
   // Menu clicks were landing ~1in too high; reduce the header offset for nav jumps.
   const offset = Math.max(0, getFixedHeaderScrollOffset() - 96);
-  const contactLift =
-    window.matchMedia("(min-width: 769px)").matches && isContactScrollTarget(target)
-      ? getContactDesktopScrollLiftPx()
-      : 0;
-  const destination = Math.max(0, targetTop - offset - contactLift);
+  const destination = Math.max(0, targetTop - offset);
   const instant =
     opts.instant === true || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-  // Contact/rates jumps pass the bio — don't let expand+pin steal the smooth scroll.
+  // Rates jumps pass the bio — don't let expand+pin steal the smooth scroll.
   if (
-    isContactScrollTarget(target) ||
     target.id === "rates-heading" ||
     target.id === "rates-section" ||
     Boolean(target.closest?.(".onepage-section--rates"))
   ) {
     suppressMobileBioExpand(instant ? 400 : 1800);
-  }
-  if (isContactScrollTarget(target)) {
-    revealContactFromNav();
   }
 
   if (root === document.body || root === document.documentElement) {
@@ -4460,16 +4486,15 @@ function updateContactSectionLayout() {
     section.style.removeProperty("--contact-section-min-height");
     section.style.setProperty("--contact-card-max-width", `${Math.min(720, Math.round(vw * 0.56))}px`);
     let offsetPx = card ? getContactCardOffsetY(section, card) : 0;
-    // Home desktop: halve the default centered top gap above the contact card.
+    // Home desktop: nudge the card up ~1in to tighten bio→card spacing while
+    // keeping menu/hash scroll centered on the card.
     if (document.body.classList.contains("page-home") && vw >= 1024 && card) {
       const sectionH = section.getBoundingClientRect().height;
       const cardH = getContactCardContentHeight(card);
-      if (sectionH > 0 && cardH > 0) {
-        const free = Math.max(0, sectionH - cardH);
-        const halfGapUp = Math.floor(free / 4);
-        const maxUp = Math.max(0, Math.floor(free / 2 - 16));
-        offsetPx = Math.min(Math.max(offsetPx, halfGapUp), maxUp);
-      }
+      const free = Math.max(0, sectionH - cardH);
+      const maxUp = Math.max(0, Math.floor(free / 2 - 16));
+      const inchUp = Math.min(96, maxUp);
+      offsetPx = Math.min(Math.max(offsetPx, inchUp), maxUp);
     }
     section.style.setProperty("--contact-card-offset-y", `${-offsetPx}px`);
 
