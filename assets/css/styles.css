@@ -1111,7 +1111,8 @@ body.page-contact .gallery-bar__menu-link:visited {
 .onepage-section--home {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* flex-start so Rates/panel growth extends downward instead of re-centering the section. */
+  justify-content: flex-start;
   align-items: stretch;
   gap: var(--space-4);
   padding-top: 0;
@@ -1463,18 +1464,14 @@ body.page-home .page--onepage .onepage-section--contact {
     transition: padding-bottom var(--bio-reveal-dur-close) var(--bio-reveal-ease);
   }
 
-  /* Kill scroll anchoring while copy/frame opens so the bio image isn't shoved up. */
   body.page-home:has(.home-bio-row.is-bio-copy-open),
-  body.page-home:has(.home-bio-picture.is-bio-frame-open) {
-    overflow-anchor: none;
-  }
-
-  .home-bio-expand-reveal,
-  .home-bio-expand-reveal__inner,
-  .home-bio-row.is-bio-copy-open,
-  .home-bio-row.is-bio-copy-open * {
-    overflow-anchor: none;
-  }
+body.page-home:has(.home-bio-picture.is-bio-frame-open),
+body.page-home .home-bio-expand-reveal,
+body.page-home .home-bio-expand-reveal__inner,
+body.page-home .home-bio-row.is-bio-copy-open,
+body.page-home .home-bio-row.is-bio-copy-open * {
+  overflow-anchor: none;
+}
 
   .home-bio-inner {
     container-type: inline-size;
@@ -1511,78 +1508,163 @@ body.page-home .page--onepage .onepage-section--contact {
     transition: height var(--bio-frame-dur) var(--bio-frame-ease);
   }
 
-  /*
-    Collapsed: hide heading + intro (separate curtains).
-    Heading opens first; intro follows on a short stagger.
-    Keep overflow hidden so growing copy pushes CTAs instead of overlapping them.
-  */
-  .home-bio-expand-reveal {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    overflow: hidden;
-    transition:
-      grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease),
-      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease);
-  }
-
-  .home-bio-expand-reveal__inner {
-    min-height: 0;
-    overflow: hidden;
-  }
-
   .home-bio-row.is-bio-copy-open {
     transition: padding-bottom var(--bio-reveal-dur) var(--bio-reveal-ease);
-  }
-
-  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    overflow: hidden;
-    transition:
-      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease),
-      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease);
-  }
-
-  /* Intro starts a beat after the heading so type reads top-down. */
-  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro {
-    transition:
-      grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s,
-      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s;
-  }
-
-  /* Closing: intro folds first, then heading (reverse stagger). */
-  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading {
-    transition:
-      grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease) 0.12s,
-      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) 0.12s;
-  }
-
-  .home-bio-row .home-bio-copy {
-    gap: 0;
-    transition: gap var(--bio-reveal-dur-close) var(--bio-reveal-ease);
-  }
-
-  .home-bio-row.is-bio-copy-open .home-bio-copy {
-    gap: var(--space-3);
-    transition: gap var(--bio-reveal-dur) var(--bio-reveal-ease);
   }
 }
 
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
   .home-bio-row,
-  .home-bio-picture,
-  .home-bio-expand-reveal,
-  .home-bio-row .home-bio-copy {
+  .home-bio-picture {
     transition: none;
   }
 }
 
-/* Desktop: wrappers don't affect the two-column grid. */
-@media (min-width: 1024px) {
-  .home-bio-expand-reveal,
-  .home-bio-expand-reveal__inner {
+/*
+  Bio text curtain reveal (heading → intro stagger).
+  Mobile: opens with the frame expand. Desktop: opens as the bio scrolls into view.
+*/
+.home-bio-row {
+  --bio-reveal-dur: 1.15s;
+  --bio-reveal-dur-close: 0.69s;
+  --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+  overflow-anchor: none;
+}
+
+.home-bio-expand-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease),
+    opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease);
+}
+
+.home-bio-expand-reveal__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.home-bio-row.is-bio-copy-open .home-bio-expand-reveal {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease),
+    opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease);
+}
+
+.home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro,
+.home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions {
+  transition:
+    grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s,
+    opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s;
+}
+
+.home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading,
+.home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--picture {
+  transition:
+    grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease) 0.12s,
+    opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) 0.12s;
+}
+
+.home-bio-row .home-bio-copy {
+  gap: 0;
+  transition: gap var(--bio-reveal-dur-close) var(--bio-reveal-ease);
+}
+
+.home-bio-row.is-bio-copy-open .home-bio-copy {
+  gap: var(--space-3);
+  transition: gap var(--bio-reveal-dur) var(--bio-reveal-ease);
+}
+
+/* Mobile keeps its own image-frame expand + always-visible CTAs. */
+@media (max-width: 1023px) {
+  .home-bio-expand-reveal--picture,
+  .home-bio-expand-reveal--picture > .home-bio-expand-reveal__inner,
+  .home-bio-expand-reveal--actions,
+  .home-bio-expand-reveal--actions > .home-bio-expand-reveal__inner {
     display: contents;
+  }
+}
+
+/*
+  Desktop: same curtain look via clip + opacity, but layout height is reserved
+  so opening does not resize the page (no scroll shove / jitter).
+*/
+@media (min-width: 1024px) {
+  .home-bio-row .home-bio-copy {
+    gap: var(--space-4);
+    transition: none;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-copy {
+    gap: var(--space-4);
+    transition: none;
+  }
+
+  .home-bio-expand-reveal {
+    grid-template-rows: 1fr;
+    opacity: 0;
+    overflow: hidden;
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+    transition:
+      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease),
+      clip-path var(--bio-reveal-dur-close) var(--bio-reveal-ease);
+  }
+
+  .home-bio-expand-reveal__inner {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    pointer-events: auto;
+    transition:
+      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease),
+      clip-path var(--bio-reveal-dur) var(--bio-reveal-ease);
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro,
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions {
+    transition:
+      opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s,
+      clip-path var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s;
+  }
+
+  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading,
+  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--picture {
+    transition:
+      opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) 0.12s,
+      clip-path var(--bio-reveal-dur-close) var(--bio-reveal-ease) 0.12s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-bio-expand-reveal,
+  .home-bio-row .home-bio-copy {
+    transition: none;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal,
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro,
+  .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions,
+  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading,
+  .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--picture {
+    transition: none;
+  }
+
+  @media (min-width: 1024px) {
+    .home-bio-expand-reveal {
+      clip-path: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 }
 
@@ -1983,7 +2065,11 @@ body.page-home .home-bio-row .home-intro {
 }
 
 .onepage-section--rates,
-.rates__panel {
+.rates,
+.rates__panel,
+.rates__panel-inner,
+.home-bio-actions,
+.home-cta.rates__toggle {
   overflow-anchor: none;
 }
 
@@ -2049,7 +2135,7 @@ body.page-home .home-bio-row .home-intro {
   min-height: 0;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(-0.65rem);
+  transform: translateY(0.65rem);
   transition:
     opacity 0.35s ease,
     transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
@@ -2065,7 +2151,7 @@ body.page-home .home-bio-row .home-intro {
 .rates.is-collapsing .rates__panel-inner,
 .onepage-section--rates.is-collapsing .rates__panel-inner {
   opacity: 0;
-  transform: translateY(-0.65rem);
+  transform: translateY(0.65rem);
   overflow: visible;
 }
 
@@ -2186,6 +2272,8 @@ body.page-home .home-bio-row .home-intro {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-picture,
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-image,
   .home-bio-inner > .home-bio-picture,
   .home-bio-inner > .home-bio-image {
     transition: none;
@@ -2358,8 +2446,7 @@ body.page-home .home-bio-row .home-intro {
     padding-top: 0.35rem;
   }
 
-  .home-bio-inner > .home-bio-picture,
-  .home-bio-inner > .home-bio-image {
+  .home-bio-inner > .home-bio-expand-reveal--picture {
     grid-column: 1;
     /* Span copy + rates rows so closed and open stay balanced. */
     grid-row: 1 / -1;
@@ -2371,9 +2458,24 @@ body.page-home .home-bio-row .home-intro {
     margin: 0;
   }
 
-  .home-bio-inner > .home-bio-picture .home-bio-picture__default,
-  .home-bio-inner > .home-bio-picture .home-bio-image,
-  .home-bio-inner > .home-bio-image {
+  .home-bio-inner > .home-bio-expand-reveal--picture > .home-bio-expand-reveal__inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-picture {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+  }
+
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-picture__default,
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-image,
+  .home-bio-inner > .home-bio-expand-reveal--picture .home-bio-cycle__img {
     width: 100%;
     height: 100%;
     min-height: 0;
@@ -2387,16 +2489,20 @@ body.page-home .home-bio-row .home-intro {
   }
 
   /* When rates opens, the left column grows with the panel — tighten the crop. */
-  .home-bio-inner:has(.onepage-section--rates.is-open) > .home-bio-picture .home-bio-image,
-  .home-bio-inner:has(.rates.is-open) > .home-bio-picture .home-bio-image,
-  .home-bio-inner:has(.onepage-section--rates.is-open) > .home-bio-image,
-  .home-bio-inner:has(.rates.is-open) > .home-bio-image {
+  .home-bio-inner:has(.onepage-section--rates.is-open)
+    > .home-bio-expand-reveal--picture
+    .home-bio-image,
+  .home-bio-inner:has(.rates.is-open) > .home-bio-expand-reveal--picture .home-bio-image {
     object-position: center 14%;
   }
 
   .home-bio-inner > .home-bio-copy {
     grid-column: 2;
     grid-row: 1;
+  }
+
+  .home-bio-row.is-bio-copy-open .home-bio-copy {
+    gap: var(--space-4);
   }
 
   /* Sit under the bio copy column so CTAs center below Who Am I? */
@@ -5476,8 +5582,10 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   touch-action: manipulation;
   /* Anywhere off the photo dismisses, so say so. */
   cursor: zoom-out;
-  --lightbox-gallery-link-bottom: max(1.1rem, env(safe-area-inset-bottom, 0px));
-  --lightbox-gallery-link-space: calc(3rem + 1.35rem + env(safe-area-inset-bottom, 0px));
+  --lightbox-chrome-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  --lightbox-chrome-side: max(0.75rem, env(safe-area-inset-right, 0px));
+  --lightbox-chrome-side-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  --lightbox-chrome-size: 3rem;
 }
 
 .lightbox[data-state="open"] {
@@ -5506,12 +5614,12 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
 
 .lightbox__close {
   position: absolute;
-  top: max(0.75rem, env(safe-area-inset-top, 0px));
-  right: max(0.75rem, env(safe-area-inset-right, 0px));
+  top: var(--lightbox-chrome-top);
+  right: var(--lightbox-chrome-side);
   z-index: 20;
   box-sizing: border-box;
-  width: 3rem;
-  height: 3rem;
+  width: var(--lightbox-chrome-size);
+  height: var(--lightbox-chrome-size);
   margin: 0;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -5527,7 +5635,7 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 
-/* Photo stage stays centered; gallery pill is pinned to one viewport spot. */
+/* Photo stage stays centered. */
 .lightbox__stage {
   position: relative;
   z-index: 1;
@@ -5540,35 +5648,36 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   min-width: 0;
 }
 
-/* Same viewport anchor for every flow photo (bottom-center). */
+/* Top-left, vertically aligned with the × — underlined artist deep-link. */
 .lightbox__gallery-link {
   position: absolute;
-  left: 50%;
-  bottom: var(--lightbox-gallery-link-bottom);
+  top: var(--lightbox-chrome-top);
+  left: var(--lightbox-chrome-side-left);
   z-index: 20;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
+  justify-content: flex-start;
   width: auto;
-  max-width: min(20rem, calc(100vw - 2rem));
-  height: 3rem;
-  min-height: 3rem;
+  max-width: min(28rem, calc(100vw - var(--lightbox-chrome-size) - 2.5rem));
+  height: var(--lightbox-chrome-size);
+  min-height: var(--lightbox-chrome-size);
   margin: 0;
-  padding: 0 1rem;
+  padding: 0;
   border: none;
-  border-radius: 999px;
-  background: #e8e8e8;
-  color: #000000;
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
   font-family: var(--font-sans);
-  font-size: 0.83rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1;
-  text-align: center;
-  text-decoration: none;
+  font-size: clamp(0.92rem, 2.2vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5576,23 +5685,12 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
-  transform: translateX(-50%);
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  transform: none;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 .lightbox__gallery-link[hidden] {
   display: none !important;
-}
-
-/* Keep the photo clear of the fixed pill. */
-.lightbox:has(.lightbox__gallery-link:not([hidden])) {
-  padding-bottom: var(--lightbox-gallery-link-space);
-}
-
-.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__stage {
-  max-height: 100%;
 }
 
 .lightbox__close-icon {
@@ -5616,35 +5714,19 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
 
 .lightbox__gallery-link:hover,
 .lightbox__gallery-link:focus-visible {
-  background: #dcdcdc;
-  color: #000000;
+  color: rgba(255, 255, 255, 0.82);
   outline: none;
 }
 
 .lightbox__gallery-link:focus-visible {
+  border-radius: 2px;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
 @media (max-width: 420px) {
   .lightbox__gallery-link {
-    max-width: calc(100vw - 2rem);
-    padding: 0 0.85rem;
-    font-size: 0.78rem;
-  }
-}
-
-/* Desktop: no gallery deep-link pill. */
-@media (min-width: 769px) {
-  .lightbox {
-    --lightbox-gallery-link-space: 0px;
-  }
-
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) {
-    padding-bottom: 0;
-  }
-
-  .lightbox__gallery-link {
-    display: none !important;
+    max-width: calc(100vw - var(--lightbox-chrome-size) - 1.75rem);
+    font-size: 0.88rem;
   }
 }
 
@@ -5674,10 +5756,6 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   min-width: 0;
 }
 
-.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__content {
-  max-height: calc(90vh - var(--lightbox-gallery-link-space, 4.5rem));
-}
-
 .lightbox__media {
   position: relative;
   width: auto;
@@ -5703,11 +5781,6 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   cursor: pointer;
 }
 
-.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
-.lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
-  max-height: calc(90vh - var(--lightbox-gallery-link-space, 4.5rem));
-}
-
 .lightbox__image[data-active="true"],
 .lightbox__video[data-active="true"] {
   display: block;
@@ -5728,10 +5801,6 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
     box-sizing: border-box;
   }
 
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__stage {
-    max-height: 100%;
-  }
-
   .lightbox__content {
     width: 100%;
     max-width: 100%;
@@ -5739,18 +5808,9 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
     border-radius: 0.65rem;
   }
 
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__content {
-    max-height: min(calc(92dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
-  }
-
   .lightbox__image,
   .lightbox__video {
     max-height: min(82dvh, 100%);
-  }
-
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
-    max-height: min(calc(82dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
   }
 }
 
@@ -5759,10 +5819,5 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
   .lightbox__image,
   .lightbox__video {
     max-height: min(90dvh, 100%);
-  }
-
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__image,
-  .lightbox:has(.lightbox__gallery-link:not([hidden])) .lightbox__video {
-    max-height: min(calc(90dvh - var(--lightbox-gallery-link-space, 4.5rem)), 100%);
   }
 }

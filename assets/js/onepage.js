@@ -1370,18 +1370,12 @@ function hideLightboxGalleryLink() {
   link.setAttribute("aria-label", "View show in gallery");
 }
 
-/** Home flow lightbox only: pill linking the open photo to its gallery folder. */
+/** Home flow lightbox only: top-left “View {artist}” deep-link to that folder. */
 function updateLightboxGalleryLink(item) {
   const link = getLightboxGalleryLinkEl();
   if (!link) return;
 
   if (!document.body.classList.contains("page-home") || typeof item !== "string") {
-    hideLightboxGalleryLink();
-    return;
-  }
-
-  // Desktop lightbox: no gallery deep-link pill.
-  if (window.matchMedia("(min-width: 769px)").matches) {
     hideLightboxGalleryLink();
     return;
   }
@@ -1393,7 +1387,7 @@ function updateLightboxGalleryLink(item) {
     return;
   }
 
-  const label = `View ${artist} in Gallery`;
+  const label = `View ${artist}`;
   link.hidden = false;
   link.href = `full-gallery.html#folder-${encodeURIComponent(folder.label)}`;
   link.textContent = label;
@@ -4807,7 +4801,7 @@ function setupContactForm() {
 /**
  * Fade the home contact section from hidden → fully opaque as the
  * "Get in touch" heading scrolls to the vertical center of the viewport.
- * On mobile, stays at 0 until bio text has finished revealing; if the
+ * Stays at 0 until bio text has finished revealing; if the
  * user has already scrolled into the fade zone by then, ease to the
  * scroll-correct opacity instead of snapping. Once fully shown (or reached
  * via menu), it stays opaque for the rest of the session.
@@ -5197,6 +5191,33 @@ scheduleOnePageInit();
 
 let fullGalleryPageInitialized = false;
 
+/** Keep an element's viewport Y stable while layout height changes beneath/around it. */
+function pinElementTopWhile(el, fn, durationMs = 700) {
+  if (!el || typeof fn !== "function") {
+    fn?.();
+    return;
+  }
+  if (getShouldReduceMotion()) {
+    fn();
+    return;
+  }
+  const topBefore = el.getBoundingClientRect().top;
+  fn();
+  const apply = () => {
+    const drift = el.getBoundingClientRect().top - topBefore;
+    if (Math.abs(drift) > 0.5) {
+      setPageScrollTop(getPageScrollTop() + drift);
+    }
+  };
+  apply();
+  const started = performance.now();
+  const tick = (now) => {
+    apply();
+    if (now - started < durationMs) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 function setupRatesReveal() {
   const root = document.querySelector(".rates--reveal");
   if (!root) return;
@@ -5211,28 +5232,13 @@ function setupRatesReveal() {
   const isRatesMobile = () => window.matchMedia?.(RATES_MOBILE_QUERY)?.matches ?? false;
   let ratesFollowRaf = 0;
 
-  /** Keep the Rates button fixed in the viewport while the panel shrinks on close. */
+  /** Mobile: pin the toggle so close/open doesn't yank the page. Desktop: no scroll fighting. */
   function pinToggleWhile(fn) {
-    if (!isRatesMobile()) {
-      fn();
+    if (isRatesMobile()) {
+      pinElementTopWhile(toggle, fn, 650);
       return;
     }
-    const topBefore = toggle.getBoundingClientRect().top;
     fn();
-    const apply = () => {
-      const drift = toggle.getBoundingClientRect().top - topBefore;
-      if (Math.abs(drift) > 0.5) {
-        setPageScrollTop(getPageScrollTop() + drift);
-      }
-    };
-    apply();
-    const started = performance.now();
-    const tick = (now) => {
-      apply();
-      // Match .rates__panel transition (~550ms) so scroll anchoring cannot fight mid-close.
-      if (now - started < 650) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
   }
 
   function stopRatesCenterFollow() {
@@ -5321,11 +5327,13 @@ function setupRatesReveal() {
     else panel.setAttribute("inert", "");
     setRatesBioCycleActive(open);
     if (open) {
+      // Latch contact after the panel starts opening — don't couple it into the height transition.
       contactFullyVisibleAfterRates = true;
       contactStayVisible = true;
+      requestAnimationFrame(() => contactScrollFadeUpdate?.());
+    } else {
       contactScrollFadeUpdate?.();
     }
-    contactScrollFadeUpdate?.();
   };
 
   const toggleOpen = (event) => {
@@ -5333,6 +5341,12 @@ function setupRatesReveal() {
     event.stopPropagation();
     const willOpen = !root.classList.contains("is-open");
     stopRatesCenterFollow();
+    // Avoid the browser scrolling the focused control into view mid-expand.
+    try {
+      toggle.focus({ preventScroll: true });
+    } catch (_e) {
+      toggle.focus();
+    }
 
     if (willOpen && isRatesMobile()) {
       setOpen(true);
@@ -5414,7 +5428,6 @@ function revealContactFromNav() {
 }
 
 function isBioFullyExpandedForContact() {
-  if (!isRatesBioCycleMobile()) return true;
   if (contactFadeBypassBioGate || contactStayVisible) return true;
   // Contact fades in only after heading + bio text have finished revealing.
   return Boolean(document.querySelector(".home-bio-row.is-bio-copy-ready"));
@@ -5456,8 +5469,46 @@ function setupRatesBioCycle() {
   let playPastBioDown = false;
   // Flinged past the bio without opening — stay collapsed until they scroll back up to it.
   let skipBioExpandUntilReturn = false;
+  // Once the mobile frame has opened, keep it until the user dwells at page top.
+  let frameStayOpen = false;
+  let topCollapseTimerId = 0;
+  const TOP_COLLAPSE_MS = 3000;
+  const TOP_SCROLL_PX = 8;
   let lastBioScrollY = getPageScrollTop();
   let lastBioScrollTs = performance.now();
+
+  const clearTopCollapseTimer = () => {
+    if (!topCollapseTimerId) return;
+    window.clearTimeout(topCollapseTimerId);
+    topCollapseTimerId = 0;
+  };
+
+  /** Collapse the mobile bio frame only after dwelling at the very top of the page. */
+  const scheduleTopCollapseIfNeeded = (scrollY) => {
+    if (!isRatesBioCycleMobile()) {
+      clearTopCollapseTimer();
+      return;
+    }
+    const frameOpen = picture.classList.contains("is-bio-frame-open") || frameStayOpen;
+    if (!frameOpen) {
+      clearTopCollapseTimer();
+      return;
+    }
+    if (scrollY > TOP_SCROLL_PX) {
+      clearTopCollapseTimer();
+      return;
+    }
+    if (topCollapseTimerId) return;
+    topCollapseTimerId = window.setTimeout(() => {
+      topCollapseTimerId = 0;
+      if (!isRatesBioCycleMobile()) return;
+      if (getPageScrollTop() > TOP_SCROLL_PX) return;
+      frameStayOpen = false;
+      playPastBioDown = false;
+      bioCentered = false;
+      stopFrame();
+    }, TOP_COLLAPSE_MS);
+  };
 
   const setLayerSrc = (img, path) => {
     img.src = getPinnedImageSrc(path);
@@ -5493,7 +5544,7 @@ function setupRatesBioCycle() {
     const row = picture.closest(".home-bio-row");
     if (!row) return;
     const reveals = row.querySelectorAll(".home-bio-expand-reveal");
-    const open = !isRatesBioCycleMobile() || row.classList.contains("is-bio-copy-open");
+    const open = row.classList.contains("is-bio-copy-open");
     reveals.forEach((el) => {
       el.toggleAttribute("inert", !open);
       el.setAttribute("aria-hidden", open ? "false" : "true");
@@ -5601,6 +5652,8 @@ function setupRatesBioCycle() {
     const wasOpen = picture.classList.contains("is-bio-frame-open");
     picture.classList.toggle("is-bio-frame-open", next);
     if (!next) {
+      frameStayOpen = false;
+      clearTopCollapseTimer();
       clearFrameExpandSettle();
       clearCopyStaggerTimer();
       picture.classList.remove("is-cycling");
@@ -5610,6 +5663,8 @@ function setupRatesBioCycle() {
       contactScrollFadeUpdate?.();
       return;
     }
+    frameStayOpen = true;
+    clearTopCollapseTimer();
     if (next && !wasOpen) {
       picture.classList.remove("is-bio-fully-expanded");
       clearFrameExpandSettle();
@@ -5641,6 +5696,8 @@ function setupRatesBioCycle() {
   const stopFrame = () => {
     active = false;
     bioCentered = false;
+    frameStayOpen = false;
+    clearTopCollapseTimer();
     clearMobileStartTimer();
     clearFrameExpandSettle();
     if (timerId) {
@@ -5664,6 +5721,7 @@ function setupRatesBioCycle() {
     if (paths.length < 1) return false;
     if (isRatesBioCycleDesktop()) return ratesOpen;
     if (isRatesBioCycleMobile()) {
+      if (frameStayOpen || picture.classList.contains("is-bio-frame-open")) return true;
       if (skipBioExpandUntilReturn) return false;
       return bioCentered || playPastBioDown;
     }
@@ -5678,7 +5736,8 @@ function setupRatesBioCycle() {
     if (active) return;
     if (isRatesBioCycleMobile() && isMobileBioExpandSuppressed()) return;
     // Frame may only open at/above the center line (or past the bio).
-    if (isRatesBioCycleMobile() && !playPastBioDown) {
+    // Once latched open, keep playback without re-checking the gate.
+    if (isRatesBioCycleMobile() && !playPastBioDown && !frameStayOpen) {
       const midY = getBioPicMidY();
       if (midY >= 0 && midY > window.innerHeight * MOBILE_FRAME_ENTER_RATIO) return;
     }
@@ -5761,13 +5820,38 @@ function setupRatesBioCycle() {
   }
 
   let mobileTriggerRaf = 0;
+  /** Desktop: open bio curtains as soon as the portrait enters the lower viewport. */
+  const DESKTOP_COPY_ENTER_RATIO = 0.82;
+  const updateDesktopBioCopyTrigger = () => {
+    const row = picture.closest(".home-bio-row");
+    if (!row) return;
+
+    // Menu/hash smooth-scroll: open so contact gate + a11y aren't stuck mid-jump.
+    if (isMobileBioExpandSuppressed()) {
+      setBioCopyOpen(true);
+      return;
+    }
+
+    if (row.classList.contains("is-bio-copy-open")) return;
+
+    // Collapsed clip still reserves height — gate off the portrait top.
+    const picRect = picture.getBoundingClientRect();
+    const gateY = picRect.top + Math.max(picRect.height, 1) * 0.08;
+    if (gateY <= window.innerHeight * DESKTOP_COPY_ENTER_RATIO || picRect.bottom < 0) {
+      setBioCopyOpen(true);
+    }
+  };
+
   const updateMobileBioTrigger = () => {
     mobileTriggerRaf = 0;
     if (!isRatesBioCycleMobile()) {
-      // Desktop playback is driven by ratesOpen — never tear it down on scroll.
+      // Desktop: curtain-reveal bio copy; rates slideshow stays rates-driven.
       bioCentered = false;
       playPastBioDown = false;
       skipBioExpandUntilReturn = false;
+      frameStayOpen = false;
+      clearTopCollapseTimer();
+      if (isRatesBioCycleDesktop()) updateDesktopBioCopyTrigger();
       return;
     }
 
@@ -5789,7 +5873,7 @@ function setupRatesBioCycle() {
     const row = picture.closest(".home-bio-row");
     const copyOpen = Boolean(row?.classList.contains("is-bio-copy-open"));
     const frameOpen = picture.classList.contains("is-bio-frame-open");
-    const bioWasOpen = frameOpen || copyOpen || bioCentered;
+    const bioWasOpen = frameOpen || frameStayOpen || copyOpen || bioCentered;
 
     if (isMobileBioExpandSuppressed()) {
       if (midY < 0 && bioWasOpen) {
@@ -5802,12 +5886,18 @@ function setupRatesBioCycle() {
       return;
     }
 
-    // Back above the bio — collapse the image only; keep heading + text if revealed.
+    // Collapse only after dwelling at the very top of the page (not on scroll-up).
+    scheduleTopCollapseIfNeeded(scrollY);
+
+    // Back above the bio — keep the frame latched; heading + text stay revealed.
     if (midY >= exitLine) {
       skipBioExpandUntilReturn = false;
-      playPastBioDown = false;
       bioCentered = false;
-      stopFrame();
+      if (!(frameStayOpen || frameOpen)) {
+        playPastBioDown = false;
+      } else if (!active) {
+        syncPlayback();
+      }
       return;
     }
 
