@@ -2110,6 +2110,15 @@ body.page-home .home-bio-row .home-intro {
   color: #111111;
 }
 
+/* Open state is already the affordance — don't stack a second focus ring. */
+.rates.is-open .home-cta.rates__toggle:focus,
+.rates.is-open .home-cta.rates__toggle:focus-visible,
+.onepage-section--rates.is-open .home-cta.rates__toggle:focus,
+.onepage-section--rates.is-open .home-cta.rates__toggle:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .rates.is-open .home-cta.rates__toggle:hover,
 .onepage-section--rates.is-open .home-cta.rates__toggle:hover {
   border-color: #ffffff;

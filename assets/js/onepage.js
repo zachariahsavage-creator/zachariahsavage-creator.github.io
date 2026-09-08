@@ -387,6 +387,13 @@ const FULL_GALLERY_LISTENING_ROOM = {
   id: "listening-room-longboat",
   order: -2,
   title: "Listening Room @ Longboat Hall",
+  /* Home flow: use shot 4 instead of the folder cover (01). */
+  homeFlowSources: [
+    "listening-room-longboat-hall-04.webp",
+    "listening-room-longboat-hall-02.webp",
+    "listening-room-longboat-hall-03.webp",
+    "listening-room-longboat-hall-05.webp",
+  ],
   sources: [
     "listening-room-longboat-hall-01.webp",
     "listening-room-longboat-hall-02.webp",
@@ -563,7 +570,7 @@ const HOME_FLOW_OPENING_PATHS = [
   "daniela-andrade-mod-club-01.webp",
   "arlo-parks-history-05.webp",
   "taplin-the-baby-g-01.webp",
-  "listening-room-longboat-hall-01.webp",
+  "listening-room-longboat-hall-04.webp",
 ];
 const HOME_FLOW_OPENING_PATH = HOME_FLOW_OPENING_PATHS[0];
 const HOME_FLOW_NO_ADJACENT_PREFIX = "daniela-andrade-mod-club-";
@@ -5377,11 +5384,16 @@ function setupRatesReveal() {
     event.stopPropagation();
     const willOpen = !root.classList.contains("is-open");
     stopRatesCenterFollow();
-    // Avoid the browser scrolling the focused control into view mid-expand.
+    // Keep focus on the control without forcing a :focus-visible ring after mouse click
+    // (that reads as a second outline on top of the open inverted border).
     try {
-      toggle.focus({ preventScroll: true });
+      toggle.focus({ preventScroll: true, focusVisible: false });
     } catch (_e) {
-      toggle.focus();
+      try {
+        toggle.focus({ preventScroll: true });
+      } catch (_e2) {
+        toggle.focus();
+      }
     }
 
     if (willOpen && isRatesMobile()) {
