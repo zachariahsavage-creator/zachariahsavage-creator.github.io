@@ -209,20 +209,54 @@ body.page-home .onepage-section--contact .contact__card {
   animation: none !important;
 }
 
-/* Contact fades in with scroll (opacity driven by --contact-scroll-opacity). */
-@property --contact-scroll-opacity {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
+/* Contact uses the same curtain reveal as bio (clip + opacity), not scroll fade. */
+body.page-home .page--onepage {
+  --contact-reveal-dur: 1.15s;
+  --contact-reveal-dur-close: 0.69s;
+  --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+@media (max-width: 1023px) {
+  body.page-home .page--onepage {
+    /* Match mobile bio expand speedup. */
+    --contact-reveal-dur: calc(1.15s / 4.67);
+    --contact-reveal-dur-close: calc(0.69s / 4.67);
+  }
 }
 
 body.page-home .page--onepage .onepage-section--contact {
-  opacity: var(--contact-scroll-opacity, 0);
+  opacity: 1;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact-bg,
+body.page-home .page--onepage .onepage-section--contact .contact {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+  transition:
+    opacity calc(var(--contact-reveal-dur-close) * 0.75) var(--contact-reveal-ease),
+    clip-path var(--contact-reveal-dur-close) var(--contact-reveal-ease);
+}
+
+body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
+body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  pointer-events: auto;
+  transition:
+    opacity calc(var(--contact-reveal-dur) * 0.75) var(--contact-reveal-ease),
+    clip-path var(--contact-reveal-dur) var(--contact-reveal-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.page-home .page--onepage .onepage-section--contact {
+  body.page-home .page--onepage .onepage-section--contact .contact-bg,
+  body.page-home .page--onepage .onepage-section--contact .contact,
+  body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
+  body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
+    clip-path: none;
     opacity: 1;
+    pointer-events: auto;
+    transition: none;
   }
 }
 
@@ -1452,10 +1486,13 @@ body.page-home .page--onepage .onepage-section--contact {
 
 @media (max-width: 1023px) {
   .home-bio-row {
-    --bio-reveal-dur: 1.15s;
-    --bio-reveal-dur-close: 0.69s; /* open × 0.6 → 40% faster close */
-    --bio-frame-dur: 1.12s;
-    --bio-frame-dur-close: 0.67s; /* open × 0.6 → 40% faster close */
+    /* Mobile expand ~4.67× faster than desktop (slowed another 20% from 5.6×). */
+    --bio-reveal-dur: calc(1.15s / 4.67);
+    --bio-reveal-dur-close: calc(0.69s / 4.67);
+    --bio-frame-dur: calc(1.12s / 4.67);
+    --bio-frame-dur-close: calc(0.67s / 4.67);
+    --bio-reveal-stagger: calc(0.22s / 4.67);
+    --bio-reveal-stagger-close: calc(0.12s / 4.67);
     /* Ease-out for height: soft settle, less “linear stretch” than the old S-curve. */
     --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
     --bio-frame-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -1527,8 +1564,22 @@ body.page-home .home-bio-row.is-bio-copy-open * {
 .home-bio-row {
   --bio-reveal-dur: 1.15s;
   --bio-reveal-dur-close: 0.69s;
+  --bio-reveal-stagger: 0.22s;
+  --bio-reveal-stagger-close: 0.12s;
   --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
   overflow-anchor: none;
+}
+
+/* Re-assert mobile speed after the shared defaults above (do not affect desktop). */
+@media (max-width: 1023px) {
+  .home-bio-row {
+    --bio-reveal-dur: calc(1.15s / 4.67);
+    --bio-reveal-dur-close: calc(0.69s / 4.67);
+    --bio-frame-dur: calc(1.12s / 4.67);
+    --bio-frame-dur-close: calc(0.67s / 4.67);
+    --bio-reveal-stagger: calc(0.22s / 4.67);
+    --bio-reveal-stagger-close: calc(0.12s / 4.67);
+  }
 }
 
 .home-bio-expand-reveal {
@@ -1558,15 +1609,15 @@ body.page-home .home-bio-row.is-bio-copy-open * {
 .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--intro,
 .home-bio-row.is-bio-copy-open .home-bio-expand-reveal--actions {
   transition:
-    grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) 0.22s,
-    opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) 0.22s;
+    grid-template-rows var(--bio-reveal-dur) var(--bio-reveal-ease) var(--bio-reveal-stagger),
+    opacity calc(var(--bio-reveal-dur) * 0.75) var(--bio-reveal-ease) var(--bio-reveal-stagger);
 }
 
 .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--heading,
 .home-bio-row:not(.is-bio-copy-open) .home-bio-expand-reveal--picture {
   transition:
-    grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease) 0.12s,
-    opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) 0.12s;
+    grid-template-rows var(--bio-reveal-dur-close) var(--bio-reveal-ease) var(--bio-reveal-stagger-close),
+    opacity calc(var(--bio-reveal-dur-close) * 0.75) var(--bio-reveal-ease) var(--bio-reveal-stagger-close);
 }
 
 .home-bio-row .home-bio-copy {
