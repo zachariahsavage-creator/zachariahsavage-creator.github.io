@@ -231,8 +231,8 @@ body.page-home .onepage-section--contact .contact__card {
 /* Mobile: bio-style curtain reveal instead of scroll fade. */
 @media (max-width: 1023px) {
   body.page-home .page--onepage {
-    --contact-reveal-dur: calc(1.15s / 4.67);
-    --contact-reveal-dur-close: calc(0.69s / 4.67);
+    --contact-reveal-dur: calc(1.15s / 3.59);
+    --contact-reveal-dur-close: calc(0.69s / 3.59);
     --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
   }
 
@@ -1499,13 +1499,13 @@ body.page-home .page--onepage .onepage-section--contact {
 
 @media (max-width: 1023px) {
   .home-bio-row {
-    /* Mobile expand ~4.67× faster than desktop (slowed another 20% from 5.6×). */
-    --bio-reveal-dur: calc(1.15s / 4.67);
-    --bio-reveal-dur-close: calc(0.69s / 4.67);
-    --bio-frame-dur: calc(1.12s / 4.67);
-    --bio-frame-dur-close: calc(0.67s / 4.67);
-    --bio-reveal-stagger: calc(0.22s / 4.67);
-    --bio-reveal-stagger-close: calc(0.12s / 4.67);
+    /* Mobile expand ~3.59× faster than desktop (30% slower than prior 4.67×). */
+    --bio-reveal-dur: calc(1.15s / 3.59);
+    --bio-reveal-dur-close: calc(0.69s / 3.59);
+    --bio-frame-dur: calc(1.12s / 3.59);
+    --bio-frame-dur-close: calc(0.67s / 3.59);
+    --bio-reveal-stagger: calc(0.22s / 3.59);
+    --bio-reveal-stagger-close: calc(0.12s / 3.59);
     /* Ease-out for height: soft settle, less “linear stretch” than the old S-curve. */
     --bio-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
     --bio-frame-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -1586,12 +1586,12 @@ body.page-home .home-bio-row.is-bio-copy-open * {
 /* Re-assert mobile speed after the shared defaults above (do not affect desktop). */
 @media (max-width: 1023px) {
   .home-bio-row {
-    --bio-reveal-dur: calc(1.15s / 4.67);
-    --bio-reveal-dur-close: calc(0.69s / 4.67);
-    --bio-frame-dur: calc(1.12s / 4.67);
-    --bio-frame-dur-close: calc(0.67s / 4.67);
-    --bio-reveal-stagger: calc(0.22s / 4.67);
-    --bio-reveal-stagger-close: calc(0.12s / 4.67);
+    --bio-reveal-dur: calc(1.15s / 3.59);
+    --bio-reveal-dur-close: calc(0.69s / 3.59);
+    --bio-frame-dur: calc(1.12s / 3.59);
+    --bio-frame-dur-close: calc(0.67s / 3.59);
+    --bio-reveal-stagger: calc(0.22s / 3.59);
+    --bio-reveal-stagger-close: calc(0.12s / 3.59);
   }
 }
 
