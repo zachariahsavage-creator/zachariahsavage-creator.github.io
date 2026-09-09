@@ -4842,136 +4842,55 @@ function setupContactForm() {
 }
 
 /**
- * Fade the home contact section from hidden → fully opaque as the
- * "Get in touch" heading scrolls to the vertical center of the viewport.
- * Stays at 0 until bio text has finished revealing; if the
- * user has already scrolled into the fade zone by then, ease to the
- * scroll-correct opacity instead of snapping. Once fully shown (or reached
- * via menu), it stays opaque for the rest of the session.
+ * Curtain-reveal the home contact section (same motion language as bio).
+ * Opens once bio copy is ready and the contact section begins entering view;
+ * stays open for the rest of the session (menu/rates can open it immediately).
  */
 function setupContactScrollFade() {
   if (!document.body.classList.contains("page-home")) return;
 
   const section = document.querySelector(".page--onepage .onepage-section--contact");
-  const heading = document.getElementById("contact-heading");
-  if (!section || !heading) return;
+  if (!section) return;
 
-  const UNLOCK_FADE_MS = 900;
+  /** Contact top must reach ~mid viewport before the curtain opens (between peek and flush-top). */
+  const CONTACT_ENTER_RATIO = 0.55;
   let ticking = false;
-  let wasGated = true;
-  let unlockRaf = 0;
-  let unlockStart = 0;
-  let unlockFrom = 0;
-  let displayedOpacity = 0;
 
-  function applyOpacity(opacity) {
-    const next = Math.max(0, Math.min(1, opacity));
-    displayedOpacity = next;
-    section.style.setProperty("--contact-scroll-opacity", String(next));
+  function openContactReveal() {
+    if (section.classList.contains("is-contact-reveal-open")) {
+      contactStayVisible = true;
+      return;
+    }
+    section.classList.add("is-contact-reveal-open");
+    const contactEl = section.querySelector(".contact");
+    if (contactEl) contactEl.removeAttribute("inert");
+    contactStayVisible = true;
   }
 
-  function getScrollTargetOpacity() {
-    if (isContactForcedVisible() || getShouldReduceMotion()) return 1;
-
-    const rect = heading.getBoundingClientRect();
-    if (rect.height < 1 && rect.width < 1) return 0;
-
-    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    const fadeEnd = vh * 0.5;
-    const fadeStart = vh;
-    const headingCenter = rect.top + rect.height / 2;
-
-    if (headingCenter >= fadeStart) return 0;
-    if (headingCenter <= fadeEnd) return 1;
-    return (fadeStart - headingCenter) / (fadeStart - fadeEnd);
-  }
-
-  function stopUnlockFade() {
-    if (!unlockRaf) return;
-    window.cancelAnimationFrame(unlockRaf);
-    unlockRaf = 0;
-  }
-
-  function startUnlockFade(fromOpacity) {
-    stopUnlockFade();
-    unlockFrom = fromOpacity;
-    unlockStart = performance.now();
-    applyOpacity(fromOpacity);
-
-    const tick = (now) => {
-      unlockRaf = 0;
-      const liveTarget = getScrollTargetOpacity();
-      const t = Math.min(1, (now - unlockStart) / UNLOCK_FADE_MS);
-      const eased = 1 - (1 - t) * (1 - t);
-      applyOpacity(unlockFrom + (liveTarget - unlockFrom) * eased);
-      if (t < 1) {
-        unlockRaf = window.requestAnimationFrame(tick);
-        return;
-      }
-      applyOpacity(liveTarget);
-      if (liveTarget >= 0.995) contactStayVisible = true;
-    };
-
-    unlockRaf = window.requestAnimationFrame(tick);
-  }
-
-  function isContactFadeGated() {
-    if (isContactForcedVisible()) return false;
-    return !isBioFullyExpandedForContact();
+  const contactEl = section.querySelector(".contact");
+  if (contactEl && !section.classList.contains("is-contact-reveal-open")) {
+    contactEl.setAttribute("inert", "");
   }
 
   function update() {
     ticking = false;
 
-    // Already latched (finished a scroll-in, menu jump, or rates) — stay opaque.
-    if (isContactForcedVisible()) {
-      wasGated = false;
-      stopUnlockFade();
-      applyOpacity(1);
+    // Menu / hash jumps still open immediately; reduced-motion skips the wait.
+    if (contactStayVisible || getShouldReduceMotion()) {
+      openContactReveal();
       return;
     }
 
-    const rect = heading.getBoundingClientRect();
+    // Rates open can bypass the bio gate, but still wait until contact is on-screen.
+    if (!isBioFullyExpandedForContact() && !contactFadeBypassBioGate && !contactFullyVisibleAfterRates) {
+      return;
+    }
+
+    const top = section.getBoundingClientRect().top;
     const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    const fadeStart = vh;
-    const fadeEnd = vh * 0.5;
-    const headingCenter =
-      rect.height < 1 && rect.width < 1 ? fadeStart + 1 : rect.top + rect.height / 2;
-
-    // Left the contact approach zone — clear temporary bio-gate bypass.
-    if (headingCenter >= fadeStart) {
-      contactFadeBypassBioGate = false;
-    }
-
-    const gated = isContactFadeGated();
-
-    if (gated) {
-      wasGated = true;
-      stopUnlockFade();
-      applyOpacity(0);
-      return;
-    }
-
-    // Gate just opened (bio text ready) — ease to the current scroll-based opacity.
-    if (wasGated) {
-      wasGated = false;
-      startUnlockFade(displayedOpacity);
-      return;
-    }
-
-    if (unlockRaf) return;
-
-    if (getShouldReduceMotion()) {
-      contactStayVisible = true;
-      applyOpacity(1);
-      return;
-    }
-
-    const target = getScrollTargetOpacity();
-    applyOpacity(target);
-    // Latch only after a full scroll fade-in — then never fade out again.
-    if (target >= 0.995 || headingCenter <= fadeEnd) {
-      contactStayVisible = true;
+    // Midpoint trigger, plus ~20px earlier so the curtain starts a beat sooner.
+    if (top <= vh * CONTACT_ENTER_RATIO + 20) {
+      openContactReveal();
     }
   }
 
@@ -5477,7 +5396,7 @@ function revealContactFromNav() {
 
 function isBioFullyExpandedForContact() {
   if (contactFadeBypassBioGate || contactStayVisible) return true;
-  // Contact fades in only after heading + bio text have finished revealing.
+  // Contact curtain waits until heading + bio text have finished revealing.
   return Boolean(document.querySelector(".home-bio-row.is-bio-copy-ready"));
 }
 
@@ -5600,12 +5519,19 @@ function setupRatesBioCycle() {
   };
 
   // Mobile: frame opens when bio image center hits viewport center.
-  // Heading + intro stagger open ~0.5s after the frame expand starts.
+  // Heading + intro stagger open after the frame expand starts.
   const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
   const MOBILE_EXIT_RATIO = 3 / 5;
-  const BIO_COPY_STAGGER_MS = 500;
+  /** Mobile expand ~4.67× faster than base timings (slowed 20% from 5.6×). Desktop unchanged. */
+  const BIO_EXPAND_MOBILE_SPEEDUP = 4.67;
+  const BIO_COPY_STAGGER_BASE_MS = 500;
   /** Matches CSS: --bio-reveal-dur (1.15s) + intro delay (0.22s). */
-  const BIO_COPY_READY_MS = 1400;
+  const BIO_COPY_READY_BASE_MS = 1400;
+  const BIO_FRAME_SETTLE_BASE_MS = 1300;
+  const bioExpandMs = (ms) =>
+    isRatesBioCycleMobile()
+      ? Math.max(1, Math.round(ms / BIO_EXPAND_MOBILE_SPEEDUP))
+      : ms;
   let frameExpandSettleId = 0;
   let copyStaggerTimerId = 0;
   let copyReadyTimerId = 0;
@@ -5671,7 +5597,7 @@ function setupRatesBioCycle() {
         copyReadyTimerId = window.setTimeout(() => {
           copyReadyTimerId = 0;
           if (row.classList.contains("is-bio-copy-open")) markBioCopyReady(row);
-        }, BIO_COPY_READY_MS);
+        }, bioExpandMs(BIO_COPY_READY_BASE_MS));
       }
     }
 
@@ -5692,7 +5618,7 @@ function setupRatesBioCycle() {
       ) {
         setBioCopyOpen(true);
       }
-    }, BIO_COPY_STAGGER_MS);
+    }, bioExpandMs(BIO_COPY_STAGGER_BASE_MS));
   };
 
   const setBioFrameOpen = (open) => {
@@ -5724,7 +5650,7 @@ function setupRatesBioCycle() {
         frameExpandSettleId = window.setTimeout(() => {
           frameExpandSettleId = 0;
           markBioFullyExpanded();
-        }, 1300);
+        }, bioExpandMs(BIO_FRAME_SETTLE_BASE_MS));
       }
     }
   };
