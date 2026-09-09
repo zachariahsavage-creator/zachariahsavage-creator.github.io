@@ -4842,19 +4842,33 @@ function setupContactForm() {
 }
 
 /**
- * Curtain-reveal the home contact section (same motion language as bio).
- * Opens once bio copy is ready and the contact section begins entering view;
- * stays open for the rest of the session (menu/rates can open it immediately).
+ * Home contact appearance:
+ * - Desktop (≥1024): scroll-fade opacity (previous behavior)
+ * - Mobile (≤1023): bio-style curtain once bio is ready and contact hits mid-viewport
  */
 function setupContactScrollFade() {
   if (!document.body.classList.contains("page-home")) return;
 
   const section = document.querySelector(".page--onepage .onepage-section--contact");
-  if (!section) return;
+  const heading = document.getElementById("contact-heading");
+  if (!section || !heading) return;
 
-  /** Contact top must reach ~mid viewport before the curtain opens (between peek and flush-top). */
+  const contactEl = section.querySelector(".contact");
+  /** Mobile curtain: contact top must reach ~mid viewport (+20px earlier). */
   const CONTACT_ENTER_RATIO = 0.55;
+  const UNLOCK_FADE_MS = 900;
   let ticking = false;
+  let wasGated = true;
+  let unlockRaf = 0;
+  let unlockStart = 0;
+  let unlockFrom = 0;
+  let displayedOpacity = 0;
+
+  function applyOpacity(opacity) {
+    const next = Math.max(0, Math.min(1, opacity));
+    displayedOpacity = next;
+    section.style.setProperty("--contact-scroll-opacity", String(next));
+  }
 
   function openContactReveal() {
     if (section.classList.contains("is-contact-reveal-open")) {
@@ -4862,36 +4876,147 @@ function setupContactScrollFade() {
       return;
     }
     section.classList.add("is-contact-reveal-open");
-    const contactEl = section.querySelector(".contact");
     if (contactEl) contactEl.removeAttribute("inert");
     contactStayVisible = true;
   }
 
-  const contactEl = section.querySelector(".contact");
-  if (contactEl && !section.classList.contains("is-contact-reveal-open")) {
-    contactEl.setAttribute("inert", "");
+  function getScrollTargetOpacity() {
+    if (isContactForcedVisible() || getShouldReduceMotion()) return 1;
+
+    const rect = heading.getBoundingClientRect();
+    if (rect.height < 1 && rect.width < 1) return 0;
+
+    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
+    const fadeEnd = vh * 0.5;
+    const fadeStart = vh;
+    const headingCenter = rect.top + rect.height / 2;
+
+    if (headingCenter >= fadeStart) return 0;
+    if (headingCenter <= fadeEnd) return 1;
+    return (fadeStart - headingCenter) / (fadeStart - fadeEnd);
   }
 
-  function update() {
-    ticking = false;
+  function stopUnlockFade() {
+    if (!unlockRaf) return;
+    window.cancelAnimationFrame(unlockRaf);
+    unlockRaf = 0;
+  }
 
-    // Menu / hash jumps still open immediately; reduced-motion skips the wait.
+  function startUnlockFade(fromOpacity) {
+    stopUnlockFade();
+    unlockFrom = fromOpacity;
+    unlockStart = performance.now();
+    applyOpacity(fromOpacity);
+
+    const tick = (now) => {
+      unlockRaf = 0;
+      const liveTarget = getScrollTargetOpacity();
+      const t = Math.min(1, (now - unlockStart) / UNLOCK_FADE_MS);
+      const eased = 1 - (1 - t) * (1 - t);
+      applyOpacity(unlockFrom + (liveTarget - unlockFrom) * eased);
+      if (t < 1) {
+        unlockRaf = window.requestAnimationFrame(tick);
+        return;
+      }
+      applyOpacity(liveTarget);
+      if (liveTarget >= 0.995) contactStayVisible = true;
+    };
+
+    unlockRaf = window.requestAnimationFrame(tick);
+  }
+
+  function isContactFadeGated() {
+    if (isContactForcedVisible()) return false;
+    return !isBioFullyExpandedForContact();
+  }
+
+  function updateDesktopFade() {
+    // Desktop keeps the form interactive; no curtain inert.
+    if (contactEl) contactEl.removeAttribute("inert");
+    section.classList.add("is-contact-reveal-open");
+
+    if (isContactForcedVisible()) {
+      wasGated = false;
+      stopUnlockFade();
+      applyOpacity(1);
+      return;
+    }
+
+    const rect = heading.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
+    const fadeStart = vh;
+    const fadeEnd = vh * 0.5;
+    const headingCenter =
+      rect.height < 1 && rect.width < 1 ? fadeStart + 1 : rect.top + rect.height / 2;
+
+    if (headingCenter >= fadeStart) {
+      contactFadeBypassBioGate = false;
+    }
+
+    const gated = isContactFadeGated();
+
+    if (gated) {
+      wasGated = true;
+      stopUnlockFade();
+      applyOpacity(0);
+      return;
+    }
+
+    if (wasGated) {
+      wasGated = false;
+      startUnlockFade(displayedOpacity);
+      return;
+    }
+
+    if (unlockRaf) return;
+
+    if (getShouldReduceMotion()) {
+      contactStayVisible = true;
+      applyOpacity(1);
+      return;
+    }
+
+    const target = getScrollTargetOpacity();
+    applyOpacity(target);
+    if (target >= 0.995 || headingCenter <= fadeEnd) {
+      contactStayVisible = true;
+    }
+  }
+
+  function updateMobileCurtain() {
+    section.style.removeProperty("--contact-scroll-opacity");
+
     if (contactStayVisible || getShouldReduceMotion()) {
       openContactReveal();
       return;
     }
 
-    // Rates open can bypass the bio gate, but still wait until contact is on-screen.
     if (!isBioFullyExpandedForContact() && !contactFadeBypassBioGate && !contactFullyVisibleAfterRates) {
       return;
     }
 
     const top = section.getBoundingClientRect().top;
     const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    // Midpoint trigger, plus ~20px earlier so the curtain starts a beat sooner.
     if (top <= vh * CONTACT_ENTER_RATIO + 20) {
       openContactReveal();
     }
+  }
+
+  function update() {
+    ticking = false;
+    if (isRatesBioCycleMobile()) {
+      stopUnlockFade();
+      if (
+        contactEl &&
+        !section.classList.contains("is-contact-reveal-open") &&
+        !contactStayVisible
+      ) {
+        contactEl.setAttribute("inert", "");
+      }
+      updateMobileCurtain();
+      return;
+    }
+    updateDesktopFade();
   }
 
   contactScrollFadeUpdate = update;
