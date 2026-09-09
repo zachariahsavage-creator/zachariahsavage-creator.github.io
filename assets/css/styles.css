@@ -209,54 +209,67 @@ body.page-home .onepage-section--contact .contact__card {
   animation: none !important;
 }
 
-/* Contact uses the same curtain reveal as bio (clip + opacity), not scroll fade. */
-body.page-home .page--onepage {
-  --contact-reveal-dur: 1.15s;
-  --contact-reveal-dur-close: 0.69s;
-  --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+/* Desktop: contact fades in with scroll (opacity driven by --contact-scroll-opacity). */
+@property --contact-scroll-opacity {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
 }
 
-@media (max-width: 1023px) {
-  body.page-home .page--onepage {
-    /* Match mobile bio expand speedup. */
-    --contact-reveal-dur: calc(1.15s / 4.67);
-    --contact-reveal-dur-close: calc(0.69s / 4.67);
+@media (min-width: 1024px) {
+  body.page-home .page--onepage .onepage-section--contact {
+    opacity: var(--contact-scroll-opacity, 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.page-home .page--onepage .onepage-section--contact {
+      opacity: 1;
+    }
   }
 }
 
-body.page-home .page--onepage .onepage-section--contact {
-  opacity: 1;
-}
+/* Mobile: bio-style curtain reveal instead of scroll fade. */
+@media (max-width: 1023px) {
+  body.page-home .page--onepage {
+    --contact-reveal-dur: calc(1.15s / 4.67);
+    --contact-reveal-dur-close: calc(0.69s / 4.67);
+    --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
+  }
 
-body.page-home .page--onepage .onepage-section--contact .contact-bg,
-body.page-home .page--onepage .onepage-section--contact .contact {
-  opacity: 0;
-  clip-path: inset(0 0 100% 0);
-  pointer-events: none;
-  transition:
-    opacity calc(var(--contact-reveal-dur-close) * 0.75) var(--contact-reveal-ease),
-    clip-path var(--contact-reveal-dur-close) var(--contact-reveal-ease);
-}
+  body.page-home .page--onepage .onepage-section--contact {
+    opacity: 1;
+  }
 
-body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
-body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
-  opacity: 1;
-  clip-path: inset(0 0 0 0);
-  pointer-events: auto;
-  transition:
-    opacity calc(var(--contact-reveal-dur) * 0.75) var(--contact-reveal-ease),
-    clip-path var(--contact-reveal-dur) var(--contact-reveal-ease);
-}
-
-@media (prefers-reduced-motion: reduce) {
   body.page-home .page--onepage .onepage-section--contact .contact-bg,
-  body.page-home .page--onepage .onepage-section--contact .contact,
+  body.page-home .page--onepage .onepage-section--contact .contact {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+    transition:
+      opacity calc(var(--contact-reveal-dur-close) * 0.75) var(--contact-reveal-ease),
+      clip-path var(--contact-reveal-dur-close) var(--contact-reveal-ease);
+  }
+
   body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
   body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
-    clip-path: none;
     opacity: 1;
+    clip-path: inset(0 0 0 0);
     pointer-events: auto;
-    transition: none;
+    transition:
+      opacity calc(var(--contact-reveal-dur) * 0.75) var(--contact-reveal-ease),
+      clip-path var(--contact-reveal-dur) var(--contact-reveal-ease);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.page-home .page--onepage .onepage-section--contact .contact-bg,
+    body.page-home .page--onepage .onepage-section--contact .contact,
+    body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
+    body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
+      clip-path: none;
+      opacity: 1;
+      pointer-events: auto;
+      transition: none;
+    }
   }
 }
 
