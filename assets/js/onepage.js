@@ -5647,8 +5647,8 @@ function setupRatesBioCycle() {
   // Heading + intro stagger open after the frame expand starts.
   const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
   const MOBILE_EXIT_RATIO = 3 / 5;
-  /** Mobile expand ~4.67× faster than base timings (slowed 20% from 5.6×). Desktop unchanged. */
-  const BIO_EXPAND_MOBILE_SPEEDUP = 4.67;
+  /** Mobile expand ~3.59× faster than base timings (30% slower than prior 4.67×). Desktop unchanged. */
+  const BIO_EXPAND_MOBILE_SPEEDUP = 3.59;
   const BIO_COPY_STAGGER_BASE_MS = 500;
   /** Matches CSS: --bio-reveal-dur (1.15s) + intro delay (0.22s). */
   const BIO_COPY_READY_BASE_MS = 1400;
