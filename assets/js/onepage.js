@@ -4854,8 +4854,8 @@ function setupContactScrollFade() {
   if (!section || !heading) return;
 
   const contactEl = section.querySelector(".contact");
-  /** Mobile curtain: contact top must reach ~mid viewport (+20px earlier). */
-  const CONTACT_ENTER_RATIO = 0.55;
+  /** Mobile curtain: open when bio CTAs sit ~1/3 viewport up from the bottom. */
+  const CONTACT_CTA_FROM_BOTTOM_RATIO = 1 / 3;
   const UNLOCK_FADE_MS = 900;
   let ticking = false;
   let wasGated = true;
@@ -4995,9 +4995,18 @@ function setupContactScrollFade() {
       return;
     }
 
-    const top = section.getBoundingClientRect().top;
+    const actions = document.querySelector(".home-bio-actions");
     const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    if (top <= vh * CONTACT_ENTER_RATIO + 20) {
+    const triggerY = vh * (1 - CONTACT_CTA_FROM_BOTTOM_RATIO);
+    // Prefer CTA mid-line; fall back to contact section top if CTAs aren't in the DOM.
+    let probeY = section.getBoundingClientRect().top;
+    if (actions) {
+      const rect = actions.getBoundingClientRect();
+      if (rect.height > 0 || rect.width > 0) {
+        probeY = rect.top + rect.height / 2;
+      }
+    }
+    if (probeY <= triggerY) {
       openContactReveal();
     }
   }
