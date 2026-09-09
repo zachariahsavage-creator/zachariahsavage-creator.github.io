@@ -4854,8 +4854,8 @@ function setupContactScrollFade() {
   if (!section || !heading) return;
 
   const contactEl = section.querySelector(".contact");
-  /** Mobile curtain: contact top must reach ~mid viewport (+20px earlier). */
-  const CONTACT_ENTER_RATIO = 0.55;
+  /** Mobile curtain: open when bio CTAs sit ~1/3 viewport up from the bottom. */
+  const CONTACT_CTA_FROM_BOTTOM_RATIO = 1 / 3;
   const UNLOCK_FADE_MS = 900;
   let ticking = false;
   let wasGated = true;
@@ -4995,9 +4995,18 @@ function setupContactScrollFade() {
       return;
     }
 
-    const top = section.getBoundingClientRect().top;
+    const actions = document.querySelector(".home-bio-actions");
     const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    if (top <= vh * CONTACT_ENTER_RATIO + 20) {
+    const triggerY = vh * (1 - CONTACT_CTA_FROM_BOTTOM_RATIO);
+    // Prefer CTA mid-line; fall back to contact section top if CTAs aren't in the DOM.
+    let probeY = section.getBoundingClientRect().top;
+    if (actions) {
+      const rect = actions.getBoundingClientRect();
+      if (rect.height > 0 || rect.width > 0) {
+        probeY = rect.top + rect.height / 2;
+      }
+    }
+    if (probeY <= triggerY) {
       openContactReveal();
     }
   }
@@ -5647,8 +5656,8 @@ function setupRatesBioCycle() {
   // Heading + intro stagger open after the frame expand starts.
   const MOBILE_FRAME_ENTER_RATIO = 1 / 2;
   const MOBILE_EXIT_RATIO = 3 / 5;
-  /** Mobile expand ~3.59× faster than base timings (30% slower than prior 4.67×). Desktop unchanged. */
-  const BIO_EXPAND_MOBILE_SPEEDUP = 3.59;
+  /** Mobile expand ~2.22× faster than base timings (additional ~35% slower than prior 2.99×). Desktop unchanged. */
+  const BIO_EXPAND_MOBILE_SPEEDUP = 2.22;
   const BIO_COPY_STAGGER_BASE_MS = 500;
   /** Matches CSS: --bio-reveal-dur (1.15s) + intro delay (0.22s). */
   const BIO_COPY_READY_BASE_MS = 1400;
