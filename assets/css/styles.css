@@ -76,70 +76,7 @@ html:has(body.page-profile) {
   background-color: #070a10;
 }
 
-@media (min-width: 769px) {
-  html::before,
-  html::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    width: 1in;
-    pointer-events: none;
-    z-index: 3;
-    backdrop-filter: blur(18px) saturate(1.1);
-    -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  }
-
-  html::before {
-    left: 0;
-    background: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.78) 0%,
-      rgba(0, 0, 0, 0.5) 38%,
-      rgba(0, 0, 0, 0.22) 68%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(0, 0, 0, 0.7) 46%,
-      rgba(0, 0, 0, 0.28) 76%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(0, 0, 0, 0.7) 46%,
-      rgba(0, 0, 0, 0.28) 76%,
-      rgba(0, 0, 0, 0) 100%
-    );
-  }
-
-  html::after {
-    right: 0;
-    background: linear-gradient(
-      to left,
-      rgba(0, 0, 0, 0.78) 0%,
-      rgba(0, 0, 0, 0.5) 38%,
-      rgba(0, 0, 0, 0.22) 68%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-image: linear-gradient(
-      to left,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(0, 0, 0, 0.7) 46%,
-      rgba(0, 0, 0, 0.28) 76%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-image: linear-gradient(
-      to left,
-      rgba(0, 0, 0, 1) 0%,
-      rgba(0, 0, 0, 0.7) 46%,
-      rgba(0, 0, 0, 0.28) 76%,
-      rgba(0, 0, 0, 0) 100%
-    );
-  }
-}
+/* Desktop side blur vignettes removed — they framed the home/gallery fields. */
 
 /* Focus rings — calm, high-end affordance */
 :focus-visible {
@@ -2531,18 +2468,19 @@ body.page-home .home-bio-row .home-intro {
     align-items: stretch;
   }
 
-  /* Breathing room under the CTAs so the wave join starts clear of them; the
-     card offset below still closes the empty gap inside the tall contact
-     panel. Menu scroll still centers the card itself in the viewport. */
+  /* Leave peach room for the flip wave so it doesn't clip the last flow row;
+     keep extra pad under the CTAs so contact's wave doesn't crowd them. */
   body.page-home .home-bio-row {
-    --bio-row-pad-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
+    margin-top: clamp(44px, 5.5vw, 88px);
+    --bio-row-pad-top: clamp(1.5rem, 3.2vw, 2.35rem);
+    --bio-row-pad-bottom: clamp(4.75rem, 8vw, 7rem);
   }
 
   .page--onepage .onepage-section--home:has(.onepage-section--rates) + .onepage-section--contact,
   .page--onepage .onepage-section--contact {
-    /* Card usually fills the panel, so translateY can't move it — pad instead. */
+    /* Clear the bio→contact wave, then add reading space above the heading. */
     --contact-card-offset-y: 0px;
-    padding-top: 1cm;
+    padding-top: calc(clamp(30px, 4.8vw, 74px) + 2.5rem);
   }
 
   .home-bio-inner > .home-bio-expand-reveal--picture {

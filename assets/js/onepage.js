@@ -4570,7 +4570,8 @@ function updateContactSectionLayout() {
 
     // Panel height comes from the backdrop aspect ratio; grow when the form needs room.
     if (card) {
-      const homePad = homeDesktop ? 38 : 0; // ~1cm desktop padding-top
+      // Match desktop CSS: wave height + reading pad above the heading.
+      const homePad = homeDesktop ? Math.round(Math.min(74, Math.max(30, vw * 0.048)) + 40) : 0;
       const needed = getContactCardContentHeight(card) + 48 + homePad;
       if (needed > section.getBoundingClientRect().height) {
         section.style.setProperty("--contact-section-min-height", `${Math.round(needed)}px`);
