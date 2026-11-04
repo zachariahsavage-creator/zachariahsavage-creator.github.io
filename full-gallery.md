@@ -11,6 +11,8 @@ Browse live-show folders from Greater Toronto Area venues. Each folder is a set 
 - Concrete Breaks @ Standard Time
 - Taplin @ The Baby G
 - Listening Room @ Longboat Hall
+- Big Special @ The Garrison
+- Lady Marge @ Dina's Tavern
 - Superstar Crush @ Dina’s Tavern
 - Meteor Heist @ Dance Cave
 - Stacks @ Rats Nest
@@ -25,4 +27,4 @@ Browse live-show folders from Greater Toronto Area venues. Each folder is a set 
 - [Agent guide](/llms.txt)
 - [Contact](/#contact-heading)
 
-Email: zachariahsavage@gmail.com
+Email: zachsavage.works@gmail.com

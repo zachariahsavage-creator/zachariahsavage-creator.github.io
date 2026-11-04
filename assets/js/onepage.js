@@ -418,6 +418,51 @@ const FULL_GALLERY_LISTENING_ROOM = {
   ],
 };
 
+const FULL_GALLERY_BIG_SPECIAL_THE_GARRISON = {
+  id: "big-special-the-garrison",
+  order: -1.95,
+  title: "Big Special @ The Garrison",
+  ratesBioCycle: false,
+  sources: [
+    "big-special-the-garrison-01.webp",
+    "big-special-the-garrison-02.webp",
+    "big-special-the-garrison-03.webp",
+    "big-special-the-garrison-04.webp",
+    "big-special-the-garrison-05.webp",
+    "big-special-the-garrison-06.webp",
+    "big-special-the-garrison-07.webp",
+    "big-special-the-garrison-08.webp",
+    "big-special-the-garrison-09.webp",
+    "big-special-the-garrison-10.webp",
+    "big-special-the-garrison-11.webp",
+    "big-special-the-garrison-12.webp",
+  ],
+};
+
+const FULL_GALLERY_LADY_MARGE_DINAS = {
+  id: "lady-marge-dinas-tavern",
+  order: -1.8875,
+  title: "Lady Marge @ Dina's Tavern",
+  sources: [
+    "lady-marge-dinas-tavern-01.webp",
+    "lady-marge-dinas-tavern-02.webp",
+    "lady-marge-dinas-tavern-03.webp",
+    "lady-marge-dinas-tavern-04.webp",
+    "lady-marge-dinas-tavern-05.webp",
+    "lady-marge-dinas-tavern-06.webp",
+    "lady-marge-dinas-tavern-07.webp",
+    "lady-marge-dinas-tavern-08.webp",
+    "lady-marge-dinas-tavern-09.webp",
+    "lady-marge-dinas-tavern-10.webp",
+    "lady-marge-dinas-tavern-11.webp",
+    "lady-marge-dinas-tavern-12.webp",
+    "lady-marge-dinas-tavern-13.webp",
+    "lady-marge-dinas-tavern-14.webp",
+    "lady-marge-dinas-tavern-15.webp",
+    "lady-marge-dinas-tavern-16.webp",
+  ],
+};
+
 const FULL_GALLERY_SUPERSTAR_CRUSH_DINAS = {
   id: "superstar-crush-dinas",
   order: -1.875,
@@ -549,6 +594,8 @@ const FULL_GALLERY_PINNED_SHOWS = [
   FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB,
   FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME,
   FULL_GALLERY_LISTENING_ROOM,
+  FULL_GALLERY_BIG_SPECIAL_THE_GARRISON,
+  FULL_GALLERY_LADY_MARGE_DINAS,
   FULL_GALLERY_SUPERSTAR_CRUSH_DINAS,
   FULL_GALLERY_METEOR_HEIST_DANCE_CAVE,
   FULL_GALLERY_TAPLIN_THE_BABY_G,
@@ -729,6 +776,8 @@ const fullGalleryNumberedItems = [
   ...FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.sources,
   ...FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
+  ...FULL_GALLERY_BIG_SPECIAL_THE_GARRISON.sources,
+  ...FULL_GALLERY_LADY_MARGE_DINAS.sources,
   ...FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.sources,
   ...FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.sources,
   ...FULL_GALLERY_TAPLIN_THE_BABY_G.sources,
@@ -755,8 +804,6 @@ const fullGalleryNumberedItems = [
 
 /** Used on full gallery page but not in the grid (e.g. page background). */
 const FULL_GALLERY_PAGE_ONLY_PATHS = [
-  "gallery-page-backdrop.webp",
-  // Narrow screens show this one here instead — see getFullGalleryBackdropPath.
   "home-hero-backdrop.webp",
 ];
 
@@ -809,6 +856,18 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "arlo-parks-history-36.webp": 0.75,
   "arlo-parks-history-37.webp": 0.75,
   "arlo-parks-history-38.webp": 0.75,
+  "big-special-the-garrison-01.webp": 1.5,
+  "big-special-the-garrison-02.webp": 1.5,
+  "big-special-the-garrison-03.webp": 1.5,
+  "big-special-the-garrison-04.webp": 1.5,
+  "big-special-the-garrison-05.webp": 0.667,
+  "big-special-the-garrison-06.webp": 1.5,
+  "big-special-the-garrison-07.webp": 0.667,
+  "big-special-the-garrison-08.webp": 0.75,
+  "big-special-the-garrison-09.webp": 0.667,
+  "big-special-the-garrison-10.webp": 0.667,
+  "big-special-the-garrison-11.webp": 1.5,
+  "big-special-the-garrison-12.webp": 0.75,
   "boston-church-scandal-the-drake-01.webp": 0.667,
   "boston-church-scandal-the-drake-02.webp": 0.667,
   "boston-church-scandal-the-drake-03.webp": 0.667,
@@ -877,6 +936,22 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "daphne-the-drake-05.webp": 1.5,
   "gallery-page-backdrop.webp": 1.5,
   "home-hero-backdrop.webp": 0.481,
+  "lady-marge-dinas-tavern-01.webp": 1.5,
+  "lady-marge-dinas-tavern-02.webp": 1.5,
+  "lady-marge-dinas-tavern-03.webp": 1.5,
+  "lady-marge-dinas-tavern-04.webp": 1.5,
+  "lady-marge-dinas-tavern-05.webp": 1.5,
+  "lady-marge-dinas-tavern-06.webp": 1.5,
+  "lady-marge-dinas-tavern-07.webp": 1.5,
+  "lady-marge-dinas-tavern-08.webp": 1.5,
+  "lady-marge-dinas-tavern-09.webp": 1.5,
+  "lady-marge-dinas-tavern-10.webp": 1.5,
+  "lady-marge-dinas-tavern-11.webp": 1.5,
+  "lady-marge-dinas-tavern-12.webp": 1.5,
+  "lady-marge-dinas-tavern-13.webp": 1.5,
+  "lady-marge-dinas-tavern-14.webp": 0.75,
+  "lady-marge-dinas-tavern-15.webp": 1.5,
+  "lady-marge-dinas-tavern-16.webp": 1.5,
   "listening-room-longboat-hall-01.webp": 0.667,
   "listening-room-longboat-hall-02.webp": 0.667,
   "listening-room-longboat-hall-03.webp": 0.667,
@@ -1131,6 +1206,8 @@ const fullGallerySectionTitles = {
   [FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.id]: FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.title,
   [FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.id]: FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
+  [FULL_GALLERY_BIG_SPECIAL_THE_GARRISON.id]: FULL_GALLERY_BIG_SPECIAL_THE_GARRISON.title,
+  [FULL_GALLERY_LADY_MARGE_DINAS.id]: FULL_GALLERY_LADY_MARGE_DINAS.title,
   [FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.id]: FULL_GALLERY_SUPERSTAR_CRUSH_DINAS.title,
   [FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.id]: FULL_GALLERY_METEOR_HEIST_DANCE_CAVE.title,
   [FULL_GALLERY_TAPLIN_THE_BABY_G.id]: FULL_GALLERY_TAPLIN_THE_BABY_G.title,
@@ -1440,7 +1517,7 @@ function createGridTilesFromPaths(paths) {
 }
 
 function getFullGalleryBootImagePaths() {
-  return [...new Set([getFullGalleryBackdropPath(), ...getGalleryFolderPreviewAssetPaths()])];
+  return [...new Set([HOME_PAGE_BG_PATH, ...getGalleryFolderPreviewAssetPaths()])];
 }
 
 const preparedGalleryFolderGroups = new Set();
@@ -1614,10 +1691,12 @@ const ASSET_CACHE_VERSION = "arlo-parks-1";
 const SHOW_IMAGE_FOLDERS = [
   "angelique-the-ivy",
   "arlo-parks-history",
+  "big-special-the-garrison",
   "boston-church-scandal-the-drake",
   "concrete-breaks-standard-time",
   "daniela-andrade-mod-club",
   "daphne-the-drake",
+  "lady-marge-dinas-tavern",
   "listening-room-longboat-hall",
   "meteor-heist-dance-cave",
   "mico-hard-luck",
@@ -1644,22 +1723,6 @@ function getAllFlowImagePaths() {
 }
 
 const HOME_PAGE_BG_PATH = "home-hero-backdrop.webp";
-const FULL_GALLERY_PAGE_BG_PATH = "gallery-page-backdrop.webp";
-
-/**
- * Phone widths show the home backdrop on the gallery page too — the gallery's own
- * is a landscape crop with little left to read once it is this narrow.
- *
- * Must stay in step with the <picture> source in full-gallery.html: that decides
- * what is painted, this decides what gets pinned, and they have to agree or the
- * boot pass downloads a backdrop the visitor never sees.
- */
-const FULL_GALLERY_MOBILE_BG_QUERY = "(max-width: 768px)";
-
-function getFullGalleryBackdropPath() {
-  const narrow = window.matchMedia?.(FULL_GALLERY_MOBILE_BG_QUERY)?.matches ?? false;
-  return narrow ? HOME_PAGE_BG_PATH : FULL_GALLERY_PAGE_BG_PATH;
-}
 
 function getBootImagePaths() {
   if (document.body?.classList.contains("page-full-gallery")) {
@@ -1800,7 +1863,7 @@ function refreshPinnedImageSources(root = document) {
     assignPinnedImageAttributes(img, HOME_PAGE_BG_PATH);
   });
   root.querySelectorAll(".full-gallery-page-bg img").forEach((img) => {
-    assignPinnedImageAttributes(img, getFullGalleryBackdropPath());
+    assignPinnedImageAttributes(img, HOME_PAGE_BG_PATH);
   });
   root.querySelectorAll(".contact-bg__image[data-asset-path]").forEach((img) => {
     assignPinnedImageAttributes(img, img.dataset.assetPath);
@@ -4493,21 +4556,22 @@ function updateContactSectionLayout() {
     section.style.removeProperty("--contact-section-min-height");
     section.style.setProperty("--contact-card-max-width", `${Math.min(720, Math.round(vw * 0.56))}px`);
     let offsetPx = card ? getContactCardOffsetY(section, card) : 0;
-    // Home desktop: nudge the card up ~1in to tighten bio→card spacing while
-    // keeping menu/hash scroll centered on the card.
-    if (document.body.classList.contains("page-home") && vw >= 1024 && card) {
+    const homeDesktop = document.body.classList.contains("page-home") && vw >= 1024;
+    // Home desktop pads the section ~1cm under the wave. Only apply the old
+    // upward translate nudge when there is free room after that padding.
+    if (homeDesktop && card) {
       const sectionH = section.getBoundingClientRect().height;
       const cardH = getContactCardContentHeight(card);
       const free = Math.max(0, sectionH - cardH);
       const maxUp = Math.max(0, Math.floor(free / 2 - 16));
-      const inchUp = Math.min(96, maxUp);
-      offsetPx = Math.min(Math.max(offsetPx, inchUp), maxUp);
+      offsetPx = Math.min(offsetPx, maxUp);
     }
     section.style.setProperty("--contact-card-offset-y", `${-offsetPx}px`);
 
     // Panel height comes from the backdrop aspect ratio; grow when the form needs room.
     if (card) {
-      const needed = getContactCardContentHeight(card) + 48;
+      const homePad = homeDesktop ? 38 : 0; // ~1cm desktop padding-top
+      const needed = getContactCardContentHeight(card) + 48 + homePad;
       if (needed > section.getBoundingClientRect().height) {
         section.style.setProperty("--contact-section-min-height", `${Math.round(needed)}px`);
       }
@@ -4585,7 +4649,7 @@ function setupContactBackgroundCrossfade() {
 const CONTACT_FORM_ACCESS_KEY = "24208dee-50fd-4eef-bf07-451a4293059f";
 
 const CONTACT_FORM_ENDPOINT = "https://api.web3forms.com/submit";
-const CONTACT_EMAIL = "zachariahsavage@gmail.com";
+const CONTACT_EMAIL = "zachsavage.works@gmail.com";
 
 /** Clipboard API needs a secure context and permission, so keep a fallback. */
 async function copyTextToClipboard(text) {
@@ -4842,9 +4906,8 @@ function setupContactForm() {
 }
 
 /**
- * Home contact appearance:
- * - Desktop (≥1024): scroll-fade opacity (previous behavior)
- * - Mobile (≤1023): bio-style curtain once bio is ready and contact hits mid-viewport
+ * Home contact appearance: bio-style curtain on mobile + desktop.
+ * Opens once bio is ready and the CTAs sit ~1/3 viewport up from the bottom.
  */
 function setupContactScrollFade() {
   if (!document.body.classList.contains("page-home")) return;
@@ -4854,21 +4917,9 @@ function setupContactScrollFade() {
   if (!section || !heading) return;
 
   const contactEl = section.querySelector(".contact");
-  /** Mobile curtain: open when bio CTAs sit ~1/3 viewport up from the bottom. */
+  /** Curtain: open when bio CTAs sit ~1/3 viewport up from the bottom. */
   const CONTACT_CTA_FROM_BOTTOM_RATIO = 1 / 3;
-  const UNLOCK_FADE_MS = 900;
   let ticking = false;
-  let wasGated = true;
-  let unlockRaf = 0;
-  let unlockStart = 0;
-  let unlockFrom = 0;
-  let displayedOpacity = 0;
-
-  function applyOpacity(opacity) {
-    const next = Math.max(0, Math.min(1, opacity));
-    displayedOpacity = next;
-    section.style.setProperty("--contact-scroll-opacity", String(next));
-  }
 
   function openContactReveal() {
     if (section.classList.contains("is-contact-reveal-open")) {
@@ -4880,111 +4931,16 @@ function setupContactScrollFade() {
     contactStayVisible = true;
   }
 
-  function getScrollTargetOpacity() {
-    if (isContactForcedVisible() || getShouldReduceMotion()) return 1;
-
-    const rect = heading.getBoundingClientRect();
-    if (rect.height < 1 && rect.width < 1) return 0;
-
-    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    const fadeEnd = vh * 0.5;
-    const fadeStart = vh;
-    const headingCenter = rect.top + rect.height / 2;
-
-    if (headingCenter >= fadeStart) return 0;
-    if (headingCenter <= fadeEnd) return 1;
-    return (fadeStart - headingCenter) / (fadeStart - fadeEnd);
-  }
-
-  function stopUnlockFade() {
-    if (!unlockRaf) return;
-    window.cancelAnimationFrame(unlockRaf);
-    unlockRaf = 0;
-  }
-
-  function startUnlockFade(fromOpacity) {
-    stopUnlockFade();
-    unlockFrom = fromOpacity;
-    unlockStart = performance.now();
-    applyOpacity(fromOpacity);
-
-    const tick = (now) => {
-      unlockRaf = 0;
-      const liveTarget = getScrollTargetOpacity();
-      const t = Math.min(1, (now - unlockStart) / UNLOCK_FADE_MS);
-      const eased = 1 - (1 - t) * (1 - t);
-      applyOpacity(unlockFrom + (liveTarget - unlockFrom) * eased);
-      if (t < 1) {
-        unlockRaf = window.requestAnimationFrame(tick);
-        return;
-      }
-      applyOpacity(liveTarget);
-      if (liveTarget >= 0.995) contactStayVisible = true;
-    };
-
-    unlockRaf = window.requestAnimationFrame(tick);
-  }
-
-  function isContactFadeGated() {
-    if (isContactForcedVisible()) return false;
-    return !isBioFullyExpandedForContact();
-  }
-
-  function updateDesktopFade() {
-    // Desktop keeps the form interactive; no curtain inert.
-    if (contactEl) contactEl.removeAttribute("inert");
-    section.classList.add("is-contact-reveal-open");
-
-    if (isContactForcedVisible()) {
-      wasGated = false;
-      stopUnlockFade();
-      applyOpacity(1);
-      return;
-    }
-
-    const rect = heading.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight || 1;
-    const fadeStart = vh;
-    const fadeEnd = vh * 0.5;
-    const headingCenter =
-      rect.height < 1 && rect.width < 1 ? fadeStart + 1 : rect.top + rect.height / 2;
-
-    if (headingCenter >= fadeStart) {
-      contactFadeBypassBioGate = false;
-    }
-
-    const gated = isContactFadeGated();
-
-    if (gated) {
-      wasGated = true;
-      stopUnlockFade();
-      applyOpacity(0);
-      return;
-    }
-
-    if (wasGated) {
-      wasGated = false;
-      startUnlockFade(displayedOpacity);
-      return;
-    }
-
-    if (unlockRaf) return;
-
-    if (getShouldReduceMotion()) {
-      contactStayVisible = true;
-      applyOpacity(1);
-      return;
-    }
-
-    const target = getScrollTargetOpacity();
-    applyOpacity(target);
-    if (target >= 0.995 || headingCenter <= fadeEnd) {
-      contactStayVisible = true;
-    }
-  }
-
-  function updateMobileCurtain() {
+  function updateContactCurtain() {
     section.style.removeProperty("--contact-scroll-opacity");
+
+    if (
+      contactEl &&
+      !section.classList.contains("is-contact-reveal-open") &&
+      !contactStayVisible
+    ) {
+      contactEl.setAttribute("inert", "");
+    }
 
     if (contactStayVisible || getShouldReduceMotion()) {
       openContactReveal();
@@ -5013,19 +4969,7 @@ function setupContactScrollFade() {
 
   function update() {
     ticking = false;
-    if (isRatesBioCycleMobile()) {
-      stopUnlockFade();
-      if (
-        contactEl &&
-        !section.classList.contains("is-contact-reveal-open") &&
-        !contactStayVisible
-      ) {
-        contactEl.setAttribute("inert", "");
-      }
-      updateMobileCurtain();
-      return;
-    }
-    updateDesktopFade();
+    updateContactCurtain();
   }
 
   contactScrollFadeUpdate = update;
@@ -5394,7 +5338,7 @@ function setupRatesReveal() {
     const wasOpen = root.classList.contains("is-open");
 
     if (!open && wasOpen) {
-      // Hold overflow:visible through the close so the heading glow stays full-bleed.
+      // Hold open through the close animation, then clear.
       clearCollapsing();
       root.classList.add("is-collapsing");
       section?.classList.add("is-collapsing");
@@ -5475,6 +5419,7 @@ function setupRatesReveal() {
 function getRatesBioCyclePaths(limit = 8) {
   const folderLeads = [...FULL_GALLERY_PINNED_SHOWS]
     .sort((a, b) => a.order - b.order)
+    .filter((show) => show.ratesBioCycle !== false)
     .slice(0, limit)
     .map((show) => {
       if (typeof show.ratesBioCycleSource === "string" && show.ratesBioCycleSource) {

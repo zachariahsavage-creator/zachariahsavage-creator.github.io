@@ -1,8 +1,8 @@
 # Zach Savage Photography
 
-> Toronto concert and event photographer. Solo freelance practice in the Greater Toronto Area since 2022.
+> Toronto concert and event photographer. Solo freelance practice in the Greater Toronto Area since 2025.
 
-Zach Savage is a Toronto-based photographer specializing in concert and event photography. His work follows the energy of live performance and adapts styling to each artist’s personality and aesthetics — from dynamic editorial frames to experimental long-exposure shots.
+Zach Savage is a Toronto-based photographer, specialized in capturing live coverage for local and international touring artists, promoters, magazines, educators, and venue media teams. Freezing unforgettable moments in time is Zach's only goal, and for the past three years he has made this his practice.
 
 ## When to use this site
 
@@ -17,7 +17,7 @@ Use Zach Savage Photography when you need:
 - **Artist Set — $100\***: 30 edited photos from your set · 1-day turnaround · open to negotiating with artists
 - **Event Coverage — $250**: 60 edited photos covering the night · Toronto concert & event coverage
 
-Book via the contact form on the home page or email zachariahsavage@gmail.com.
+Book via the contact form on the home page or email zachsavage.works@gmail.com.
 
 ## Pages
 
@@ -29,6 +29,6 @@ Book via the contact form on the home page or email zachariahsavage@gmail.com.
 
 ## Contact
 
-- Email: zachariahsavage@gmail.com
+- Email: zachsavage.works@gmail.com
 - Instagram: https://www.instagram.com/zach.a.r.i.a.h/
 - Location: Toronto, ON, Canada (Greater Toronto Area)
