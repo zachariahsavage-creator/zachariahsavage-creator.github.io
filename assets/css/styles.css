@@ -39,6 +39,10 @@
   --duration-fast: 160ms;
   --duration-normal: 240ms;
   --outline-dark: rgba(0, 0, 0, 0.22);
+  /* Contact reads as its own colour field against the black bio band above it. */
+  --contact-field: #75b5e6;
+  /* Colour behind the home flow, above the bio wave. */
+  --flow-field: #ffe4d4;
   /* Shared by `.gallery-bar__brand` and `.page-center-title` so pill heights stay aligned. */
   --gallery-pill-pad-block: 0.5rem;
   --gallery-pill-pad-inline: 1.1rem;
@@ -209,67 +213,46 @@ body.page-home .onepage-section--contact .contact__card {
   animation: none !important;
 }
 
-/* Desktop: contact fades in with scroll (opacity driven by --contact-scroll-opacity). */
-@property --contact-scroll-opacity {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
+/* Contact: bio-style curtain reveal (same on mobile + desktop). */
+body.page-home .page--onepage {
+  --contact-reveal-dur: calc(1.15s / 2.22);
+  --contact-reveal-dur-close: calc(0.69s / 2.22);
+  --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
-@media (min-width: 1024px) {
-  body.page-home .page--onepage .onepage-section--contact {
-    opacity: var(--contact-scroll-opacity, 0);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    body.page-home .page--onepage .onepage-section--contact {
-      opacity: 1;
-    }
-  }
+body.page-home .page--onepage .onepage-section--contact {
+  opacity: 1;
 }
 
-/* Mobile: bio-style curtain reveal instead of scroll fade. */
-@media (max-width: 1023px) {
-  body.page-home .page--onepage {
-    --contact-reveal-dur: calc(1.15s / 2.22);
-    --contact-reveal-dur-close: calc(0.69s / 2.22);
-    --contact-reveal-ease: cubic-bezier(0.45, 0, 0.55, 1);
-  }
+body.page-home .page--onepage .onepage-section--contact .contact-bg,
+body.page-home .page--onepage .onepage-section--contact .contact {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+  transition:
+    opacity calc(var(--contact-reveal-dur-close) * 0.75) var(--contact-reveal-ease),
+    clip-path var(--contact-reveal-dur-close) var(--contact-reveal-ease);
+}
 
-  body.page-home .page--onepage .onepage-section--contact {
-    opacity: 1;
-  }
+body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
+body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  pointer-events: auto;
+  transition:
+    opacity calc(var(--contact-reveal-dur) * 0.75) var(--contact-reveal-ease),
+    clip-path var(--contact-reveal-dur) var(--contact-reveal-ease);
+}
 
+@media (prefers-reduced-motion: reduce) {
   body.page-home .page--onepage .onepage-section--contact .contact-bg,
-  body.page-home .page--onepage .onepage-section--contact .contact {
-    opacity: 0;
-    clip-path: inset(0 0 100% 0);
-    pointer-events: none;
-    transition:
-      opacity calc(var(--contact-reveal-dur-close) * 0.75) var(--contact-reveal-ease),
-      clip-path var(--contact-reveal-dur-close) var(--contact-reveal-ease);
-  }
-
+  body.page-home .page--onepage .onepage-section--contact .contact,
   body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
   body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
+    clip-path: none;
     opacity: 1;
-    clip-path: inset(0 0 0 0);
     pointer-events: auto;
-    transition:
-      opacity calc(var(--contact-reveal-dur) * 0.75) var(--contact-reveal-ease),
-      clip-path var(--contact-reveal-dur) var(--contact-reveal-ease);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    body.page-home .page--onepage .onepage-section--contact .contact-bg,
-    body.page-home .page--onepage .onepage-section--contact .contact,
-    body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact-bg,
-    body.page-home .page--onepage .onepage-section--contact.is-contact-reveal-open .contact {
-      clip-path: none;
-      opacity: 1;
-      pointer-events: auto;
-      transition: none;
-    }
+    transition: none;
   }
 }
 
@@ -335,12 +318,12 @@ body.page-contact {
 }
 
 html:has(body.page-full-gallery) {
-  background-color: #000000;
+  background-color: #141414;
   scroll-behavior: auto;
 }
 
 body.page-full-gallery {
-  background-color: #000000;
+  background-color: #141414;
 }
 
 /* Fixed layer (not background-attachment: fixed) — avoids scroll jitter in Safari. */
@@ -364,7 +347,7 @@ body.page-full-gallery {
 }
 
 .home-page-bg {
-  background-color: #000000;
+  background-color: var(--flow-field);
 }
 
 /* Keep the img in the boot decode path; hide it so the shell stays solid black. */
@@ -373,12 +356,7 @@ body.page-full-gallery {
 }
 
 .full-gallery-page-bg {
-  background-color: #000000;
-}
-
-/* Original gallery atmosphere over the black shell. */
-.full-gallery-page-bg img {
-  opacity: 0.3;
+  background-color: #141414;
 }
 
 /* <picture> is inline by default, which would leave the img's 100% height with no
@@ -419,6 +397,11 @@ body.page-full-gallery a.page-center-title {
   transition: opacity 420ms var(--ease-out), transform 420ms var(--ease-out);
 }
 
+body.page-home .page-center-title,
+body.page-home a.page-center-title {
+  color: #000000;
+}
+
 body.page-home a.page-center-title:hover,
 body.page-full-gallery a.page-center-title:hover {
   background: transparent;
@@ -426,8 +409,13 @@ body.page-full-gallery a.page-center-title:hover {
   opacity: 0.85;
 }
 
+body.page-home a.page-center-title:hover {
+  color: #000000;
+}
+
 /* Home + full gallery: frosted exclusion menu (same stack on mobile + desktop).
- * Layers: frost (blur) → plate (white + exclusion) → brand (white type + exclusion).
+ * Layers: frost (blur) → plate (white + exclusion) → brand (white type + difference).
+ * Difference sits on the brand itself so HOME / hamburger invert the plate behind them.
  * Brand is a body sibling of the header so type stacks above the plate. */
 body.page-home .gallery-bar,
 body.page-full-gallery .gallery-bar {
@@ -452,7 +440,7 @@ body.page-full-gallery .gallery-bar__plate {
 body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost {
   z-index: 9;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10.5px) saturate(1.35);
   -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
   box-shadow: var(--shadow-md);
@@ -473,7 +461,7 @@ body.page-full-gallery .gallery-bar__frost.is-ready {
 
 body.page-home .gallery-bar__plate.is-ready,
 body.page-full-gallery .gallery-bar__plate.is-ready {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 body.page-home .gallery-bar__brand,
@@ -487,7 +475,7 @@ body.page-full-gallery .gallery-bar__brand {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: normal;
+  mix-blend-mode: difference;
   filter: none;
   isolation: auto;
   pointer-events: auto;
@@ -499,7 +487,7 @@ body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: normal;
+  mix-blend-mode: difference;
 }
 
 body.page-home .gallery-bar__brand::before,
@@ -521,14 +509,14 @@ body.page-full-gallery .gallery-bar__menu-link:hover,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__title,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-link:visited {
-  color: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
 }
 
 body.page-home .gallery-bar__menu-icon span,
 body.page-home .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__menu-icon span,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open .gallery-bar__menu-icon span {
-  background: rgba(0, 0, 0, 0.8);
+  background: #ffffff;
 }
 
 /* Home flow arrows: match black menu pill + white icons. */
@@ -691,11 +679,11 @@ body:not(.page-contact):not(.page-profile):not(.page-home):not(.page-full-galler
 
 /* Home one-page: black shell (matches bio / contact bands). */
 html:has(body.page-home) {
-  background-color: #000000;
+  background-color: var(--flow-field);
 }
 
 body.page-home {
-  background: #000000;
+  background: var(--flow-field);
   background-attachment: scroll;
 }
 
@@ -832,7 +820,7 @@ body.page-full-gallery .header-social__link {
 }
 
 body.page-home .header-social__link {
-  color: rgba(255, 255, 255, 0.96);
+  color: #000000;
 }
 
 body.page-home .header-social__link:hover {
@@ -962,6 +950,7 @@ a.page-center-title:hover {
   min-width: 0;
   min-height: var(--gallery-pill-inner-min-height);
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .gallery-bar__title {
@@ -1166,7 +1155,7 @@ body.page-contact .gallery-bar__menu-link:visited {
   padding-bottom: 0;
   height: auto;
   min-height: 0;
-  background: #000000;
+  background: var(--flow-field);
   /* Prevent scroll anchoring from snapping to top when flow rows reflow above the bio. */
   overflow-anchor: none;
 }
@@ -1235,6 +1224,7 @@ body.page-full-gallery .onepage-section__heading {
 
 
 .onepage-section--contact {
+  position: relative;
   margin-top: clamp(0.75rem, 2vh, 1.25rem);
   padding-top: 0;
   padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
@@ -1343,13 +1333,39 @@ body.page-full-gallery .onepage-section__heading {
   display: none;
 }
 
-/* Atmosphere lives on the card only on mobile — hide section-wide contact photo layers. */
+/* Home contact is a flat colour field — no section photo layers. */
 body.page-home .page--onepage .onepage-section--contact .contact-bg {
   display: none;
 }
 
 body.page-home .page--onepage .onepage-section--contact {
+  background: var(--contact-field);
+}
+
+/* Fluid join: the black band above dips into the contact field on a wave edge. */
+.section-wave {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: clamp(30px, 4.8vw, 74px);
+  z-index: 2;
+  pointer-events: none;
   background: #000000;
+  --section-wave-shape: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201440%20120'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0,0%20H1440%20V56%20C1224,104%201080,16%20720,56%20C360,96%20216,24%200,64%20Z'%20fill='%23000'/%3E%3C/svg%3E");
+  -webkit-mask-image: var(--section-wave-shape);
+  mask-image: var(--section-wave-shape);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Same join flipped: the black bio band waves up into the flow colour field. */
+.section-wave--flip {
+  top: 1px;
+  transform: scaleY(-1);
+  transform-origin: top center;
 }
 
 .page--onepage .onepage-section--contact .contact {
@@ -1404,6 +1420,9 @@ body.page-home .page--onepage .onepage-section--contact {
 .home-bio-row {
   --bio-row-pad-top: clamp(1.25rem, 3vw, 2rem);
   --bio-row-pad-bottom: clamp(2.75rem, 5.5vw, 4rem);
+  position: relative;
+  z-index: 1;
+  overflow: visible;
   width: 100vw;
   max-width: 100vw;
   margin-top: var(--space-3);
@@ -2064,7 +2083,13 @@ body.page-home .home-bio-row .home-intro {
   padding: 0.8em 1em;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 0.55rem;
-  background: rgba(255, 255, 255, 0.06);
+  --cta-wipe-fill: linear-gradient(#ffffff, #ffffff);
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: var(--cta-wipe-fill);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  /* Zero-height fill paints nothing at rest. */
+  background-size: 100% 0%;
   color: rgba(255, 255, 255, 0.96);
   box-shadow: none;
   text-decoration: none;
@@ -2081,19 +2106,37 @@ body.page-home .home-bio-row .home-intro {
   user-select: none;
   transition:
     transform var(--duration-fast) var(--ease-out),
-    background 0.25s ease,
+    background-color 0.25s ease,
+    background-size 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.25s ease,
     color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
 }
 
+/* Hover fill grows up from the bottom edge; press / open still hard-inverts.
+   Painted as a background layer (not a scaled pseudo-element) so nothing can
+   rasterize into a stray sliver or leave a stale compositing layer behind. */
 .home-cta:hover,
 .home-bio-row .home-start-btn.home-start-btn--pov:hover,
-.home-cta.rates__toggle:hover {
-  /* Keep default look on hover; invert on click / open instead. */
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.96);
+.home-cta.rates__toggle:hover,
+.home-cta:focus-visible,
+.home-cta.rates__toggle:focus-visible {
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: var(--cta-wipe-fill);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 100%;
+  color: #111111;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-cta,
+  .home-bio-row .home-start-btn.home-start-btn--pov,
+  .home-cta.rates__toggle,
+  .contact__submit {
+    transition: none;
+  }
 }
 
 .home-cta:focus-visible,
@@ -2212,15 +2255,13 @@ body.page-home .home-bio-row .home-intro {
 .onepage-section--rates.is-open .rates__panel {
   grid-template-rows: 1fr;
   margin-top: clamp(1.1rem, 2.8vw, 1.65rem);
-  overflow: visible;
 }
 
 .rates.is-collapsing .rates__panel,
 .onepage-section--rates.is-collapsing .rates__panel {
-  /* Collapse height + top gap together; keep overflow open for full-bleed glow. */
   grid-template-rows: 0fr;
   margin-top: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .rates__panel-inner {
@@ -2237,14 +2278,12 @@ body.page-home .home-bio-row .home-intro {
 .onepage-section--rates.is-open .rates__panel-inner {
   opacity: 1;
   transform: translateY(0);
-  overflow: visible;
 }
 
 .rates.is-collapsing .rates__panel-inner,
 .onepage-section--rates.is-collapsing .rates__panel-inner {
   opacity: 0;
   transform: translateY(0.65rem);
-  overflow: visible;
 }
 
 .rates__table {
@@ -2266,9 +2305,6 @@ body.page-home .home-bio-row .home-intro {
 }
 
 .rates__table thead th {
-  position: relative;
-  z-index: 1;
-  isolation: isolate;
   padding-top: 1rem;
   padding-bottom: 1rem;
   font-family: var(--font-heading);
@@ -2279,38 +2315,6 @@ body.page-home .home-bio-row .home-intro {
   color: rgba(255, 255, 255, 0.96);
   background-color: #000000;
   border: none;
-}
-
-/* Soft bloom under the heading — full viewport width. */
-.rates__table thead th::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 100vw;
-  height: 1px;
-  z-index: -1;
-  pointer-events: none;
-  transform: translateX(-50%);
-  box-shadow: 0 42px 118px 17px rgba(255, 196, 150, 0.58);
-  /* Keep glow below the bar; allow it to reach the viewport sides. */
-  clip-path: inset(0 -1px -100vh -1px);
-}
-
-@media (min-width: 1024px) {
-  .rates__table thead th::after {
-    content: none;
-    box-shadow: none;
-  }
-}
-
-/* Heading bars sit above their own (and neighboring) glow. */
-.rates__table thead th:nth-child(1) {
-  z-index: 2;
-}
-
-.rates__table thead th:nth-child(2) {
-  z-index: 3;
 }
 
 .rates__table thead th + th,
@@ -2527,17 +2531,18 @@ body.page-home .home-bio-row .home-intro {
     align-items: stretch;
   }
 
-  /* Bio band padding is already tight; pull the card up ~1in to close the
-     empty gap above it inside the tall contact panel. Menu scroll still
-     centers the card itself in the viewport. */
+  /* Breathing room under the CTAs so the wave join starts clear of them; the
+     card offset below still closes the empty gap inside the tall contact
+     panel. Menu scroll still centers the card itself in the viewport. */
   body.page-home .home-bio-row {
-    --bio-row-pad-bottom: 0.35rem;
+    --bio-row-pad-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
   }
 
   .page--onepage .onepage-section--home:has(.onepage-section--rates) + .onepage-section--contact,
   .page--onepage .onepage-section--contact {
-    --contact-card-offset-y: -1in;
-    padding-top: 0.25rem;
+    /* Card usually fills the panel, so translateY can't move it — pad instead. */
+    --contact-card-offset-y: 0px;
+    padding-top: 1cm;
   }
 
   .home-bio-inner > .home-bio-expand-reveal--picture {
@@ -2883,6 +2888,8 @@ body.page-home .home-bio-row .home-intro {
   pointer-events: auto;
   touch-action: manipulation;
   cursor: pointer;
+  /* Opaque fill so hover border/radius compositing never flashes the peach field. */
+  background: #000000;
 }
 
 .gallery-row .gallery-flow-track .media-item.media-item--no-lightbox {
@@ -2908,6 +2915,15 @@ body.page-full-gallery .portfolio-grid .media-item--priority-render video,
   transform: translateZ(0);
   image-rendering: -webkit-optimize-contrast;
   content-visibility: visible;
+}
+
+/* Slight overscan hides the 1px transform/radius hairline on flow tiles. */
+.gallery-row .media-item img,
+.gallery-row .media-item video,
+.gallery-row .media-item--priority-render img,
+.gallery-row .media-item--priority-render video {
+  transform: translateZ(0) scale(1.04);
+  backface-visibility: hidden;
 }
 
 /* Block interaction until hero media is pinned, decoded, and painted. */
@@ -3046,13 +3062,7 @@ body.page-full-gallery .site-boot-gate::after {
 }
 
 .gallery-row .media-item:hover {
-  border-radius: 0;
-  border-width: 10px;
-  border-color: #000000;
-  outline: 12px solid #000000;
-  outline-offset: -6px;
-  box-shadow: none !important;
-  animation: blocky-border-slap 180ms cubic-bezier(0.2, 1.2, 0.3, 1);
+  z-index: 5;
 }
 
 .media-item--hovered {
@@ -3669,62 +3679,6 @@ body.page-full-gallery .portfolio-date-toggle--expanded .portfolio-date-toggle__
   width: 100%;
 }
 
-/* Collapsed folders: dissolve the preview into the View More bar.
-   Mask the preview grid so tile edges actually disappear (not just darken). */
-body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-preview-grid {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 35%,
-    rgba(0, 0, 0, 0.55) 62%,
-    rgba(0, 0, 0, 0.15) 82%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 35%,
-    rgba(0, 0, 0, 0.55) 62%,
-    rgba(0, 0, 0, 0.15) 82%,
-    transparent 100%
-  );
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-rows {
-  position: relative;
-}
-
-body.page-full-gallery .portfolio-date-group--collapsed .portfolio-date-rows::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 55%;
-  z-index: 4;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.35) 35%,
-    rgba(0, 0, 0, 0.85) 70%,
-    #000 100%
-  );
-}
-
-body.page-full-gallery .portfolio-date-group--expanded .portfolio-date-preview-grid {
-  -webkit-mask-image: none;
-  mask-image: none;
-}
-
-body.page-full-gallery .portfolio-date-group--expanded .portfolio-date-rows::after {
-  content: none;
-}
-
 .portfolio-date-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4320,31 +4274,21 @@ body.page-profile {
   color: #f5f5f5;
 }
 
-/* Home contact form: atmosphere clipped strictly inside the card. */
+/* Home contact form: no plate. Padding and max-width still set the layout, so the
+   heading, labels, and inputs keep their positions and simply sit on the photo. */
 body.page-home .page--onepage .onepage-section--contact .contact__card {
   position: relative;
   isolation: isolate;
   overflow: clip;
-  background: #050505;
+  background: transparent;
   background-image: none;
+  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background-color: #050505;
-  background-image:
-    linear-gradient(rgba(8, 8, 10, 0.42), rgba(8, 8, 10, 0.42)),
-    url("../images/site/home-hero-backdrop.webp");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  content: none;
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__card > * {
@@ -4352,66 +4296,68 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   z-index: 1;
 }
 
-/* Desktop home contact: Daniela Andrade section photo, black→opaque vertical fade. */
 @media (min-width: 1024px) {
-  body.page-home .page--onepage .onepage-section--contact .contact-bg {
-    display: block;
-    z-index: 0;
-    background: #000000;
-  }
-
-  body.page-home .page--onepage .onepage-section--contact .contact-bg__layer,
-  body.page-home .page--onepage .onepage-section--contact .contact-bg__image {
-    object-position: center 35%;
-    background-position: center 35%;
-  }
-
-  body.page-home .page--onepage .onepage-section--contact .contact-bg::before {
-    content: none;
-  }
-
-  body.page-home .page--onepage .onepage-section--contact .contact-bg::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: auto;
-    z-index: 2;
-    pointer-events: none;
-    background: linear-gradient(
-      to bottom,
-      #000000 0%,
-      rgba(0, 0, 0, 0.94) 16%,
-      rgba(0, 0, 0, 0.55) 45%,
-      rgba(0, 0, 0, 0.12) 72%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-image: none;
-    mask-image: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
   body.page-home .page--onepage .onepage-section--contact .contact {
     z-index: 1;
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__card {
-    /* ~30% less opaque than prior 0.72 fill so Daniela reads through the padding. */
-    background: rgba(5, 5, 5, 0.5);
+    /* No plate: the form sits straight on the section photo. Padding and the
+       card's max-width still set the layout, so nothing shifts position. */
+    background: transparent;
     background-image: none;
     box-shadow: none;
     isolation: auto;
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__card::before {
     content: none;
   }
+}
+
+/* Home contact on mint field: navy type + Instagram, white inquiry CTA. */
+body.page-home .page--onepage .onepage-section--contact .contact__heading,
+body.page-home .page--onepage .onepage-section--contact .contact__intro,
+body.page-home .page--onepage .onepage-section--contact .contact__label,
+body.page-home .page--onepage .onepage-section--contact .contact__label-note,
+body.page-home .page--onepage .onepage-section--contact .contact__intro-link {
+  color: #07164a;
+  text-shadow: none;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__social {
+  border-top-color: rgba(7, 22, 74, 0.18);
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__instagram {
+  color: #07164a;
+  border-color: rgba(7, 22, 74, 0.35);
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__instagram:hover {
+  color: var(--contact-field);
+  background: #07164a;
+  box-shadow: var(--shadow-sm);
+  opacity: 1;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__submit {
+  color: #07164a;
+  --cta-wipe-fill: linear-gradient(#07164a, #07164a);
+  background-color: #ffffff;
+  border-color: rgba(7, 22, 74, 0.18);
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__submit:hover,
+body.page-home .page--onepage .onepage-section--contact .contact__submit:focus-visible {
+  color: var(--contact-field);
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact__submit:disabled:hover {
+  background: #ffffff;
+  color: #07164a;
 }
 
 .contact__heading {
@@ -4508,17 +4454,25 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #141414;
-  background: #e3f2e3;
+  --cta-wipe-fill: linear-gradient(#ffffff, #ffffff);
+  background-color: #e3f2e3;
+  background-image: var(--cta-wipe-fill);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 0%;
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: var(--radius-pill);
   transition:
-    background var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out),
+    background-size 0.34s cubic-bezier(0.22, 1, 0.36, 1),
     transform var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-normal) var(--ease-out);
 }
 
-.contact__submit:hover {
-  background: #fff;
+.contact__submit:hover,
+.contact__submit:focus-visible {
+  background-image: var(--cta-wipe-fill);
+  background-size: 100% 100%;
   box-shadow: var(--shadow-sm);
 }
 
@@ -5025,9 +4979,9 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
-  /* Mobile one-page contact: solid black outside the card; atmosphere stays on the card only. */
+  /* Mobile one-page contact: same flat field as desktop. */
   .page--onepage .onepage-section--contact {
-    background: #000000;
+    background: var(--contact-field);
   }
 
   .page--onepage .onepage-section--contact .contact-bg {
@@ -5037,20 +4991,6 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   .page--onepage .onepage-section--contact::before,
   .page--onepage .onepage-section--contact::after {
     display: none;
-  }
-
-  body.page-home .page--onepage .onepage-section--contact .contact__card {
-    overflow: clip;
-    background: #050505;
-    background-image: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  body.page-home .page--onepage .onepage-section--contact .contact__card::before {
-    background-image:
-      linear-gradient(rgba(8, 8, 10, 0.48), rgba(8, 8, 10, 0.48)),
-      url("../images/site/home-hero-backdrop.webp");
   }
 
   /* Mobile standalone contact page: hide crossfade background; black fill. */
@@ -5083,15 +5023,19 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   }
 
 
-  .page--onepage .onepage-section--contact .contact__heading,
-  .page--onepage .onepage-section--contact .contact__intro,
-  .page--onepage .onepage-section--contact .contact__label,
   body.page-contact .page--contact .contact__heading,
   body.page-contact .page--contact .contact__intro,
   body.page-contact .page--contact .contact__label {
     color: #fff;
     /* Soft shadow keeps WCAG contrast when the photo backdrop has light patches. */
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__heading,
+  body.page-home .page--onepage .onepage-section--contact .contact__intro,
+  body.page-home .page--onepage .onepage-section--contact .contact__label {
+    color: #07164a;
+    text-shadow: none;
   }
 
   .page--onepage .onepage-section--contact .contact__form {
@@ -5310,16 +5254,16 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
     line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: #000000;
     text-align: center;
     white-space: nowrap;
     text-wrap: nowrap;
-    background: #000000;
+    background: var(--flow-field);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     border: none;
     border-radius: 0;
-    box-shadow: 0 50px 140px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 50px 140px var(--flow-field);
   }
 
   .home-intro {

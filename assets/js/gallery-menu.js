@@ -197,10 +197,15 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     toggleMenu();
   });
 
-  if (titleTogglesMenu) {
-    const titleEl = menuContainer.querySelector(".gallery-bar__title");
-    titleEl?.addEventListener("click", () => menuTrigger.click());
-  }
+  // Whole closed-pill header row toggles (title, hamburger, and the gap between).
+  const brandRow = menuContainer.querySelector(".gallery-bar__brand-row");
+  brandRow?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Trigger already handled its own click (and stopped bubbling).
+    if (menuTrigger.contains(e.target) || e.target === menuTrigger) return;
+    if (!titleTogglesMenu && e.target.closest?.(".gallery-bar__title")) return;
+    toggleMenu();
+  });
 
   if (closeOnOutsideClick) {
     document.addEventListener("click", (event) => {
