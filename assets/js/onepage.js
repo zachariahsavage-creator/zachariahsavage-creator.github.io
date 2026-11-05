@@ -118,14 +118,49 @@ let trackedLayoutViewportWidth = Math.max(
   Math.round(document.documentElement.clientWidth || window.innerWidth)
 );
 
+/** Lay out smaller laptop windows as a 1920×1080 desktop, then scale to fit. */
+const PAGE_SCALE_WIDTH = 1920;
+const PAGE_SCALE_HEIGHT = 1080;
+const PAGE_SCALE_MIN_WIDTH = 1101;
+let appliedPageScale = 1;
+let pageScaleDirty = false;
+
+function updatePageScale() {
+  const root = document.documentElement;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  let scale = 1;
+  if (w >= PAGE_SCALE_MIN_WIDTH && h > 0) {
+    scale = Math.min(1, w / PAGE_SCALE_WIDTH, h / PAGE_SCALE_HEIGHT);
+    if (scale > 0.995) scale = 1;
+  }
+  if (Math.abs(scale - appliedPageScale) > 0.001) pageScaleDirty = true;
+  appliedPageScale = scale;
+  if (scale === 1) {
+    root.style.zoom = "";
+    root.style.removeProperty("--page-scale");
+    root.classList.remove("is-page-scaled");
+    return;
+  }
+  root.style.zoom = String(scale);
+  root.style.setProperty("--page-scale", String(scale));
+  root.classList.add("is-page-scaled");
+}
+
+updatePageScale();
+pageScaleDirty = false;
+window.addEventListener("resize", updatePageScale, { passive: true });
+
 /** Ignore mobile browser chrome show/hide (height-only resize); react to real width changes. */
 function hasMeaningfulLayoutWidthChange() {
   const nextWidth = Math.max(
     1,
     Math.round(document.documentElement.clientWidth || window.innerWidth)
   );
+  const scaleChanged = pageScaleDirty;
+  pageScaleDirty = false;
   const threshold = isFlowMobileLayout() ? 56 : 2;
-  if (Math.abs(nextWidth - trackedLayoutViewportWidth) < threshold) return false;
+  if (!scaleChanged && Math.abs(nextWidth - trackedLayoutViewportWidth) < threshold) return false;
   trackedLayoutViewportWidth = nextWidth;
   return true;
 }
@@ -422,7 +457,10 @@ const FULL_GALLERY_BIG_SPECIAL_THE_GARRISON = {
   id: "big-special-the-garrison",
   order: -1.95,
   title: "Big Special @ The Garrison",
-  ratesBioCycle: false,
+  /* Rates / bio slideshow: third image in the folder grid (portrait 05). */
+  ratesBioCycleSource: "big-special-the-garrison-05.webp",
+  /* Keep Big Special in the full gallery, but out of the home flow. */
+  homeFlowLeads: 0,
   sources: [
     "big-special-the-garrison-01.webp",
     "big-special-the-garrison-02.webp",
@@ -443,6 +481,8 @@ const FULL_GALLERY_LADY_MARGE_DINAS = {
   id: "lady-marge-dinas-tavern",
   order: -1.8875,
   title: "Lady Marge @ Dina's Tavern",
+  /* Rates / bio slideshow: third image in the folder grid (portrait 14). */
+  ratesBioCycleSource: "lady-marge-dinas-tavern-14.webp",
   sources: [
     "lady-marge-dinas-tavern-01.webp",
     "lady-marge-dinas-tavern-02.webp",
@@ -490,6 +530,7 @@ const FULL_GALLERY_METEOR_HEIST_DANCE_CAVE = {
   id: "meteor-heist-dance-cave",
   order: -1.85,
   title: "Meteor Heist @ Dance Cave",
+  ratesBioCycle: false,
   preserveSourceOrder: true,
   /* Home flow: heroes + shot 7 only, then scrambled with other shows. */
   homeFlowSources: [
@@ -1353,10 +1394,16 @@ function warmFlowImages(rowsState) {
 
 const GALLERY_FOLDER_PREVIEW_ATTR = "data-gallery-folder-preview";
 
+/** Closed folders show two photos on desktop and the first four on a phone. */
+function getGalleryFolderPreviewCount() {
+  return window.innerWidth <= 768 ? 4 : 2;
+}
+
 function getGalleryFolderPreviewAssetPaths() {
   const paths = [];
+  const previewCount = getGalleryFolderPreviewCount();
   FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
-    show.sources.slice(0, 2).forEach((path) => paths.push(path));
+    show.sources.slice(0, previewCount).forEach((path) => paths.push(path));
   });
 
   const byNumberGroup = new Map();
@@ -1369,7 +1416,7 @@ function getGalleryFolderPreviewAssetPaths() {
     byNumberGroup.get(group).push(item);
   });
   byNumberGroup.forEach((items) => {
-    items.slice(0, 2).forEach((path) => paths.push(path));
+    items.slice(0, previewCount).forEach((path) => paths.push(path));
   });
 
   return [...new Set(paths)];
@@ -3417,9 +3464,9 @@ function refineFullGalleryFolderRowHeights(root) {
   });
 }
 
-/** Always-visible folder preview: first two images in source order. */
+/** Always-visible folder preview: first two on desktop, first four on mobile. */
 function renderFolderPreview(parentEl, layoutTiles) {
-  const preview = layoutTiles.slice(0, 2);
+  const preview = layoutTiles.slice(0, getGalleryFolderPreviewCount());
   if (!preview.length) return;
 
   preview.forEach((tile) => {
@@ -3433,7 +3480,13 @@ function renderFolderPreview(parentEl, layoutTiles) {
   const sameOrientation =
     preview.length === 2 && isTileLandscape(preview[0]) === isTileLandscape(preview[1]);
 
-  if (sameOrientation) {
+  if (preview.length > 2) {
+    const before = parentEl.childElementCount;
+    renderFolderBody(parentEl, preview);
+    Array.from(parentEl.children)
+      .slice(before)
+      .forEach((gridEl) => gridEl.classList.add("portfolio-date-preview-grid"));
+  } else if (sameOrientation) {
     const gridEl = document.createElement("div");
     gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
     appendTilesToFullGalleryGrid(gridEl, preview);
@@ -3531,7 +3584,7 @@ function appendTilesInOrientationGroups(parentEl, tiles) {
   renderFolderBody(parentEl, tiles);
 }
 
-/** Minimal expand/collapse control — full-width banner at folder bottom. */
+/** Minimal expand/collapse control — bottom-right of the folder. */
 function createFolderToggleButton(isExpanded) {
   const btn = document.createElement("button");
   btn.type = "button";
@@ -3623,7 +3676,7 @@ function getGalleryFolderPreviewCenteredScrollTarget(sectionEl) {
   if (!block) {
     const previewTiles = Array.from(
       rowsWrap.querySelectorAll(":scope > .portfolio-date-grid .media-item")
-    ).slice(0, 2);
+    ).slice(0, getGalleryFolderPreviewCount());
     block = getUnionBoundingDocBlock(previewTiles);
   }
 
@@ -3668,8 +3721,9 @@ function createPortfolioDateGroupSection(folderDef, gap, isFullGalleryPage) {
   rowsWrap.className = "portfolio-date-rows";
   rowsWrap.style.setProperty("--portfolio-section-gap", `${gap}px`);
 
-  const previewTiles = layoutTiles.slice(0, 2);
-  const extraPaths = sources.slice(2);
+  const previewCount = getGalleryFolderPreviewCount();
+  const previewTiles = layoutTiles.slice(0, previewCount);
+  const extraPaths = sources.slice(previewCount);
   const hasCollapsibleExtra = isFullGalleryPage && sources.length > previewTiles.length;
 
   const topCollapseBtn = hasCollapsibleExtra ? createFolderTopCollapseButton() : null;
@@ -3758,7 +3812,9 @@ function getFullGalleryFolderDisplayTitle(label) {
 }
 
 function getFullGalleryLeftGutterPx() {
-  const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+  const visualWidth = document.documentElement.clientWidth || window.innerWidth;
+  const scale = appliedPageScale > 0 ? appliedPageScale : 1;
+  const viewportWidth = visualWidth / scale;
   const rootFontPx =
     parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   const gridMaxPx = Math.min(83.2 * rootFontPx, viewportWidth * 0.8);
@@ -3902,7 +3958,10 @@ function renderFullGalleryFolders(grid) {
       const folder = getFullGalleryFolderDefinitions().find((f) => f.label === label);
       const extraInner = section.querySelector(".portfolio-date-extra-inner");
       if (folder && extraInner) {
-        loadGalleryFolderExpandedImages(extraInner, folder.sources.slice(2));
+        loadGalleryFolderExpandedImages(
+          extraInner,
+          folder.sources.slice(getGalleryFolderPreviewCount())
+        );
       }
     }
   });
@@ -4474,8 +4533,7 @@ let contactLayoutRafId = 0;
 
 function isContactTabletLayout() {
   const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  return vw > 768 && (vw <= 1100 || vh <= 920);
+  return vw > 768 && vw <= 1100;
 }
 
 /**
