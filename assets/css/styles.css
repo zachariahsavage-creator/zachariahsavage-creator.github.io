@@ -380,17 +380,15 @@ body.page-full-gallery .gallery-bar {
   mix-blend-mode: normal;
 }
 
+/* The plate used to be a fixed overlay sized from getBoundingClientRect.
+   Under root zoom (laptop scale) Safari reports those coordinates in a different
+   space than `top`/`left`, so the pill drifted off the heading. The brand
+   itself is the pill now. */
 body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost,
 body.page-home .gallery-bar__plate,
 body.page-full-gallery .gallery-bar__plate {
-  display: block;
-  position: fixed;
-  pointer-events: none;
-  box-sizing: border-box;
-  border-radius: 50px;
-  opacity: 0;
-  transition: opacity 160ms var(--ease-out);
+  display: none;
 }
 
 body.page-home .gallery-bar__frost,
@@ -427,10 +425,10 @@ body.page-full-gallery .gallery-bar__brand {
   right: calc(2.4rem + env(safe-area-inset-right, 0px));
   z-index: 12;
   transform: none;
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: none;
+  background: rgba(29, 53, 69, 0.95);
+  backdrop-filter: blur(10.5px) saturate(1.35);
+  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
+  box-shadow: var(--shadow-md);
   mix-blend-mode: normal;
   filter: none;
   isolation: auto;
@@ -439,10 +437,10 @@ body.page-full-gallery .gallery-bar__brand {
 
 body.page-home .gallery-bar__brand.gallery-bar__brand--open,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: none;
+  background: rgba(29, 53, 69, 0.95);
+  backdrop-filter: blur(10.5px) saturate(1.35);
+  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
+  box-shadow: var(--shadow-md);
   mix-blend-mode: normal;
 }
 
@@ -1300,6 +1298,20 @@ body.page-home .page--onepage .onepage-section--contact .contact-bg {
 
 body.page-home .page--onepage .onepage-section--contact {
   background: var(--contact-field);
+  /* Home has no contact photo, so don't reserve a 3:2 frame. That frame
+     centered the form and left a tall peach gap under the bio on laptops. */
+  aspect-ratio: auto;
+  height: auto;
+  min-height: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+body.page-home .page--onepage .onepage-section--contact .contact {
+  height: auto;
+  max-height: none;
+  align-items: stretch;
+  transform: none;
 }
 
 /* Fluid join: the black band above dips into the contact field on a wave edge. */
