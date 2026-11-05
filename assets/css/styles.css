@@ -4779,6 +4779,34 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
     /* Must stay visible/clip — hidden traps wheel scroll over the tall contact panel. */
     overflow: visible;
   }
+
+  /* Laptop uses this same 1920 layout, then scales down. Match the bio type. */
+  body.page-home .page--onepage .onepage-section--contact .contact__heading {
+    font-family: var(--font-display);
+    font-size: clamp(2.94rem, 8.4vw, 4.9rem);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: 0.06em;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__intro {
+    font-family: var(--font-body);
+    font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__input,
+  body.page-home .page--onepage .onepage-section--contact .contact__textarea {
+    font-family: var(--font-body);
+    font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+    font-weight: 600;
+    padding: 1em 1.25em;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__textarea {
+    min-height: 11rem;
+  }
 }
 
 @media (min-width: 769px) {
