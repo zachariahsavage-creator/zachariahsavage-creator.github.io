@@ -4811,9 +4811,14 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.8rem;
+    line-height: 1;
     /* Same outer height as the single-line date field at this type size. */
     min-height: calc(1.2 * 1.28rem + 2 * 1.28rem + 4px);
     padding-block: 0;
+    /* Form gap plus this margin equals the date box → message box gap
+       (form gap, label margin, label line, and the field's own gap). */
+    margin-top: calc(0.9rem + 1.5 * 0.9rem + 0.4rem);
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__textarea {
