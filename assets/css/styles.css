@@ -4787,6 +4787,7 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
     font-weight: 900;
     line-height: 1.02;
     letter-spacing: 0.06em;
+    text-transform: none;
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__intro {
@@ -4801,7 +4802,18 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
     font-family: var(--font-body);
     font-size: clamp(1.05rem, 1.7vw, 1.28rem);
     font-weight: 600;
+    line-height: 1.2;
     padding: 1em 1.25em;
+  }
+
+  body.page-home .page--onepage .onepage-section--contact .contact__submit {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Same outer height as the single-line date field at this type size. */
+    min-height: calc(1.2 * 1.28rem + 2 * 1.28rem + 4px);
+    padding-block: 0;
   }
 
   body.page-home .page--onepage .onepage-section--contact .contact__textarea {
