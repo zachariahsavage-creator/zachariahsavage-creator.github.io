@@ -3747,6 +3747,32 @@ body.page-full-gallery .portfolio-date-toggle--expanded .portfolio-date-toggle__
   margin-top: var(--portfolio-section-gap, 16px);
 }
 
+/* Closed preview: one slot holds two shots stacked (Ezra 5 over 6). */
+.portfolio-date-preview-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--portfolio-section-gap, 16px);
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  align-self: stretch;
+}
+
+body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100% !important;
+  height: 0 !important; /* flex share: ignore intrinsic image height */
+  align-self: stretch;
+}
+
+body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile img,
+body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
 /* Full gallery: instant folder expand/collapse — no grid-row reveal. */
 .portfolio-date-extra {
   display: none;
@@ -5941,6 +5967,31 @@ body:has(.lightbox[data-state="closing"]) .page-center-title {
 .lightbox__image[data-active="true"],
 .lightbox__video[data-active="true"] {
   display: block;
+}
+
+/*
+ * Root page-scale zoom shrinks vw/vh caps a second time. Undo that for the
+ * lightbox so laptop fills the screen the same way as unscaled desktop.
+ */
+html.is-page-scaled .lightbox__stage {
+  max-width: min(calc(95vw / var(--page-scale)), calc(1200px / var(--page-scale)));
+  max-height: min(calc(96vh / var(--page-scale)), 100%);
+}
+
+html.is-page-scaled .lightbox__content {
+  max-height: calc(90vh / var(--page-scale));
+}
+
+html.is-page-scaled .lightbox__image,
+html.is-page-scaled .lightbox__video {
+  max-height: calc(90vh / var(--page-scale));
+}
+
+@media (min-width: 769px) {
+  .lightbox {
+    /* Desktop/laptop: outside the photo advances, it does not dismiss. */
+    cursor: default;
+  }
 }
 
 /* Phones: image snug to the screen edges */

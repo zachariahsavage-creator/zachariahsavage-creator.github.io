@@ -259,6 +259,8 @@ const FULL_GALLERY_ARLO_PARKS_HISTORY = {
   order: -5,
   title: "Arlo Parks @ History",
   preserveSourceOrder: true,
+  /* Same closed preview as mobile: first four shots on every viewport. */
+  previewCount: 4,
   /* Rates / bio slideshow: use shot 21 instead of the folder cover. */
   ratesBioCycleSource: "arlo-parks-history-21.webp",
   /* Home flow: specific picks rather than the first N covers. */
@@ -306,6 +308,92 @@ const FULL_GALLERY_ARLO_PARKS_HISTORY = {
     "arlo-parks-history-36.webp",
     "arlo-parks-history-37.webp",
     "arlo-parks-history-38.webp",
+  ],
+};
+
+const FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL = {
+  id: "ezra-collective-the-concert-hall",
+  order: -4.5,
+  title: "Ezra Collective @ The Concert Hall",
+  preserveSourceOrder: true,
+  /*
+   * Closed preview (desktop/laptop): 01 | [05/06 stack], then 07|08.
+   * Mobile also shows 04 as a spread under that. Later shots expand-only.
+   */
+  previewSources: [
+    "ezra-collective-the-concert-hall-01.webp",
+    "ezra-collective-the-concert-hall-05.webp",
+    "ezra-collective-the-concert-hall-06.webp",
+    "ezra-collective-the-concert-hall-07.webp",
+    "ezra-collective-the-concert-hall-08.webp",
+  ],
+  previewSourcesMobile: [
+    "ezra-collective-the-concert-hall-01.webp",
+    "ezra-collective-the-concert-hall-05.webp",
+    "ezra-collective-the-concert-hall-06.webp",
+    "ezra-collective-the-concert-hall-07.webp",
+    "ezra-collective-the-concert-hall-08.webp",
+    "ezra-collective-the-concert-hall-04.webp",
+  ],
+  previewStackAt: 1,
+  previewStackCount: 2,
+  previewSpreadSources: ["ezra-collective-the-concert-hall-04.webp"],
+  sources: [
+    "ezra-collective-the-concert-hall-01.webp",
+    "ezra-collective-the-concert-hall-05.webp",
+    "ezra-collective-the-concert-hall-06.webp",
+    "ezra-collective-the-concert-hall-07.webp",
+    "ezra-collective-the-concert-hall-08.webp",
+    "ezra-collective-the-concert-hall-04.webp",
+    "ezra-collective-the-concert-hall-02.webp",
+    "ezra-collective-the-concert-hall-03.webp",
+    "ezra-collective-the-concert-hall-09.webp",
+    "ezra-collective-the-concert-hall-10.webp",
+    "ezra-collective-the-concert-hall-11.webp",
+    "ezra-collective-the-concert-hall-12.webp",
+    "ezra-collective-the-concert-hall-13.webp",
+    "ezra-collective-the-concert-hall-14.webp",
+    "ezra-collective-the-concert-hall-15.webp",
+    "ezra-collective-the-concert-hall-16.webp",
+    "ezra-collective-the-concert-hall-17.webp",
+    "ezra-collective-the-concert-hall-18.webp",
+    "ezra-collective-the-concert-hall-19.webp",
+    "ezra-collective-the-concert-hall-20.webp",
+    "ezra-collective-the-concert-hall-21.webp",
+    "ezra-collective-the-concert-hall-22.webp",
+  ],
+};
+
+const FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE = {
+  id: "lady-marge-x-basht-lees-palace",
+  order: -4.25,
+  title: "Lady Marge x Basht @ Lee's Palace",
+  preserveSourceOrder: true,
+  sources: [
+    "lady-marge-x-basht-lees-palace-01.webp",
+    "lady-marge-x-basht-lees-palace-02.webp",
+    "lady-marge-x-basht-lees-palace-03.webp",
+    "lady-marge-x-basht-lees-palace-04.webp",
+    "lady-marge-x-basht-lees-palace-05.webp",
+    "lady-marge-x-basht-lees-palace-06.webp",
+    "lady-marge-x-basht-lees-palace-07.webp",
+    "lady-marge-x-basht-lees-palace-08.webp",
+    "lady-marge-x-basht-lees-palace-09.webp",
+    "lady-marge-x-basht-lees-palace-10.webp",
+    "lady-marge-x-basht-lees-palace-11.webp",
+    "lady-marge-x-basht-lees-palace-12.webp",
+    "lady-marge-x-basht-lees-palace-13.webp",
+    "lady-marge-x-basht-lees-palace-14.webp",
+    "lady-marge-x-basht-lees-palace-15.webp",
+    "lady-marge-x-basht-lees-palace-16.webp",
+    "lady-marge-x-basht-lees-palace-17.webp",
+    "lady-marge-x-basht-lees-palace-18.webp",
+    "lady-marge-x-basht-lees-palace-19.webp",
+    "lady-marge-x-basht-lees-palace-20.webp",
+    "lady-marge-x-basht-lees-palace-21.webp",
+    "lady-marge-x-basht-lees-palace-22.webp",
+    "lady-marge-x-basht-lees-palace-23.webp",
+    "lady-marge-x-basht-lees-palace-24.webp",
   ],
 };
 
@@ -632,6 +720,8 @@ const FULL_GALLERY_MICO_HARD_LUCK = {
 
 const FULL_GALLERY_PINNED_SHOWS = [
   FULL_GALLERY_ARLO_PARKS_HISTORY,
+  FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL,
+  FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE,
   FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB,
   FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME,
   FULL_GALLERY_LISTENING_ROOM,
@@ -814,6 +904,8 @@ FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
 
 const fullGalleryNumberedItems = [
   ...FULL_GALLERY_ARLO_PARKS_HISTORY.sources,
+  ...FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL.sources,
+  ...FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE.sources,
   ...FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.sources,
   ...FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.sources,
   ...FULL_GALLERY_LISTENING_ROOM.sources,
@@ -975,6 +1067,28 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "daphne-the-drake-03.webp": 0.766,
   "daphne-the-drake-04.webp": 1.5,
   "daphne-the-drake-05.webp": 1.5,
+  "ezra-collective-the-concert-hall-01.webp": 0.75,
+  "ezra-collective-the-concert-hall-02.webp": 1.5,
+  "ezra-collective-the-concert-hall-03.webp": 1.5,
+  "ezra-collective-the-concert-hall-04.webp": 1.333,
+  "ezra-collective-the-concert-hall-05.webp": 1.5,
+  "ezra-collective-the-concert-hall-06.webp": 1.333,
+  "ezra-collective-the-concert-hall-07.webp": 1.5,
+  "ezra-collective-the-concert-hall-08.webp": 1.333,
+  "ezra-collective-the-concert-hall-09.webp": 0.75,
+  "ezra-collective-the-concert-hall-10.webp": 1.5,
+  "ezra-collective-the-concert-hall-11.webp": 0.75,
+  "ezra-collective-the-concert-hall-12.webp": 0.75,
+  "ezra-collective-the-concert-hall-13.webp": 1.5,
+  "ezra-collective-the-concert-hall-14.webp": 1.333,
+  "ezra-collective-the-concert-hall-15.webp": 1.5,
+  "ezra-collective-the-concert-hall-16.webp": 0.75,
+  "ezra-collective-the-concert-hall-17.webp": 0.75,
+  "ezra-collective-the-concert-hall-18.webp": 0.75,
+  "ezra-collective-the-concert-hall-19.webp": 0.75,
+  "ezra-collective-the-concert-hall-20.webp": 0.75,
+  "ezra-collective-the-concert-hall-21.webp": 0.75,
+  "ezra-collective-the-concert-hall-22.webp": 0.75,
   "gallery-page-backdrop.webp": 1.5,
   "home-hero-backdrop.webp": 0.481,
   "lady-marge-dinas-tavern-01.webp": 1.5,
@@ -993,6 +1107,30 @@ const FULL_GALLERY_PATH_ASPECTS = {
   "lady-marge-dinas-tavern-14.webp": 0.75,
   "lady-marge-dinas-tavern-15.webp": 1.5,
   "lady-marge-dinas-tavern-16.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-01.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-02.webp": 0.75,
+  "lady-marge-x-basht-lees-palace-03.webp": 0.75,
+  "lady-marge-x-basht-lees-palace-04.webp": 0.75,
+  "lady-marge-x-basht-lees-palace-05.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-06.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-07.webp": 0.75,
+  "lady-marge-x-basht-lees-palace-08.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-09.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-10.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-11.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-12.webp": 1.333,
+  "lady-marge-x-basht-lees-palace-13.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-14.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-15.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-16.webp": 1.333,
+  "lady-marge-x-basht-lees-palace-17.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-18.webp": 1.333,
+  "lady-marge-x-basht-lees-palace-19.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-20.webp": 1.778,
+  "lady-marge-x-basht-lees-palace-21.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-22.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-23.webp": 1.5,
+  "lady-marge-x-basht-lees-palace-24.webp": 1.5,
   "listening-room-longboat-hall-01.webp": 0.667,
   "listening-room-longboat-hall-02.webp": 0.667,
   "listening-room-longboat-hall-03.webp": 0.667,
@@ -1244,6 +1382,8 @@ let activeGalleryItems = mediaItems;
 const fullGalleryExpandedGroups = new Set();
 const fullGallerySectionTitles = {
   [FULL_GALLERY_ARLO_PARKS_HISTORY.id]: FULL_GALLERY_ARLO_PARKS_HISTORY.title,
+  [FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL.id]: FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL.title,
+  [FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE.id]: FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE.title,
   [FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.id]: FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB.title,
   [FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.id]: FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME.title,
   [FULL_GALLERY_LISTENING_ROOM.id]: FULL_GALLERY_LISTENING_ROOM.title,
@@ -1394,16 +1534,73 @@ function warmFlowImages(rowsState) {
 
 const GALLERY_FOLDER_PREVIEW_ATTR = "data-gallery-folder-preview";
 
-/** Closed folders show two photos on desktop and the first four on a phone. */
-function getGalleryFolderPreviewCount() {
-  return window.innerWidth <= 768 ? 4 : 2;
+/** Phone-width closed preview (desktop/laptop use the default preview list). */
+function isGalleryMobilePreview() {
+  return window.innerWidth <= 768;
+}
+
+/** Active closed-preview path list for a pinned show (mobile override when set). */
+function getPinnedShowPreviewSources(show) {
+  if (!show) return null;
+  if (
+    isGalleryMobilePreview() &&
+    Array.isArray(show.previewSourcesMobile) &&
+    show.previewSourcesMobile.length
+  ) {
+    return show.previewSourcesMobile;
+  }
+  if (Array.isArray(show.previewSources) && show.previewSources.length) {
+    return show.previewSources;
+  }
+  return null;
+}
+
+/**
+ * Closed-folder preview count. Default: first four images.
+ * A pinned show can set `previewCount` or `previewSources` to override
+ * (e.g. Arlo Parks, Ezra Collective).
+ */
+function getGalleryFolderPreviewCount(folderLabel) {
+  if (folderLabel) {
+    const show = getPinnedShowById(folderLabel);
+    const previewSources = getPinnedShowPreviewSources(show);
+    if (previewSources?.length) return previewSources.length;
+    if (Number.isFinite(show?.previewCount) && show.previewCount > 0) {
+      return show.previewCount;
+    }
+  }
+  return 4;
+}
+
+/** Paths shown while a folder is closed. */
+function getGalleryFolderPreviewPaths(folderLabel, sources = []) {
+  const show = folderLabel ? getPinnedShowById(folderLabel) : null;
+  const previewSources = getPinnedShowPreviewSources(show);
+  if (previewSources?.length) return previewSources.slice();
+  return sources.slice(0, getGalleryFolderPreviewCount(folderLabel));
+}
+
+/** Remaining paths loaded when a folder expands. */
+function getGalleryFolderExtraPaths(folderLabel, sources = []) {
+  const previewSet = new Set(getGalleryFolderPreviewPaths(folderLabel, sources));
+  return sources.filter((path) => !previewSet.has(path));
 }
 
 function getGalleryFolderPreviewAssetPaths() {
   const paths = [];
-  const previewCount = getGalleryFolderPreviewCount();
   FULL_GALLERY_PINNED_SHOWS.forEach((show) => {
-    show.sources.slice(0, previewCount).forEach((path) => paths.push(path));
+    const listed = new Set();
+    if (Array.isArray(show.previewSources)) {
+      show.previewSources.forEach((path) => listed.add(path));
+    }
+    if (Array.isArray(show.previewSourcesMobile)) {
+      show.previewSourcesMobile.forEach((path) => listed.add(path));
+    }
+    if (listed.size) {
+      listed.forEach((path) => paths.push(path));
+      return;
+    }
+    getGalleryFolderPreviewPaths(show.id, show.sources).forEach((path) => paths.push(path));
   });
 
   const byNumberGroup = new Map();
@@ -1415,8 +1612,9 @@ function getGalleryFolderPreviewAssetPaths() {
     if (!byNumberGroup.has(group)) byNumberGroup.set(group, []);
     byNumberGroup.get(group).push(item);
   });
+  const numberedPreviewCount = getGalleryFolderPreviewCount();
   byNumberGroup.forEach((items) => {
-    items.slice(0, previewCount).forEach((path) => paths.push(path));
+    items.slice(0, numberedPreviewCount).forEach((path) => paths.push(path));
   });
 
   return [...new Set(paths)];
@@ -1731,7 +1929,7 @@ function normalizeAssetPath(path) {
 
 const IMAGE_BASE_PATH = "assets/images/";
 /** Bump when replacing image bytes under the same filename (pinImagePath uses force-cache). */
-const ASSET_CACHE_VERSION = "arlo-parks-1";
+const ASSET_CACHE_VERSION = "basht-lees-1";
 
 /** Show folders under `assets/images/shows/`; every photo filename is prefixed with its slug.
  *  Longest slug first so an added slug that extends another still matches the right folder. */
@@ -1743,7 +1941,9 @@ const SHOW_IMAGE_FOLDERS = [
   "concrete-breaks-standard-time",
   "daniela-andrade-mod-club",
   "daphne-the-drake",
+  "ezra-collective-the-concert-hall",
   "lady-marge-dinas-tavern",
+  "lady-marge-x-basht-lees-palace",
   "listening-room-longboat-hall",
   "meteor-heist-dance-cave",
   "mico-hard-luck",
@@ -2399,25 +2599,40 @@ function getActiveLightboxMedia() {
   return null;
 }
 
+/** True for laptop/desktop lightbox nav (phones still dismiss on outside tap). */
+function isLightboxDesktopNav() {
+  return window.innerWidth > 768;
+}
+
 /**
  * Which action a pointer position maps to. Measured against the photo's own box
- * rather than its frame, so "outside the image" means what it looks like on
- * every aspect ratio — a portrait leaves wide margins the frame doesn't cover.
+ * rather than its frame, so left/right halves stay correct on every aspect ratio.
+ * On desktop/laptop, clicks outside the photo still prev/next — only × closes.
+ * On phones, outside the photo still dismisses.
  */
 function getLightboxPointerZone(event) {
   const media = getActiveLightboxMedia();
-  if (!media) return "outside";
+  const desktop = isLightboxDesktopNav();
+  if (!media) {
+    if (!desktop) return "outside";
+    return event.clientX < window.innerWidth / 2 ? "prev" : "next";
+  }
   const rect = media.getBoundingClientRect();
-  if (!(rect.width > 0 && rect.height > 0)) return "outside";
+  if (!(rect.width > 0 && rect.height > 0)) {
+    if (!desktop) return "outside";
+    return event.clientX < window.innerWidth / 2 ? "prev" : "next";
+  }
+  const midX = rect.left + rect.width / 2;
   if (
     event.clientX < rect.left ||
     event.clientX > rect.right ||
     event.clientY < rect.top ||
     event.clientY > rect.bottom
   ) {
-    return "outside";
+    if (!desktop) return "outside";
+    return event.clientX < midX ? "prev" : "next";
   }
-  return event.clientX < rect.left + rect.width / 2 ? "prev" : "next";
+  return event.clientX < midX ? "prev" : "next";
 }
 
 function setupLightboxPointerNav() {
@@ -2466,10 +2681,12 @@ function setupLightboxPointerNav() {
   // does what, so point it the way the photo will move.
   lightbox.addEventListener("mousemove", (event) => {
     if (isLightboxInputQuiet()) return;
-    const media = getActiveLightboxMedia();
-    if (!media) return;
+    if (lightbox.getAttribute("data-state") !== "open") return;
     const zone = getLightboxPointerZone(event);
-    media.style.cursor = zone === "prev" ? "w-resize" : zone === "next" ? "e-resize" : "";
+    const cursor = zone === "prev" ? "w-resize" : zone === "next" ? "e-resize" : "";
+    lightbox.style.cursor = cursor || "";
+    const media = getActiveLightboxMedia();
+    if (media) media.style.cursor = cursor || "pointer";
   });
 }
 
@@ -3460,13 +3677,127 @@ function schedulePairedRowHeightSync(gridEl) {
 function refineFullGalleryFolderRowHeights(root) {
   if (!root) return;
   root.querySelectorAll(".portfolio-date-grid").forEach((gridEl) => {
-    schedulePairedRowHeightSync(gridEl);
+    if (gridEl.classList.contains("portfolio-date-preview-grid--with-stack")) {
+      schedulePreviewStackHeightSync(gridEl);
+    } else {
+      schedulePairedRowHeightSync(gridEl);
+    }
   });
 }
 
+/** Match a stacked preview column to the height of the tile beside it. */
+function syncPreviewStackHeights(gridEl) {
+  if (!gridEl) return;
+  const lead = gridEl.querySelector(":scope > .media-item.full-gallery-tile");
+  const stack = gridEl.querySelector(":scope > .portfolio-date-preview-stack");
+  if (!lead || !stack) return;
+
+  lead.style.height = "";
+  stack.style.height = "";
+
+  const gridWidth = gridEl.getBoundingClientRect().width;
+  const gapPx = parseFloat(getComputedStyle(gridEl).columnGap || getComputedStyle(gridEl).gap) || 0;
+  const colWidth = gridWidth > 0 ? (gridWidth - gapPx) / 2 : 0;
+
+  let targetH = lead.getBoundingClientRect().height;
+  if (targetH < 2 && colWidth > 0) {
+    const aspect = getTileAspect(lead);
+    if (aspect > 0) targetH = colWidth / aspect;
+  }
+  if (targetH > 1) {
+    lead.style.height = `${targetH}px`;
+    stack.style.height = `${targetH}px`;
+  }
+}
+
+function schedulePreviewStackHeightSync(gridEl) {
+  if (!gridEl) return;
+  const run = () => syncPreviewStackHeights(gridEl);
+  requestAnimationFrame(() => {
+    run();
+    requestAnimationFrame(run);
+  });
+  gridEl.querySelectorAll("img").forEach((img) => {
+    if (img.complete && img.naturalWidth > 0) return;
+    img.addEventListener("load", run, { once: true });
+    img.addEventListener("error", run, { once: true });
+  });
+}
+
+/** One full-width preview row (landscape spread). */
+function renderFolderPreviewSpreadTile(parentEl, tile) {
+  const gridEl = document.createElement("div");
+  gridEl.className =
+    "portfolio-date-grid portfolio-date-preview-grid portfolio-date-grid--stacked";
+  prepareFullGalleryTile(tile);
+  tile.classList.add("full-gallery-tile--fullwidth");
+  gridEl.appendChild(tile);
+  parentEl.appendChild(gridEl);
+}
+
+/** Place preview tiles after the stack: spreads alone, others paired. */
+function renderFolderPreviewAfterTiles(parentEl, tiles, spreadSources = []) {
+  if (!tiles.length) return;
+  const spreadSet = new Set(spreadSources);
+  let i = 0;
+  while (i < tiles.length) {
+    const path = getTileAssetPath(tiles[i]);
+    if (spreadSet.has(path)) {
+      renderFolderPreviewSpreadTile(parentEl, tiles[i]);
+      i += 1;
+      continue;
+    }
+    const run = [];
+    while (i < tiles.length && !spreadSet.has(getTileAssetPath(tiles[i]))) {
+      run.push(tiles[i]);
+      i += 1;
+    }
+    const gridEl = document.createElement("div");
+    gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
+    appendTilesToFullGalleryGrid(gridEl, run);
+    parentEl.appendChild(gridEl);
+  }
+}
+
+/**
+ * Closed preview with one column slot holding a vertical stack
+ * (Ezra: shot 1 beside stacked 5+6, then 4 as a spread, then 9).
+ */
+function renderFolderPreviewWithStack(parentEl, tiles, stackAt, stackCount, spreadSources = []) {
+  const before = tiles.slice(0, stackAt);
+  const stacked = tiles.slice(stackAt, stackAt + stackCount);
+  const after = tiles.slice(stackAt + stackCount);
+  if (!before.length || stacked.length < stackCount) return false;
+
+  const stackRow = document.createElement("div");
+  stackRow.className =
+    "portfolio-date-grid portfolio-date-preview-grid portfolio-date-preview-grid--with-stack";
+
+  before.forEach((tile) => {
+    prepareFullGalleryTile(tile);
+    stackRow.appendChild(tile);
+  });
+
+  const stackEl = document.createElement("div");
+  stackEl.className = "portfolio-date-preview-stack";
+  stacked.forEach((tile) => {
+    prepareFullGalleryTile(tile);
+    stackEl.appendChild(tile);
+  });
+  stackRow.appendChild(stackEl);
+  parentEl.appendChild(stackRow);
+  schedulePreviewStackHeightSync(stackRow);
+
+  renderFolderPreviewAfterTiles(parentEl, after, spreadSources);
+
+  retainGalleryFolderPreviewTiles(tiles);
+  return true;
+}
+
 /** Always-visible folder preview: first two on desktop, first four on mobile. */
-function renderFolderPreview(parentEl, layoutTiles) {
-  const preview = layoutTiles.slice(0, getGalleryFolderPreviewCount());
+function renderFolderPreview(parentEl, layoutTiles, folderLabel) {
+  const show = folderLabel ? getPinnedShowById(folderLabel) : null;
+  const preview = layoutTiles.slice(0, getGalleryFolderPreviewCount(folderLabel));
   if (!preview.length) return;
 
   preview.forEach((tile) => {
@@ -3477,15 +3808,31 @@ function renderFolderPreview(parentEl, layoutTiles) {
     );
   });
 
+  const stackAt = Number.isFinite(show?.previewStackAt) ? show.previewStackAt : -1;
+  const stackCount = Number.isFinite(show?.previewStackCount) ? show.previewStackCount : 2;
+  const spreadSources = Array.isArray(show?.previewSpreadSources)
+    ? show.previewSpreadSources
+    : [];
+  if (
+    stackAt >= 0 &&
+    renderFolderPreviewWithStack(parentEl, preview, stackAt, stackCount, spreadSources)
+  ) {
+    return;
+  }
+
   const sameOrientation =
     preview.length === 2 && isTileLandscape(preview[0]) === isTileLandscape(preview[1]);
 
   if (preview.length > 2) {
-    const before = parentEl.childElementCount;
-    renderFolderBody(parentEl, preview);
-    Array.from(parentEl.children)
-      .slice(before)
-      .forEach((gridEl) => gridEl.classList.add("portfolio-date-preview-grid"));
+    // Keep source order and pair consecutive shots so mixed orientations
+    // (e.g. Arlo 3 + 4) still sit side by side in the closed preview.
+    for (let i = 0; i < preview.length; i += 2) {
+      const pair = preview.slice(i, i + 2);
+      const gridEl = document.createElement("div");
+      gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
+      appendTilesToFullGalleryGrid(gridEl, pair);
+      parentEl.appendChild(gridEl);
+    }
   } else if (sameOrientation) {
     const gridEl = document.createElement("div");
     gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
@@ -3637,61 +3984,67 @@ function createFolderTopCollapseButton() {
   return btn;
 }
 
-function getGalleryFolderCenteredScrollTarget(sectionEl) {
-  if (!sectionEl) return null;
-  const scrollTop = getPageScrollTop();
-  const rect = sectionEl.getBoundingClientRect();
-  const sectionDocTop = rect.top + scrollTop;
-  const sectionHeight = rect.height;
-  const headerOffset = Math.max(0, getFixedHeaderScrollOffset() - 96);
-  const visibleHeight = Math.max(0, window.innerHeight - headerOffset);
-  return Math.max(0, sectionDocTop + sectionHeight / 2 - headerOffset - visibleHeight / 2);
+/**
+ * Root `zoom` (laptop page-scale) makes getBoundingClientRect live in viewport
+ * space while window.scrollY stays in layout space. A viewport-pixel delta must
+ * be multiplied by the page scale before it's applied as a scroll delta.
+ */
+function getPageScaleFactor() {
+  return appliedPageScale > 0 ? appliedPageScale : 1;
 }
 
-function getUnionBoundingDocBlock(elements) {
-  if (!elements?.length) return null;
-  const scrollTop = getPageScrollTop();
-  let top = Infinity;
-  let bottom = -Infinity;
-
-  elements.forEach((el) => {
-    const rect = el.getBoundingClientRect();
-    top = Math.min(top, rect.top);
-    bottom = Math.max(bottom, rect.bottom);
-  });
-
-  if (!Number.isFinite(top) || !Number.isFinite(bottom)) return null;
-  return { top: top + scrollTop, height: Math.max(0, bottom - top) };
-}
-
-function getGalleryFolderPreviewCenteredScrollTarget(sectionEl) {
+/** First closed-preview row (the first two images, or Ezra's 01 + stack). */
+function getGalleryFolderFirstPreviewRow(sectionEl) {
   const rowsWrap = sectionEl?.querySelector(".portfolio-date-rows");
-  if (!rowsWrap) return getGalleryFolderCenteredScrollTarget(sectionEl);
+  if (!rowsWrap) return null;
 
-  const previewGrids = Array.from(
-    rowsWrap.querySelectorAll(":scope > .portfolio-date-preview-grid")
-  );
-  let block = getUnionBoundingDocBlock(previewGrids);
+  const firstGrid = rowsWrap.querySelector(":scope > .portfolio-date-preview-grid");
+  if (firstGrid) return firstGrid;
 
-  if (!block) {
-    const previewTiles = Array.from(
-      rowsWrap.querySelectorAll(":scope > .portfolio-date-grid .media-item")
-    ).slice(0, getGalleryFolderPreviewCount());
-    block = getUnionBoundingDocBlock(previewTiles);
-  }
+  const tiles = Array.from(
+    rowsWrap.querySelectorAll(":scope > .portfolio-date-grid .media-item")
+  ).slice(0, 2);
+  if (!tiles.length) return null;
 
-  if (!block) return getGalleryFolderCenteredScrollTarget(sectionEl);
-
-  const headerOffset = Math.max(0, getFixedHeaderScrollOffset() - 96);
-  const visibleHeight = Math.max(0, window.innerHeight - headerOffset);
-  return Math.max(0, block.top + block.height / 2 - headerOffset - visibleHeight / 2);
+  // No dedicated preview grid — union the first two tiles into a synthetic box
+  // via the first tile's parent grid when possible.
+  return tiles[0].closest(".portfolio-date-grid") || tiles[0];
 }
 
-/** Instant jump: center the folder preview row (after collapse or nav pick). */
+/**
+ * Scroll target for folder jumps (side nav / hash / collapse).
+ * Pin the folder heading just under the fixed gallery bar so the title stays
+ * visible and the first preview row sits centred in the space below — matching
+ * the closed-folder landing composition.
+ */
+function getGalleryFolderPreviewCenteredScrollTarget(sectionEl) {
+  if (!sectionEl) return null;
+
+  const heading =
+    sectionEl.querySelector(".portfolio-date-header") ||
+    getGalleryFolderFirstPreviewRow(sectionEl) ||
+    sectionEl;
+  const rect = heading.getBoundingClientRect();
+  if (!Number.isFinite(rect.top)) return null;
+
+  const headerOffset = getFixedHeaderScrollOffset();
+  const scale = getPageScaleFactor();
+  return Math.max(0, getPageScrollTop() + (rect.top - headerOffset) * scale);
+}
+
+/** Instant jump to the folder landing position (after collapse or nav pick). */
 function scrollToFolderPreview(sectionEl) {
   if (!sectionEl) return;
-  const target = getGalleryFolderPreviewCenteredScrollTarget(sectionEl);
-  if (target !== null) setPageScrollTop(target);
+  const run = () => {
+    const target = getGalleryFolderPreviewCenteredScrollTarget(sectionEl);
+    if (target !== null) setPageScrollTop(target);
+  };
+  run();
+  // Row-height sync / image decode can nudge layout after the jump.
+  requestAnimationFrame(() => {
+    run();
+    requestAnimationFrame(run);
+  });
 }
 
 function createPortfolioDateGroupSection(folderDef, gap, isFullGalleryPage) {
@@ -3721,10 +4074,22 @@ function createPortfolioDateGroupSection(folderDef, gap, isFullGalleryPage) {
   rowsWrap.className = "portfolio-date-rows";
   rowsWrap.style.setProperty("--portfolio-section-gap", `${gap}px`);
 
-  const previewCount = getGalleryFolderPreviewCount();
-  const previewTiles = layoutTiles.slice(0, previewCount);
-  const extraPaths = sources.slice(previewCount);
-  const hasCollapsibleExtra = isFullGalleryPage && sources.length > previewTiles.length;
+  const previewPaths = getGalleryFolderPreviewPaths(label, sources);
+  const tilesByPath = new Map();
+  layoutTiles.forEach((tile) => {
+    const path = getTileAssetPath(tile);
+    if (path && !tilesByPath.has(path)) tilesByPath.set(path, tile);
+  });
+  const previewTiles = previewPaths
+    .map((path) => tilesByPath.get(path))
+    .filter(Boolean);
+  // Fresh tiles if a preview path was missing from the layout list.
+  if (previewTiles.length !== previewPaths.length) {
+    previewTiles.length = 0;
+    createGridTilesFromPaths(previewPaths).forEach((tile) => previewTiles.push(tile));
+  }
+  const extraPaths = getGalleryFolderExtraPaths(label, sources);
+  const hasCollapsibleExtra = isFullGalleryPage && extraPaths.length > 0;
 
   const topCollapseBtn = hasCollapsibleExtra ? createFolderTopCollapseButton() : null;
   if (topCollapseBtn) {
@@ -3739,7 +4104,7 @@ function createPortfolioDateGroupSection(folderDef, gap, isFullGalleryPage) {
   }
 
   if (hasCollapsibleExtra) {
-    renderFolderPreview(rowsWrap, previewTiles);
+    renderFolderPreview(rowsWrap, previewTiles, label);
 
     const extraOuter = document.createElement("div");
     extraOuter.className = "portfolio-date-extra";
@@ -3960,7 +4325,7 @@ function renderFullGalleryFolders(grid) {
       if (folder && extraInner) {
         loadGalleryFolderExpandedImages(
           extraInner,
-          folder.sources.slice(getGalleryFolderPreviewCount())
+          getGalleryFolderExtraPaths(label, folder.sources)
         );
       }
     }
