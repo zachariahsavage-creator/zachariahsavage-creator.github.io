@@ -3694,6 +3694,9 @@ function syncPreviewStackHeights(gridEl) {
 
   lead.style.height = "";
   stack.style.height = "";
+  stack.querySelectorAll(":scope > .media-item").forEach((tile) => {
+    tile.style.height = "";
+  });
 
   const gridWidth = gridEl.getBoundingClientRect().width;
   const gapPx = parseFloat(getComputedStyle(gridEl).columnGap || getComputedStyle(gridEl).gap) || 0;
@@ -3704,9 +3707,24 @@ function syncPreviewStackHeights(gridEl) {
     const aspect = getTileAspect(lead);
     if (aspect > 0) targetH = colWidth / aspect;
   }
-  if (targetH > 1) {
-    lead.style.height = `${targetH}px`;
-    stack.style.height = `${targetH}px`;
+  if (targetH <= 1) return;
+
+  lead.style.height = `${targetH}px`;
+  stack.style.height = `${targetH}px`;
+
+  // Explicit slot heights help Safari size absolute-fill images inside the stack.
+  const stackGap =
+    parseFloat(getComputedStyle(stack).rowGap || getComputedStyle(stack).gap) || 0;
+  const kids = Array.from(stack.querySelectorAll(":scope > .media-item"));
+  if (kids.length) {
+    stack.style.setProperty(
+      "--preview-stack-rows",
+      `repeat(${kids.length}, minmax(0, 1fr))`
+    );
+    const slotH = Math.max(0, (targetH - stackGap * (kids.length - 1)) / kids.length);
+    kids.forEach((tile) => {
+      tile.style.height = `${slotH}px`;
+    });
   }
 }
 
