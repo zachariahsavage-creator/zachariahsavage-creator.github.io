@@ -3748,38 +3748,45 @@ body.page-full-gallery .portfolio-date-toggle--expanded .portfolio-date-toggle__
 }
 
 /* Closed preview: one slot holds two shots stacked (Ezra 5 over 6).
-   Use grid + absolute media — Safari stretches <img> inside flex+height:0. */
+   Safari ignores non-!important inline heights against `.full-gallery-tile { height: auto !important }`,
+   and absolute children then collapse the tile — images stretch. Drive slot height via a
+   !important custom property and keep media in normal flow with object-fit: cover. */
 .portfolio-date-preview-stack {
-  display: grid;
-  grid-template-rows: var(--preview-stack-rows, repeat(2, minmax(0, 1fr)));
+  display: flex;
+  flex-direction: column;
   gap: var(--portfolio-section-gap, 16px);
   min-width: 0;
   min-height: 0;
   width: 100%;
   align-self: stretch;
+  box-sizing: border-box;
 }
 
 body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile {
   position: relative !important;
   display: block !important;
+  flex: 0 0 auto !important;
   min-height: 0 !important;
   width: 100% !important;
-  height: auto !important;
+  height: var(--stack-slot-h, 50%) !important;
+  max-height: none !important;
   align-self: stretch;
-  overflow: hidden;
+  overflow: hidden !important;
   justify-content: unset;
+  box-sizing: border-box;
 }
 
 body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile img,
 body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gallery-tile video {
-  position: absolute !important;
-  inset: 0;
+  position: static !important;
+  display: block !important;
   width: 100% !important;
   height: 100% !important;
   max-height: none !important;
   flex: none !important;
   object-fit: cover !important;
-  object-position: center;
+  object-position: center center;
+  border-radius: var(--radius-md);
 }
 
 /* Full gallery: instant folder expand/collapse — no grid-row reveal. */
