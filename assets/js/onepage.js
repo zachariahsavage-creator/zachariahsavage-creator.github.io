@@ -3692,40 +3692,44 @@ function syncPreviewStackHeights(gridEl) {
   const stack = gridEl.querySelector(":scope > .portfolio-date-preview-stack");
   if (!lead || !stack) return;
 
-  lead.style.height = "";
-  stack.style.height = "";
+  // Clear prior sync. Use setProperty(..., 'important') so we win against
+  // `.full-gallery-tile { height: auto !important }` (Safari otherwise collapses).
+  lead.style.removeProperty("height");
+  stack.style.removeProperty("height");
   stack.querySelectorAll(":scope > .media-item").forEach((tile) => {
-    tile.style.height = "";
+    tile.style.removeProperty("height");
+    tile.style.removeProperty("--stack-slot-h");
   });
 
-  const gridWidth = gridEl.getBoundingClientRect().width;
+  const scale = appliedPageScale > 0 ? appliedPageScale : 1;
+  const gridWidth = gridEl.getBoundingClientRect().width / scale;
   const gapPx = parseFloat(getComputedStyle(gridEl).columnGap || getComputedStyle(gridEl).gap) || 0;
   const colWidth = gridWidth > 0 ? (gridWidth - gapPx) / 2 : 0;
 
-  let targetH = lead.getBoundingClientRect().height;
-  if (targetH < 2 && colWidth > 0) {
+  // Prefer aspect-derived height in layout px so page-scale zoom can't skew Safari.
+  let targetH = 0;
+  if (colWidth > 0) {
     const aspect = getTileAspect(lead);
     if (aspect > 0) targetH = colWidth / aspect;
   }
+  if (targetH < 2) {
+    targetH = lead.getBoundingClientRect().height / scale;
+  }
   if (targetH <= 1) return;
 
-  lead.style.height = `${targetH}px`;
-  stack.style.height = `${targetH}px`;
+  lead.style.setProperty("height", `${targetH}px`, "important");
+  stack.style.setProperty("height", `${targetH}px`, "important");
 
-  // Explicit slot heights help Safari size absolute-fill images inside the stack.
   const stackGap =
     parseFloat(getComputedStyle(stack).rowGap || getComputedStyle(stack).gap) || 0;
   const kids = Array.from(stack.querySelectorAll(":scope > .media-item"));
-  if (kids.length) {
-    stack.style.setProperty(
-      "--preview-stack-rows",
-      `repeat(${kids.length}, minmax(0, 1fr))`
-    );
-    const slotH = Math.max(0, (targetH - stackGap * (kids.length - 1)) / kids.length);
-    kids.forEach((tile) => {
-      tile.style.height = `${slotH}px`;
-    });
-  }
+  if (!kids.length) return;
+
+  const slotH = Math.max(0, (targetH - stackGap * (kids.length - 1)) / kids.length);
+  kids.forEach((tile) => {
+    tile.style.setProperty("--stack-slot-h", `${slotH}px`);
+    tile.style.setProperty("height", `${slotH}px`, "important");
+  });
 }
 
 function schedulePreviewStackHeightSync(gridEl) {
