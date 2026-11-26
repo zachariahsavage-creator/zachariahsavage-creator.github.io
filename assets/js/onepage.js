@@ -374,6 +374,10 @@ const FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE = {
   order: -4.25,
   title: "Lady Marge x Basht @ Lee's Palace",
   preserveSourceOrder: true,
+  /* Shot 1 leads the closed preview as a full-width row. */
+  previewSpreadSources: ["lady-marge-x-basht-lees-palace-01.webp"],
+  /* Last shot gets its own full-width row when the folder expands. */
+  expandSpreadSources: ["lady-marge-x-basht-lees-palace-24.webp"],
   sources: [
     "lady-marge-x-basht-lees-palace-01.webp",
     "lady-marge-x-basht-lees-palace-02.webp",
@@ -406,7 +410,12 @@ const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
   id: "daniela-andrade-mod-club",
   order: -4,
   title: "Daniela Andrade @ Mod Club",
+  preserveSourceOrder: true,
+  previewCount: 3,
+  /* Shot that sat last in the paired layout leads as a full-width preview row. */
+  previewSpreadSources: ["daniela-andrade-mod-club-16.webp"],
   sources: [
+    "daniela-andrade-mod-club-16.webp",
     "daniela-andrade-mod-club-01.webp",
     "daniela-andrade-mod-club-02.webp",
     "daniela-andrade-mod-club-03.webp",
@@ -422,7 +431,6 @@ const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
     "daniela-andrade-mod-club-13.webp",
     "daniela-andrade-mod-club-14.webp",
     "daniela-andrade-mod-club-15.webp",
-    "daniela-andrade-mod-club-16.webp",
     "daniela-andrade-mod-club-17.webp",
     "daniela-andrade-mod-club-18.webp",
     "daniela-andrade-mod-club-19.webp",
@@ -1816,7 +1824,13 @@ function ensureGalleryFolderExpandedDom(extraInner, extraPaths) {
   let tiles = Array.from(extraInner.querySelectorAll(".media-item"));
   if (!tiles.length) {
     tiles = createGridTilesFromPaths(extraPaths);
-    renderFolderBody(extraInner, tiles);
+    const folderLabel =
+      extraInner.closest("[data-folder-label]")?.dataset?.folderLabel || "";
+    const show = folderLabel ? getPinnedShowById(folderLabel) : null;
+    const expandSpreads = Array.isArray(show?.expandSpreadSources)
+      ? show.expandSpreadSources
+      : [];
+    renderFolderBody(extraInner, tiles, expandSpreads);
   }
 
   tiles.forEach((tile) => {
@@ -4084,18 +4098,56 @@ function renderFolderPreview(parentEl, layoutTiles, folderLabel) {
   retainGalleryFolderPreviewTiles(preview);
 }
 
-/** Expanded folder body: keep folder source order; row-split by orientation only. */
-function renderFolderBody(parentEl, tiles) {
+/** One full-width expand row (matches preview spreads, without preview-grid class). */
+function renderFolderExpandSpreadTile(parentEl, tile) {
+  const gridEl = document.createElement("div");
+  gridEl.className = "portfolio-date-grid portfolio-date-grid--stacked";
+  prepareFullGalleryTile(tile);
+  tile.classList.add("full-gallery-tile--fullwidth");
+  gridEl.appendChild(tile);
+  parentEl.appendChild(gridEl);
+}
+
+/**
+ * Expanded folder body: keep folder source order; row-split by orientation,
+ * with optional configured full-width spreads (e.g. Lady Marge x Basht 24).
+ */
+function renderFolderBody(parentEl, tiles, spreadSources = []) {
   if (!tiles.length) return;
 
   // Tiles arrive in folder source order from createGridTilesFromPaths — do not
   // re-sort by aspect here, or the grid and lightbox swipe order diverge.
-  splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
-    const gridEl = document.createElement("div");
-    gridEl.className = "portfolio-date-grid";
-    appendTilesToFullGalleryGrid(gridEl, run);
-    parentEl.appendChild(gridEl);
-  });
+  const spreadSet = new Set(spreadSources);
+  if (!spreadSet.size) {
+    splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
+      const gridEl = document.createElement("div");
+      gridEl.className = "portfolio-date-grid";
+      appendTilesToFullGalleryGrid(gridEl, run);
+      parentEl.appendChild(gridEl);
+    });
+    return;
+  }
+
+  let i = 0;
+  while (i < tiles.length) {
+    const path = getTileAssetPath(tiles[i]);
+    if (spreadSet.has(path)) {
+      renderFolderExpandSpreadTile(parentEl, tiles[i]);
+      i += 1;
+      continue;
+    }
+    const run = [];
+    while (i < tiles.length && !spreadSet.has(getTileAssetPath(tiles[i]))) {
+      run.push(tiles[i]);
+      i += 1;
+    }
+    splitTilesIntoSourceOrderOrientationRuns(run).forEach((orientRun) => {
+      const gridEl = document.createElement("div");
+      gridEl.className = "portfolio-date-grid";
+      appendTilesToFullGalleryGrid(gridEl, orientRun);
+      parentEl.appendChild(gridEl);
+    });
+  }
 }
 
 function getTileAssetPath(tile) {
