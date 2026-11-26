@@ -403,8 +403,10 @@ body.page-home a.page-center-title.page-center-title--hidden:hover {
 }
 
 /* Home + full gallery menu:
- * frost/plate = absolute chrome inside the brand (tracks under page-scale zoom)
- * ink = white type with difference invert (siblings stay un-differenced) */
+ * frost = colorful blur (fixed sibling under the brand)
+ * brand = single white-ink layer with difference invert
+ * Overlay top/right/size are synced from the brand in layout px so
+ * laptop page-scale zoom cannot drift them (see gallery-menu.js). */
 body.page-home .gallery-bar,
 body.page-full-gallery .gallery-bar {
   z-index: auto;
@@ -416,20 +418,18 @@ body.page-full-gallery .gallery-bar {
 body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost {
   display: block;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  position: fixed;
+  z-index: 11;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: inherit;
   /* Faint alpha keeps Safari backdrop-filter active — no visible fill. */
   background: rgba(255, 255, 255, 0.01);
   backdrop-filter: blur(20px) saturate(1.2);
   -webkit-backdrop-filter: blur(20px) saturate(1.2);
   box-shadow: none;
-  opacity: 1;
+  opacity: 0;
   pointer-events: none;
   transform: translateZ(0);
 }
@@ -437,22 +437,30 @@ body.page-full-gallery .gallery-bar__frost {
 body.page-home .gallery-bar__plate,
 body.page-full-gallery .gallery-bar__plate {
   display: block;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  position: fixed;
+  z-index: 11;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: inherit;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  /* Scroll-driven fade; see setupHeaderPillsScrollFade() in onepage.js. */
-  opacity: var(--menu-fill-opacity, 0);
+  opacity: 0;
   pointer-events: none;
   transform: translateZ(0);
+}
+
+body.page-home .gallery-bar__frost.is-ready,
+body.page-full-gallery .gallery-bar__frost.is-ready {
+  opacity: 1;
+}
+
+body.page-home .gallery-bar__plate.is-ready,
+body.page-full-gallery .gallery-bar__plate.is-ready {
+  /* Scroll-driven fade; see setupHeaderPillsScrollFade() in onepage.js. */
+  opacity: var(--menu-fill-opacity, 0);
 }
 
 body.page-home .gallery-bar__brand,
@@ -466,7 +474,7 @@ body.page-full-gallery .gallery-bar__brand {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: normal;
+  mix-blend-mode: difference;
   filter: none;
   isolation: auto;
   pointer-events: auto;
@@ -478,20 +486,6 @@ body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  mix-blend-mode: normal;
-}
-
-body.page-home .gallery-bar__ink,
-body.page-full-gallery .gallery-bar__ink {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: 0;
-  width: 100%;
-  min-width: 0;
   mix-blend-mode: difference;
 }
 
@@ -769,7 +763,7 @@ body.page-home::after {
   pointer-events: auto;
 }
 
-/* Home/full-gallery only — absolute chrome nested inside `.gallery-bar__brand`. */
+/* Home/full-gallery only — fixed chrome sized to the pill via gallery-menu.js. */
 .gallery-bar__frost,
 .gallery-bar__plate {
   display: none;

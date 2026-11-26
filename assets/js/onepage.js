@@ -5779,7 +5779,7 @@ function setupFullGalleryScrollTheme() {
   /** No pull-forward — keeps the page top fully peach. */
   const EARLY_PX = 0;
   /** Short scroll distance for a rapid peach→black ramp. */
-  const DURATION_SCALE = 0.35;
+  const DURATION_SCALE = 0.2;
   let ticking = false;
   let dark = false;
 
