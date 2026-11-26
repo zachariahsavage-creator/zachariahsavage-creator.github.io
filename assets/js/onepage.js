@@ -261,6 +261,11 @@ const FULL_GALLERY_ARLO_PARKS_HISTORY = {
   preserveSourceOrder: true,
   /* Same closed preview as mobile: first four shots on every viewport. */
   previewCount: 4,
+  /* Shots 3 + 4 each get their own full-width preview row. */
+  previewSpreadSources: [
+    "arlo-parks-history-03.webp",
+    "arlo-parks-history-04.webp",
+  ],
   /* Rates / bio slideshow: use shot 21 instead of the folder cover. */
   ratesBioCycleSource: "arlo-parks-history-21.webp",
   /* Home flow: specific picks rather than the first N covers. */
@@ -369,6 +374,10 @@ const FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE = {
   order: -4.25,
   title: "Lady Marge x Basht @ Lee's Palace",
   preserveSourceOrder: true,
+  /* Shot 1 leads the closed preview as a full-width row. */
+  previewSpreadSources: ["lady-marge-x-basht-lees-palace-01.webp"],
+  /* Last shot gets its own full-width row when the folder expands. */
+  expandSpreadSources: ["lady-marge-x-basht-lees-palace-24.webp"],
   sources: [
     "lady-marge-x-basht-lees-palace-01.webp",
     "lady-marge-x-basht-lees-palace-02.webp",
@@ -401,7 +410,12 @@ const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
   id: "daniela-andrade-mod-club",
   order: -4,
   title: "Daniela Andrade @ Mod Club",
+  preserveSourceOrder: true,
+  previewCount: 3,
+  /* Shot that sat last in the paired layout leads as a full-width preview row. */
+  previewSpreadSources: ["daniela-andrade-mod-club-16.webp"],
   sources: [
+    "daniela-andrade-mod-club-16.webp",
     "daniela-andrade-mod-club-01.webp",
     "daniela-andrade-mod-club-02.webp",
     "daniela-andrade-mod-club-03.webp",
@@ -417,7 +431,6 @@ const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
     "daniela-andrade-mod-club-13.webp",
     "daniela-andrade-mod-club-14.webp",
     "daniela-andrade-mod-club-15.webp",
-    "daniela-andrade-mod-club-16.webp",
     "daniela-andrade-mod-club-17.webp",
     "daniela-andrade-mod-club-18.webp",
     "daniela-andrade-mod-club-19.webp",
@@ -1811,7 +1824,13 @@ function ensureGalleryFolderExpandedDom(extraInner, extraPaths) {
   let tiles = Array.from(extraInner.querySelectorAll(".media-item"));
   if (!tiles.length) {
     tiles = createGridTilesFromPaths(extraPaths);
-    renderFolderBody(extraInner, tiles);
+    const folderLabel =
+      extraInner.closest("[data-folder-label]")?.dataset?.folderLabel || "";
+    const show = folderLabel ? getPinnedShowById(folderLabel) : null;
+    const expandSpreads = Array.isArray(show?.expandSpreadSources)
+      ? show.expandSpreadSources
+      : [];
+    renderFolderBody(extraInner, tiles, expandSpreads);
   }
 
   tiles.forEach((tile) => {
@@ -2696,6 +2715,8 @@ function applyMagneticScale() {
 
 /** Pointer travel past this is a swipe, not a tap on a tile. */
 const TILE_TAP_SLOP_PX = 12;
+/** After a flow-row scrub, ignore tile activates briefly so mouse click doesn't open lightbox. */
+let flowScrubBlockClicksUntil = 0;
 
 /**
  * Visual hit-test for the CSS-marquee flow. Android Chrome often delivers
@@ -2778,6 +2799,7 @@ function attachHoverAndClickBehavior(wrapper, mediaIndex) {
       e.stopPropagation();
     }
     const now = Date.now();
+    if (now < flowScrubBlockClicksUntil) return;
     if (now - lastActivateAt < 400) return;
 
     if (e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
@@ -3044,18 +3066,27 @@ function setupRows() {
       return;
     }
     rowElement.replaceChildren();
+    const scrubElement = document.createElement("div");
+    scrubElement.className = "gallery-flow-scrub";
     const trackElement = document.createElement("div");
     trackElement.className = "gallery-flow-track";
-    rowElement.appendChild(trackElement);
-    rowsState.push({
+    scrubElement.appendChild(trackElement);
+    rowElement.appendChild(scrubElement);
+    const rowState = {
       rowElement,
+      scrubElement,
       trackElement,
       segmentWidthPx: 0,
       segmentTileCount: 0,
+      /** User scrub offset on top of the idle CSS marquee (wrapped by segment width). */
+      scrubOffsetPx: 0,
       /** Scroll accumulator; transform uses -positiveModulo(this, W) so the row stays filled. */
       trackScroll: 0,
       mediaElements: [],
-    });
+      scrubAttached: false,
+    };
+    rowsState.push(rowState);
+    attachFlowRowScrub(rowState);
   });
   syncFlowLayoutModeTracking();
   return rowsState;
@@ -3070,6 +3101,13 @@ function updateFlowLayoutWidths(rowsState) {
     const tileCount = rowState.segmentTileCount || 0;
     if (!rowState.trackElement || tileCount <= 0) return;
     rowState.segmentWidthPx = tileCount * itemW + (tileCount - 1) * spacing;
+    if (rowState.segmentWidthPx > 0) {
+      rowState.scrubOffsetPx = wrapFlowOffset(
+        rowState.scrubOffsetPx || 0,
+        rowState.segmentWidthPx
+      );
+    }
+    applyFlowScrub(rowState);
     applyFlowTrackMotion(rowState, rowIndex);
   });
 }
@@ -3132,11 +3170,187 @@ function measureAndPosition(rowsState, { forceRebuild = false } = {}) {
     rowState.segmentTileCount = tilesA.length;
     rowState.mediaElements = Array.from(track.querySelectorAll(".media-item"));
     rowState.trackScroll = 0;
+    // Keep scrub phase continuous across rebuilds when possible.
+    if (segmentWidthPx > 0) {
+      rowState.scrubOffsetPx = wrapFlowOffset(rowState.scrubOffsetPx || 0, segmentWidthPx);
+    } else {
+      rowState.scrubOffsetPx = 0;
+    }
+    applyFlowScrub(rowState);
     applyFlowTrackMotion(rowState, rowIndex);
   });
 
   warmFlowImages(rowsState);
   refreshPinnedImageSources(document.querySelector(".gallery"));
+}
+
+/** Wrap a scrub offset into [0, W). */
+function wrapFlowOffset(x, widthPx) {
+  const W = Number(widthPx) || 0;
+  if (!(W > 0)) return 0;
+  return ((Number(x) % W) + W) % W;
+}
+
+/**
+ * Map a scrub offset to a translate in (-W, 0].
+ * The track is [segment|segment] and the marquee already moves in [-W, 0]; a
+ * positive outer translate opens empty space on the left. The phase-equivalent
+ * negative translate keeps the loop filled while matching the same photos.
+ */
+function flowScrubTranslateX(offsetPx, widthPx) {
+  const W = Number(widthPx) || 0;
+  if (!(W > 0)) return 0;
+  const phase = wrapFlowOffset(offsetPx, W); // [0, W)
+  return phase === 0 ? 0 : phase - W; // (-W, 0]
+}
+
+/** Apply the user scrub layer without touching the CSS marquee on the track. */
+function applyFlowScrub(rowState) {
+  const scrub = rowState?.scrubElement;
+  if (!scrub) return;
+  const W = rowState.segmentWidthPx || 0;
+  const phase = W > 0 ? wrapFlowOffset(rowState.scrubOffsetPx || 0, W) : 0;
+  rowState.scrubOffsetPx = phase;
+  scrub.style.setProperty("--flow-scrub-x", `${flowScrubTranslateX(phase, W)}px`);
+}
+
+/** Viewport-pixel deltas → layout px under root page-scale zoom. */
+function flowScrubDeltaToLayoutPx(deltaViewportPx) {
+  const scale = appliedPageScale > 0 ? appliedPageScale : 1;
+  return deltaViewportPx / scale;
+}
+
+/**
+ * Drag / swipe / trackpad scrub on a flow row. Marquee keeps running underneath;
+ * vertical page scroll wins until the gesture locks to horizontal.
+ */
+function attachFlowRowScrub(rowState) {
+  const row = rowState?.rowElement;
+  if (!row || rowState.scrubAttached) return;
+  rowState.scrubAttached = true;
+
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let originScrub = 0;
+  let locked = false;
+  let scrubbing = false;
+
+  const clearScrubGesture = (wasScrubbing = false) => {
+    if (wasScrubbing || scrubbing) {
+      flowScrubBlockClicksUntil = Date.now() + 450;
+    }
+    pointerId = null;
+    locked = false;
+    scrubbing = false;
+    row.classList.remove("gallery-row--scrubbing");
+  };
+
+  const canScrub = () =>
+    !row.classList.contains("gallery-row--manual-scroll") &&
+    rowState.segmentWidthPx > 0;
+
+  row.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (!event.isPrimary) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      if (!canScrub()) return;
+
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+      originScrub = rowState.scrubOffsetPx || 0;
+      locked = false;
+      scrubbing = false;
+    },
+    { passive: true }
+  );
+
+  row.addEventListener(
+    "pointermove",
+    (event) => {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      if (!canScrub()) {
+        clearScrubGesture();
+        return;
+      }
+
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+
+      if (!locked) {
+        if (Math.hypot(dx, dy) < TILE_TAP_SLOP_PX) return;
+        // Vertical page scroll wins unless the gesture is clearly horizontal.
+        if (Math.abs(dx) <= Math.abs(dy)) {
+          clearScrubGesture();
+          return;
+        }
+        locked = true;
+        scrubbing = true;
+        row.classList.add("gallery-row--scrubbing");
+        try {
+          row.setPointerCapture(pointerId);
+        } catch (_err) {
+          /* ignore */
+        }
+      }
+
+      if (!scrubbing) return;
+      if (event.cancelable) event.preventDefault();
+
+      // Content follows the pointer (rightward drag → positive translate).
+      rowState.scrubOffsetPx = originScrub + flowScrubDeltaToLayoutPx(dx);
+      applyFlowScrub(rowState);
+    },
+    { passive: false }
+  );
+
+  const endScrub = (event) => {
+    if (pointerId === null || event.pointerId !== pointerId) return;
+    const wasScrubbing = scrubbing;
+    if (row.hasPointerCapture?.(pointerId)) {
+      try {
+        row.releasePointerCapture(pointerId);
+      } catch (_err) {
+        /* ignore */
+      }
+    }
+    clearScrubGesture(wasScrubbing);
+  };
+
+  row.addEventListener("pointerup", endScrub, { passive: true });
+  row.addEventListener("pointercancel", endScrub, { passive: true });
+  row.addEventListener(
+    "lostpointercapture",
+    () => {
+      clearScrubGesture(true);
+    },
+    { passive: true }
+  );
+
+  // Laptop trackpads scrub with two-finger sideways scroll (wheel deltaX), not click-drag.
+  row.addEventListener(
+    "wheel",
+    (event) => {
+      if (!canScrub()) return;
+
+      let dx = event.deltaX;
+      const dy = event.deltaY;
+      // Shift+wheel is the common horizontal-scroll fallback on mice.
+      if (event.shiftKey && Math.abs(dy) >= Math.abs(dx)) dx = dy;
+
+      if (Math.abs(dx) < 0.5) return;
+      if (!event.shiftKey && Math.abs(dx) <= Math.abs(dy)) return;
+
+      if (event.cancelable) event.preventDefault();
+      // Match native overflow: positive deltaX → content moves left.
+      rowState.scrubOffsetPx =
+        (rowState.scrubOffsetPx || 0) - flowScrubDeltaToLayoutPx(dx);
+      applyFlowScrub(rowState);
+    },
+    { passive: false }
+  );
 }
 
 /** Current translateX of a track, reading through any running animation. */
@@ -3152,6 +3366,10 @@ function readTrackTranslateX(track) {
 
 function enableFlowManualScroll(rowState) {
   rowState?.rowElement?.classList.add("gallery-row--manual-scroll");
+  if (rowState?.scrubElement) {
+    rowState.scrubOffsetPx = 0;
+    rowState.scrubElement.style.setProperty("--flow-scrub-x", "0px");
+  }
 }
 
 function disableFlowManualScroll(rowState) {
@@ -3161,6 +3379,7 @@ function disableFlowManualScroll(rowState) {
   row.scrollLeft = 0;
   // Re-arm the watchdog: if the marquee still refuses to run, hand the row back.
   if (rowState.trackElement) flowStallWatchedTracks.delete(rowState.trackElement);
+  applyFlowScrub(rowState);
 }
 
 const FLOW_STALL_SAMPLE_MS = 1500;
@@ -3846,14 +4065,19 @@ function renderFolderPreview(parentEl, layoutTiles, folderLabel) {
     preview.length === 2 && isTileLandscape(preview[0]) === isTileLandscape(preview[1]);
 
   if (preview.length > 2) {
-    // Keep source order and pair consecutive shots so mixed orientations
-    // (e.g. Arlo 3 + 4) still sit side by side in the closed preview.
-    for (let i = 0; i < preview.length; i += 2) {
-      const pair = preview.slice(i, i + 2);
-      const gridEl = document.createElement("div");
-      gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
-      appendTilesToFullGalleryGrid(gridEl, pair);
-      parentEl.appendChild(gridEl);
+    if (spreadSources.length) {
+      // Pair consecutive non-spreads; configured spreads each take a full row
+      // (e.g. Arlo 01|02, then 03 and 04 alone).
+      renderFolderPreviewAfterTiles(parentEl, preview, spreadSources);
+    } else {
+      // Keep source order and pair consecutive shots.
+      for (let i = 0; i < preview.length; i += 2) {
+        const pair = preview.slice(i, i + 2);
+        const gridEl = document.createElement("div");
+        gridEl.className = "portfolio-date-grid portfolio-date-preview-grid";
+        appendTilesToFullGalleryGrid(gridEl, pair);
+        parentEl.appendChild(gridEl);
+      }
     }
   } else if (sameOrientation) {
     const gridEl = document.createElement("div");
@@ -3874,18 +4098,56 @@ function renderFolderPreview(parentEl, layoutTiles, folderLabel) {
   retainGalleryFolderPreviewTiles(preview);
 }
 
-/** Expanded folder body: keep folder source order; row-split by orientation only. */
-function renderFolderBody(parentEl, tiles) {
+/** One full-width expand row (matches preview spreads, without preview-grid class). */
+function renderFolderExpandSpreadTile(parentEl, tile) {
+  const gridEl = document.createElement("div");
+  gridEl.className = "portfolio-date-grid portfolio-date-grid--stacked";
+  prepareFullGalleryTile(tile);
+  tile.classList.add("full-gallery-tile--fullwidth");
+  gridEl.appendChild(tile);
+  parentEl.appendChild(gridEl);
+}
+
+/**
+ * Expanded folder body: keep folder source order; row-split by orientation,
+ * with optional configured full-width spreads (e.g. Lady Marge x Basht 24).
+ */
+function renderFolderBody(parentEl, tiles, spreadSources = []) {
   if (!tiles.length) return;
 
   // Tiles arrive in folder source order from createGridTilesFromPaths — do not
   // re-sort by aspect here, or the grid and lightbox swipe order diverge.
-  splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
-    const gridEl = document.createElement("div");
-    gridEl.className = "portfolio-date-grid";
-    appendTilesToFullGalleryGrid(gridEl, run);
-    parentEl.appendChild(gridEl);
-  });
+  const spreadSet = new Set(spreadSources);
+  if (!spreadSet.size) {
+    splitTilesIntoSourceOrderOrientationRuns(tiles).forEach((run) => {
+      const gridEl = document.createElement("div");
+      gridEl.className = "portfolio-date-grid";
+      appendTilesToFullGalleryGrid(gridEl, run);
+      parentEl.appendChild(gridEl);
+    });
+    return;
+  }
+
+  let i = 0;
+  while (i < tiles.length) {
+    const path = getTileAssetPath(tiles[i]);
+    if (spreadSet.has(path)) {
+      renderFolderExpandSpreadTile(parentEl, tiles[i]);
+      i += 1;
+      continue;
+    }
+    const run = [];
+    while (i < tiles.length && !spreadSet.has(getTileAssetPath(tiles[i]))) {
+      run.push(tiles[i]);
+      i += 1;
+    }
+    splitTilesIntoSourceOrderOrientationRuns(run).forEach((orientRun) => {
+      const gridEl = document.createElement("div");
+      gridEl.className = "portfolio-date-grid";
+      appendTilesToFullGalleryGrid(gridEl, orientRun);
+      parentEl.appendChild(gridEl);
+    });
+  }
 }
 
 function getTileAssetPath(tile) {
@@ -5443,19 +5705,48 @@ function setupContactScrollFade() {
 function setupHeaderPillsScrollFade() {
   const centerTitle = document.querySelector(".page-center-title");
   const menuPill = document.querySelector(".gallery-bar__brand");
-  // Menu pill stays visible while scrolling; only the center title may fade.
+  const menuFill = document.querySelector(".gallery-bar__plate");
+  const isFullGallery = document.body.classList.contains("page-full-gallery");
+  // Blur (frost) stays on; only the black fill plate fades in with scroll.
   if (menuPill) menuPill.classList.remove("gallery-bar__brand--scroll-hidden");
-  if (!centerTitle) return;
 
   let lastTop = getPageScrollTop();
   let ticking = false;
   const deltaThreshold = 2;
+  /** Hold black fill off for ~1in, then fade it in over this distance. */
+  const MENU_FILL_FADE_DELAY_PX = 192;
+  const MENU_FILL_FADE_PX = 96;
+
+  function updateMenuFillFade(top = getPageScrollTop()) {
+    if (!menuFill) return;
+    // Open and closed pills share the same fill rules (scroll/theme driven).
+    if (isFullGallery) {
+      const themeT =
+        Number.parseFloat(
+          document.documentElement.style.getPropertyValue("--gallery-dark-t") || "0"
+        ) || 0;
+      menuFill.style.setProperty(
+        "--menu-fill-opacity",
+        String(Math.min(1, Math.max(0, themeT)))
+      );
+      return;
+    }
+    const t = Math.min(
+      1,
+      Math.max(0, (top - MENU_FILL_FADE_DELAY_PX) / MENU_FILL_FADE_PX)
+    );
+    menuFill.style.setProperty("--menu-fill-opacity", String(t));
+  }
 
   function update() {
     ticking = false;
     const top = getPageScrollTop();
     const delta = top - lastTop;
     lastTop = top;
+
+    updateMenuFillFade(top);
+
+    if (!centerTitle) return;
 
     if (top <= 8) {
       centerTitle.classList.remove("page-center-title--hidden");
@@ -5466,6 +5757,13 @@ function setupHeaderPillsScrollFade() {
       centerTitle.classList.add("page-center-title--hidden");
     }
   }
+
+  if (menuPill && typeof MutationObserver === "function") {
+    const openObserver = new MutationObserver(() => updateMenuFillFade());
+    openObserver.observe(menuPill, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  updateMenuFillFade();
 
   if (isFlowMobileLayout()) {
     registerMobileScrollHandler(update);
@@ -5483,6 +5781,115 @@ function setupHeaderPillsScrollFade() {
   if (scrollRoot !== window) {
     window.addEventListener("scroll", onScroll, { passive: true });
   }
+}
+
+/**
+ * Full gallery: peach → black as you scroll through Arlo Parks preview thumbs.
+ * Completes at ¾ through those thumbs; past that, chrome/copy goes white.
+ */
+function setupFullGalleryScrollTheme() {
+  if (!document.body?.classList.contains("page-full-gallery")) return;
+
+  const root = document.documentElement;
+  const body = document.body;
+  const bgEl = document.querySelector(".full-gallery-page-bg");
+  const ARLO_FOLDER = "arlo-parks-history";
+  /** Fade completes by this fraction through the Arlo preview block. */
+  const COMPLETE_AT = 0.75;
+  /** No pull-forward — keeps the page top fully peach. */
+  const EARLY_PX = 0;
+  /** Short scroll distance for a rapid peach→black ramp. */
+  const DURATION_SCALE = 0.35;
+  let ticking = false;
+  let dark = false;
+
+  function getArloPreviewRect() {
+    const section = document.querySelector(
+      `.portfolio-date-group[data-folder-label="${ARLO_FOLDER}"]`
+    );
+    if (!section) return null;
+    const grids = section.querySelectorAll(".portfolio-date-preview-grid");
+    if (!grids.length) return null;
+    const first = grids[0].getBoundingClientRect();
+    const last = grids[grids.length - 1].getBoundingClientRect();
+    const top = first.top;
+    const bottom = last.bottom;
+    const height = bottom - top;
+    if (!(height > 0)) return null;
+    return { top, height };
+  }
+
+  function applyTheme(t) {
+    const clamped = Math.min(1, Math.max(0, t));
+    root.style.setProperty("--gallery-dark-t", String(clamped));
+    if (bgEl) bgEl.style.setProperty("--gallery-dark-t", String(clamped));
+    const menuFill = document.querySelector(".gallery-bar__plate");
+    if (menuFill) {
+      menuFill.style.setProperty("--menu-fill-opacity", String(clamped));
+    }
+    const nextDark = clamped >= 1;
+    if (nextDark !== dark) {
+      dark = nextDark;
+      body.classList.toggle("is-gallery-dark", dark);
+    }
+  }
+
+  function update() {
+    ticking = false;
+    // Hard-stop: resting at the top is always the peach field.
+    if (getPageScrollTop() <= 16) {
+      applyTheme(0);
+      return;
+    }
+    const preview = getArloPreviewRect();
+    if (!preview) {
+      applyTheme(0);
+      return;
+    }
+    const refY = getFixedHeaderScrollOffset();
+    const t =
+      (refY - preview.top + EARLY_PX) /
+      (preview.height * COMPLETE_AT * DURATION_SCALE);
+    applyTheme(t);
+  }
+
+  function onScrollOrResize() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }
+
+  const scrollRoot = getOnePageScrollRoot();
+  scrollRoot.addEventListener("scroll", onScrollOrResize, { passive: true });
+  if (scrollRoot !== window) {
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+  }
+  window.addEventListener("resize", onScrollOrResize, { passive: true });
+
+  const arloSection = document.querySelector(
+    `.portfolio-date-group[data-folder-label="${ARLO_FOLDER}"]`
+  );
+  if (arloSection && typeof ResizeObserver === "function") {
+    const ro = new ResizeObserver(onScrollOrResize);
+    ro.observe(arloSection);
+    const rows = arloSection.querySelector(".portfolio-date-rows");
+    if (rows) ro.observe(rows);
+  }
+  if (arloSection && typeof MutationObserver === "function") {
+    const mo = new MutationObserver(onScrollOrResize);
+    mo.observe(arloSection, {
+      attributes: true,
+      attributeFilter: ["class"],
+      subtree: true,
+      childList: true,
+    });
+  }
+
+  if (isFlowMobileLayout()) {
+    registerMobileScrollHandler(update);
+  }
+
+  update();
 }
 
 async function waitForHomeFlowLayout(rowsState) {
@@ -6530,6 +6937,7 @@ async function initFullGalleryPage() {
   await prepareVisibleMediaBeforeUnlock();
   releaseSiteBootGate();
   initSharedPageUi();
+  setupFullGalleryScrollTheme();
   ensureGalleryPreviewRewarmListener();
   maybeRewarmGalleryFolderPreviews();
   // After unlock so folder scroll/expand isn't fighting the boot gate.
