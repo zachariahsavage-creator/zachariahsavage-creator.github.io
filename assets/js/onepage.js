@@ -2618,39 +2618,21 @@ function getActiveLightboxMedia() {
   return null;
 }
 
-/** True for laptop/desktop lightbox nav (phones still dismiss on outside tap). */
-function isLightboxDesktopNav() {
-  return window.innerWidth > 768;
-}
-
 /**
  * Which action a pointer position maps to. Measured against the photo's own box
  * rather than its frame, so left/right halves stay correct on every aspect ratio.
- * On desktop/laptop, clicks outside the photo still prev/next — only × closes.
- * On phones, outside the photo still dismisses.
+ * Same on mobile and desktop: left → prev, right → next; only × closes.
  */
 function getLightboxPointerZone(event) {
   const media = getActiveLightboxMedia();
-  const desktop = isLightboxDesktopNav();
   if (!media) {
-    if (!desktop) return "outside";
     return event.clientX < window.innerWidth / 2 ? "prev" : "next";
   }
   const rect = media.getBoundingClientRect();
   if (!(rect.width > 0 && rect.height > 0)) {
-    if (!desktop) return "outside";
     return event.clientX < window.innerWidth / 2 ? "prev" : "next";
   }
   const midX = rect.left + rect.width / 2;
-  if (
-    event.clientX < rect.left ||
-    event.clientX > rect.right ||
-    event.clientY < rect.top ||
-    event.clientY > rect.bottom
-  ) {
-    if (!desktop) return "outside";
-    return event.clientX < midX ? "prev" : "next";
-  }
   return event.clientX < midX ? "prev" : "next";
 }
 
@@ -2689,10 +2671,6 @@ function setupLightboxPointerNav() {
     if (lightbox.getAttribute("data-state") !== "open") return;
     if (isLightboxInputQuiet()) return;
     const zone = getLightboxPointerZone(event);
-    if (zone === "outside") {
-      closeLightbox();
-      return;
-    }
     changeLightboxBy(zone === "prev" ? -1 : 1);
   });
 
@@ -2702,10 +2680,10 @@ function setupLightboxPointerNav() {
     if (isLightboxInputQuiet()) return;
     if (lightbox.getAttribute("data-state") !== "open") return;
     const zone = getLightboxPointerZone(event);
-    const cursor = zone === "prev" ? "w-resize" : zone === "next" ? "e-resize" : "";
-    lightbox.style.cursor = cursor || "";
+    const cursor = zone === "prev" ? "w-resize" : "e-resize";
+    lightbox.style.cursor = cursor;
     const media = getActiveLightboxMedia();
-    if (media) media.style.cursor = cursor || "pointer";
+    if (media) media.style.cursor = cursor;
   });
 }
 
@@ -3282,7 +3260,9 @@ function attachFlowRowScrub(rowState) {
       if (!locked) {
         if (Math.hypot(dx, dy) < TILE_TAP_SLOP_PX) return;
         // Vertical page scroll wins unless the gesture is clearly horizontal.
-        if (Math.abs(dx) <= Math.abs(dy)) {
+        // Touch: allow a slightly earlier lock so the finger drag feels responsive.
+        const horizontalBias = event.pointerType === "touch" ? 0.85 : 1;
+        if (Math.abs(dx) <= Math.abs(dy) * horizontalBias) {
           clearScrubGesture();
           return;
         }

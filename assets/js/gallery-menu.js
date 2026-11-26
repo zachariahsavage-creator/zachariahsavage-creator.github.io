@@ -27,69 +27,9 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const COLLAPSE_CLASS = "gallery-bar__menu-content--collapse";
   const OPEN_CLASS = "gallery-bar__brand--open";
   const COLLAPSE_FALLBACK_MS = 480;
-  const frostEl = document.querySelector(".gallery-bar__frost");
-  const plateEl = document.querySelector(".gallery-bar__plate");
-  const overlayEls = [frostEl, plateEl].filter(Boolean);
 
   function prefersReducedMotion() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }
-
-  function overlaysEnabled() {
-    if (!overlayEls.length) return false;
-    return (
-      document.body.classList.contains("page-home") ||
-      document.body.classList.contains("page-full-gallery")
-    );
-  }
-
-  let overlayRaf = 0;
-  let overlayTrackUntil = 0;
-
-  function syncMenuOverlays() {
-    if (!overlayEls.length) return;
-    if (!overlaysEnabled()) {
-      for (const el of overlayEls) {
-        el.classList.remove("is-ready");
-        el.removeAttribute("style");
-      }
-      return;
-    }
-    const rect = menuContainer.getBoundingClientRect();
-    const radiusRaw = getComputedStyle(menuContainer).borderRadius;
-    const radiusPx = Number.parseFloat(radiusRaw) || 0;
-    const top = Math.round(rect.top);
-    const left = Math.round(rect.left);
-    const width = Math.max(0, Math.round(rect.width));
-    const height = Math.max(0, Math.round(rect.height));
-
-    for (const el of overlayEls) {
-      el.style.top = `${top}px`;
-      el.style.left = `${left}px`;
-      el.style.width = `${width}px`;
-      el.style.height = `${height}px`;
-      el.style.borderRadius = `${radiusPx}px`;
-      el.classList.add("is-ready");
-    }
-  }
-
-  function scheduleOverlaySync(durationMs) {
-    if (!overlaysEnabled()) {
-      syncMenuOverlays();
-      return;
-    }
-    const trackFor = typeof durationMs === "number" ? durationMs : 0;
-    overlayTrackUntil = Math.max(overlayTrackUntil, performance.now() + trackFor);
-    if (overlayRaf) return;
-    const tick = (now) => {
-      syncMenuOverlays();
-      if (now < overlayTrackUntil) {
-        overlayRaf = requestAnimationFrame(tick);
-      } else {
-        overlayRaf = 0;
-      }
-    };
-    overlayRaf = requestAnimationFrame(tick);
   }
 
   let collapseTimer = null;
@@ -143,7 +83,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
-    scheduleOverlaySync(120);
   }
 
   function finishCollapseIfNeeded() {
@@ -191,7 +130,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
-    scheduleOverlaySync(480);
 
     collapseOnEnd = (e) => {
       if (e.target !== menuContent || e.propertyName !== "height") return;
@@ -227,7 +165,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
 
     if (prefersReducedMotion()) {
       unlockPanelHeight();
-      scheduleOverlaySync(120);
       return;
     }
 
@@ -235,7 +172,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuContent.style.height = "0px";
     const target = measurePanelHeight();
     void menuContent.offsetHeight;
-    scheduleOverlaySync(480);
     animatePanelTo(target, () => {
       if (
         menuContainer.classList.contains(OPEN_CLASS) &&
@@ -243,7 +179,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       ) {
         unlockPanelHeight();
       }
-      scheduleOverlaySync(80);
     });
   }
 
@@ -260,7 +195,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       menuContent.style.height = `${current}px`;
       void menuContent.offsetHeight;
       const target = measurePanelHeight();
-      scheduleOverlaySync(480);
       animatePanelTo(target, () => {
         if (
           menuContainer.classList.contains(OPEN_CLASS) &&
@@ -300,15 +234,6 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       if (menuContainer.contains(event.target)) return;
       closeMenu();
     });
-  }
-
-  if (overlayEls.length) {
-    scheduleOverlaySync();
-    window.addEventListener("resize", () => scheduleOverlaySync(), { passive: true });
-    if (typeof ResizeObserver === "function") {
-      const ro = new ResizeObserver(() => scheduleOverlaySync());
-      ro.observe(menuContainer);
-    }
   }
 
   const api = { closeMenu, openMenu, toggleMenu };

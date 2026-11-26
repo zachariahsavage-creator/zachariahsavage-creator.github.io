@@ -113,9 +113,9 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=social-stroke-175" />
-    <script defer src="assets/js/gallery-menu.js?v=menu-open-stay"></script>
-    <script defer src="assets/js/onepage.js?v=daniela-preview-3"></script>
+    <link rel="stylesheet" href="assets/css/styles.css?v=menu-pill-nested" />
+    <script defer src="assets/js/gallery-menu.js?v=menu-pill-nested"></script>
+    <script defer src="assets/js/onepage.js?v=flow-touch-scrub"></script>
   </head>
   <body class="page-full-gallery">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
@@ -158,35 +158,37 @@
       </a>
     </nav>
     <a class="page-center-title" href="index.html">ZACH SAVAGE PHOTOGRAPHY</a>
-    <!-- Frost + plate under the menu; brand stacks above. -->
-    <div class="gallery-bar__frost" aria-hidden="true"></div>
-    <div class="gallery-bar__plate" aria-hidden="true"></div>
     <header class="gallery-bar" aria-label="Site header">
       <div class="gallery-bar__anchor"></div>
     </header>
     <div class="gallery-bar__brand" id="gallery-bar-menu">
-      <div class="gallery-bar__brand-row">
-        <p class="gallery-bar__title" id="section-title" aria-live="polite">
-          gallery
-        </p>
-        <button
-          class="gallery-bar__menu-trigger"
-          type="button"
-          aria-label="Open menu"
-          aria-expanded="false"
-        >
-          <span class="gallery-bar__menu-icon" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
-        </button>
-      </div>
-      <div class="gallery-bar__menu-content" aria-hidden="true">
-        <div class="gallery-bar__menu-inner">
-          <a class="gallery-bar__menu-link" href="index.html">home</a>
-          <a class="gallery-bar__menu-link" href="full-gallery.html">gallery</a>
-          <a class="gallery-bar__menu-link" href="index.html#contact-heading">contact</a>
+      <!-- Nested so under page-scale zoom the pill stays glued to the text (no fixed-rect sync). -->
+      <div class="gallery-bar__frost" aria-hidden="true"></div>
+      <div class="gallery-bar__plate" aria-hidden="true"></div>
+      <div class="gallery-bar__ink">
+        <div class="gallery-bar__brand-row">
+          <p class="gallery-bar__title" id="section-title" aria-live="polite">
+            gallery
+          </p>
+          <button
+            class="gallery-bar__menu-trigger"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+          >
+            <span class="gallery-bar__menu-icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </div>
+        <div class="gallery-bar__menu-content" aria-hidden="true">
+          <div class="gallery-bar__menu-inner">
+            <a class="gallery-bar__menu-link" href="index.html">home</a>
+            <a class="gallery-bar__menu-link" href="full-gallery.html">gallery</a>
+            <a class="gallery-bar__menu-link" href="index.html#contact-heading">contact</a>
+          </div>
         </div>
       </div>
     </div>
@@ -223,8 +225,8 @@
       </section>
     </main>
 
-    <!-- No on-screen controls: the left/right halves of the photo step through the
-         set and anything outside it closes. Escape and the arrow keys still work. -->
+    <!-- No on-screen controls: left/right halves step through the set; only ×
+         (or Escape / Android back) closes. Arrow keys still work. -->
     <div
       class="lightbox"
       aria-modal="true"
