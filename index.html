@@ -245,9 +245,9 @@
         rel="stylesheet"
       />
     </noscript>
-    <link rel="stylesheet" href="assets/css/styles.css?v=menu-pill-nested" />
-    <script defer src="assets/js/gallery-menu.js?v=menu-pill-nested"></script>
-    <script defer src="assets/js/onepage.js?v=flow-touch-scrub"></script>
+    <link rel="stylesheet" href="assets/css/styles.css?v=flow-scrub-android" />
+    <script defer src="assets/js/gallery-menu.js?v=menu-pill-fixed-sync"></script>
+    <script defer src="assets/js/onepage.js?v=flow-scrub-android"></script>
   </head>
   <body class="page-home">
     <div id="site-boot-gate" class="site-boot-gate" aria-live="polite" aria-busy="true"></div>
@@ -290,37 +290,35 @@
       </a>
     </nav>
     <a class="page-center-title" href="index.html">ZACH SAVAGE PHOTOGRAPHY</a>
+    <!-- Frost + plate under the menu; brand stacks above (siblings so blur/difference work). -->
+    <div class="gallery-bar__frost" aria-hidden="true"></div>
+    <div class="gallery-bar__plate" aria-hidden="true"></div>
     <header class="gallery-bar" aria-label="Site header">
       <div class="gallery-bar__anchor"></div>
     </header>
     <div class="gallery-bar__brand" id="gallery-bar-menu">
-      <!-- Nested so under page-scale zoom the pill stays glued to the text (no fixed-rect sync). -->
-      <div class="gallery-bar__frost" aria-hidden="true"></div>
-      <div class="gallery-bar__plate" aria-hidden="true"></div>
-      <div class="gallery-bar__ink">
-        <div class="gallery-bar__brand-row">
-          <p class="gallery-bar__title" id="section-title" aria-live="polite">
-            home
-          </p>
-          <button
-            class="gallery-bar__menu-trigger"
-            type="button"
-            aria-label="Open menu"
-            aria-expanded="false"
-          >
-            <span class="gallery-bar__menu-icon" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-            </span>
-          </button>
-        </div>
-        <div class="gallery-bar__menu-content" aria-hidden="true">
-          <div class="gallery-bar__menu-inner">
-            <a class="gallery-bar__menu-link" href="#home-section">home</a>
-            <a class="gallery-bar__menu-link" href="full-gallery.html">gallery</a>
-            <a class="gallery-bar__menu-link" href="#contact-heading">contact</a>
-          </div>
+      <div class="gallery-bar__brand-row">
+        <p class="gallery-bar__title" id="section-title" aria-live="polite">
+          home
+        </p>
+        <button
+          class="gallery-bar__menu-trigger"
+          type="button"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          <span class="gallery-bar__menu-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </div>
+      <div class="gallery-bar__menu-content" aria-hidden="true">
+        <div class="gallery-bar__menu-inner">
+          <a class="gallery-bar__menu-link" href="#home-section">home</a>
+          <a class="gallery-bar__menu-link" href="full-gallery.html">gallery</a>
+          <a class="gallery-bar__menu-link" href="#contact-heading">contact</a>
         </div>
       </div>
     </div>

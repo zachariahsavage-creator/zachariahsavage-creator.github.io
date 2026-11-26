@@ -27,9 +27,76 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const COLLAPSE_CLASS = "gallery-bar__menu-content--collapse";
   const OPEN_CLASS = "gallery-bar__brand--open";
   const COLLAPSE_FALLBACK_MS = 480;
+  const frostEl = document.querySelector(".gallery-bar__frost");
+  const plateEl = document.querySelector(".gallery-bar__plate");
+  const overlayEls = [frostEl, plateEl].filter(Boolean);
 
   function prefersReducedMotion() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  }
+
+  function overlaysEnabled() {
+    if (!overlayEls.length) return false;
+    return (
+      document.body.classList.contains("page-home") ||
+      document.body.classList.contains("page-full-gallery")
+    );
+  }
+
+  let overlayRaf = 0;
+  let overlayTrackUntil = 0;
+
+  /**
+   * Match frost/plate to the brand using the same fixed top/right + layout
+   * offset size the brand itself uses. Avoid getBoundingClientRect → left/top:
+   * under root `zoom` (laptop page-scale) Safari reports viewport coords that
+   * don't match fixed `top`/`left`, which drifts the pill off the heading.
+   */
+  function syncMenuOverlays() {
+    if (!overlayEls.length) return;
+    if (!overlaysEnabled()) {
+      for (const el of overlayEls) {
+        el.classList.remove("is-ready");
+        el.removeAttribute("style");
+      }
+      return;
+    }
+    const style = getComputedStyle(menuContainer);
+    const top = style.top;
+    const right = style.right;
+    const width = Math.max(0, Math.round(menuContainer.offsetWidth));
+    const height = Math.max(0, Math.round(menuContainer.offsetHeight));
+    const radius = style.borderRadius || "0px";
+
+    for (const el of overlayEls) {
+      el.style.top = top;
+      el.style.right = right;
+      el.style.left = "auto";
+      el.style.bottom = "auto";
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+      el.style.borderRadius = radius;
+      el.classList.add("is-ready");
+    }
+  }
+
+  function scheduleOverlaySync(durationMs) {
+    if (!overlaysEnabled()) {
+      syncMenuOverlays();
+      return;
+    }
+    const trackFor = typeof durationMs === "number" ? durationMs : 0;
+    overlayTrackUntil = Math.max(overlayTrackUntil, performance.now() + trackFor);
+    if (overlayRaf) return;
+    const tick = (now) => {
+      syncMenuOverlays();
+      if (now < overlayTrackUntil) {
+        overlayRaf = requestAnimationFrame(tick);
+      } else {
+        overlayRaf = 0;
+      }
+    };
+    overlayRaf = requestAnimationFrame(tick);
   }
 
   let collapseTimer = null;
@@ -83,6 +150,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
+    scheduleOverlaySync(120);
   }
 
   function finishCollapseIfNeeded() {
@@ -130,6 +198,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
+    scheduleOverlaySync(480);
 
     collapseOnEnd = (e) => {
       if (e.target !== menuContent || e.propertyName !== "height") return;
@@ -165,6 +234,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
 
     if (prefersReducedMotion()) {
       unlockPanelHeight();
+      scheduleOverlaySync(120);
       return;
     }
 
@@ -172,6 +242,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     menuContent.style.height = "0px";
     const target = measurePanelHeight();
     void menuContent.offsetHeight;
+    scheduleOverlaySync(480);
     animatePanelTo(target, () => {
       if (
         menuContainer.classList.contains(OPEN_CLASS) &&
@@ -179,6 +250,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       ) {
         unlockPanelHeight();
       }
+      scheduleOverlaySync(80);
     });
   }
 
@@ -195,6 +267,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       menuContent.style.height = `${current}px`;
       void menuContent.offsetHeight;
       const target = measurePanelHeight();
+      scheduleOverlaySync(480);
       animatePanelTo(target, () => {
         if (
           menuContainer.classList.contains(OPEN_CLASS) &&
@@ -234,6 +307,15 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       if (menuContainer.contains(event.target)) return;
       closeMenu();
     });
+  }
+
+  if (overlayEls.length) {
+    scheduleOverlaySync();
+    window.addEventListener("resize", () => scheduleOverlaySync(), { passive: true });
+    if (typeof ResizeObserver === "function") {
+      const ro = new ResizeObserver(() => scheduleOverlaySync());
+      ro.observe(menuContainer);
+    }
   }
 
   const api = { closeMenu, openMenu, toggleMenu };
