@@ -42,7 +42,8 @@
   /* Contact reads as its own colour field against the black bio band above it. */
   --contact-field: var(--flow-field);
   /* Colour behind the home flow, above the bio wave. */
-  --flow-field: #ffe4d4;
+  /* Fully saturated salmon, lighter than the original #ffe4d4. */
+  --flow-field: #ffefe5;
   /* Shared by `.gallery-bar__brand` and `.page-center-title` so pill heights stay aligned. */
   --gallery-pill-pad-block: 0.5rem;
   --gallery-pill-pad-inline: 1.1rem;
@@ -255,12 +256,21 @@ body.page-contact {
 }
 
 html:has(body.page-full-gallery) {
-  background-color: var(--flow-field);
+  --gallery-dark-t: 0;
+  background-color: color-mix(
+    in srgb,
+    #000000 calc(var(--gallery-dark-t) * 100%),
+    var(--flow-field)
+  );
   scroll-behavior: auto;
 }
 
 body.page-full-gallery {
-  background-color: var(--flow-field);
+  background-color: color-mix(
+    in srgb,
+    #000000 calc(var(--gallery-dark-t) * 100%),
+    var(--flow-field)
+  );
 }
 
 /* Fixed layer (not background-attachment: fixed) — avoids scroll jitter in Safari. */
@@ -293,7 +303,29 @@ body.page-full-gallery {
 }
 
 .full-gallery-page-bg {
-  background-color: var(--flow-field);
+  background-color: color-mix(
+    in srgb,
+    #000000 calc(var(--gallery-dark-t, 0) * 100%),
+    var(--flow-field)
+  );
+}
+
+/* Past Arlo Parks preview fade: gallery chrome + copy go white on black. */
+body.page-full-gallery.is-gallery-dark .full-gallery-heading,
+body.page-full-gallery.is-gallery-dark .full-gallery-subheading,
+body.page-full-gallery.is-gallery-dark .portfolio-date-heading,
+body.page-full-gallery.is-gallery-dark .portfolio-date-collapse,
+body.page-full-gallery.is-gallery-dark .portfolio-date-collapse:hover,
+body.page-full-gallery.is-gallery-dark .portfolio-date-toggle,
+body.page-full-gallery.is-gallery-dark .portfolio-date-toggle:hover,
+body.page-full-gallery.is-gallery-dark .header-social__link,
+body.page-full-gallery.is-gallery-dark .page-center-title,
+body.page-full-gallery.is-gallery-dark a.page-center-title,
+body.page-full-gallery.is-gallery-dark a.page-center-title:hover,
+body.page-full-gallery.is-gallery-dark .full-gallery-folder-nav__link,
+body.page-full-gallery.is-gallery-dark .full-gallery-folder-nav__link:hover,
+body.page-full-gallery.is-gallery-dark .full-gallery-folder-nav__link:focus-visible {
+  color: #ffffff;
 }
 
 .full-gallery-page-bg img {
@@ -347,7 +379,7 @@ body.page-full-gallery a.page-center-title {
 
 body.page-home .page-center-title,
 body.page-home a.page-center-title {
-  color: #1d3545;
+  color: #000000;
   opacity: 1;
 }
 
@@ -359,7 +391,7 @@ body.page-full-gallery a.page-center-title:hover {
 }
 
 body.page-home a.page-center-title:hover {
-  color: #1d3545;
+  color: #000000;
   opacity: 1;
 }
 
@@ -370,9 +402,9 @@ body.page-home a.page-center-title.page-center-title--hidden:hover {
   opacity: 0;
 }
 
-/* Home + full gallery menu.
- * Layers: frost (blur) → solid plate → brand (plain type, no inversion).
- * Brand is a body sibling of the header so type stacks above the plate. */
+/* Home + full gallery menu:
+ * frost = colorful blur (sibling under the brand)
+ * brand = single white-ink layer with difference invert */
 body.page-home .gallery-bar,
 body.page-full-gallery .gallery-bar {
   z-index: auto;
@@ -380,32 +412,42 @@ body.page-full-gallery .gallery-bar {
   mix-blend-mode: normal;
 }
 
-/* The plate used to be a fixed overlay sized from getBoundingClientRect.
-   Under root zoom (laptop scale) Safari reports those coordinates in a different
-   space than `top`/`left`, so the pill drifted off the heading. The brand
-   itself is the pill now. */
-body.page-home .gallery-bar__frost,
-body.page-full-gallery .gallery-bar__frost,
-body.page-home .gallery-bar__plate,
-body.page-full-gallery .gallery-bar__plate {
-  display: none;
-}
-
+/* Blur always on; black fill is a separate plate that scroll-fades. */
 body.page-home .gallery-bar__frost,
 body.page-full-gallery .gallery-bar__frost {
-  z-index: 9;
-  background: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10.5px) saturate(1.35);
-  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
-  box-shadow: var(--shadow-md);
+  display: block;
+  position: fixed;
+  z-index: 11;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  /* Faint alpha keeps Safari backdrop-filter active — no visible fill. */
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateZ(0);
 }
 
 body.page-home .gallery-bar__plate,
 body.page-full-gallery .gallery-bar__plate {
-  z-index: 10;
-  background: #1d3545;
-  mix-blend-mode: normal;
-  isolation: auto;
+  display: block;
+  position: fixed;
+  z-index: 11;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateZ(0);
 }
 
 body.page-home .gallery-bar__frost.is-ready,
@@ -415,7 +457,8 @@ body.page-full-gallery .gallery-bar__frost.is-ready {
 
 body.page-home .gallery-bar__plate.is-ready,
 body.page-full-gallery .gallery-bar__plate.is-ready {
-  opacity: 0.95;
+  /* Scroll-driven fade; see setupHeaderPillsScrollFade() in onepage.js. */
+  opacity: var(--menu-fill-opacity, 0);
 }
 
 body.page-home .gallery-bar__brand,
@@ -425,11 +468,11 @@ body.page-full-gallery .gallery-bar__brand {
   right: calc(2.4rem + env(safe-area-inset-right, 0px));
   z-index: 12;
   transform: none;
-  background: rgba(29, 53, 69, 0.95);
-  backdrop-filter: blur(10.5px) saturate(1.35);
-  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
-  box-shadow: var(--shadow-md);
-  mix-blend-mode: normal;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  mix-blend-mode: difference;
   filter: none;
   isolation: auto;
   pointer-events: auto;
@@ -437,11 +480,11 @@ body.page-full-gallery .gallery-bar__brand {
 
 body.page-home .gallery-bar__brand.gallery-bar__brand--open,
 body.page-full-gallery .gallery-bar__brand.gallery-bar__brand--open {
-  background: rgba(29, 53, 69, 0.95);
-  backdrop-filter: blur(10.5px) saturate(1.35);
-  -webkit-backdrop-filter: blur(10.5px) saturate(1.35);
-  box-shadow: var(--shadow-md);
-  mix-blend-mode: normal;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  mix-blend-mode: difference;
 }
 
 body.page-home .gallery-bar__brand::before,
@@ -766,7 +809,7 @@ body.page-home::after {
   display: block;
   width: 26px;
   height: 26px;
-  stroke-width: 2.35;
+  stroke-width: 1.75;
 }
 
 .header-social__link:hover {
@@ -859,7 +902,7 @@ a.page-center-title:hover {
   max-width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 1rem);
   /* Same padding + inner band as `.page-center-title` (see :root pill tokens). */
   padding: var(--gallery-pill-pad-block) var(--gallery-pill-pad-inline);
-  border-radius: 50px;
+  border-radius: 14px;
   /* Frosted pill only (small compositing region — scrolls stay smooth on desktop). */
   background: rgba(250, 248, 245, 0.88);
   backdrop-filter: blur(9.8px);
@@ -872,29 +915,25 @@ a.page-center-title:hover {
     background var(--gallery-menu-dur) var(--gallery-menu-ease),
     box-shadow var(--gallery-menu-dur) var(--gallery-menu-ease),
     border-radius var(--gallery-menu-dur) var(--gallery-menu-ease),
-    gap var(--gallery-menu-dur) var(--gallery-menu-ease),
     opacity 420ms var(--ease-out),
     transform 420ms var(--ease-out);
 }
 
-/* When menu is open, show white pill backing around heading + menu */
+/* When menu is open, show white pill backing around heading + menu.
+   Brand gap stays 0; title↔panel spacing is padding on `.gallery-bar__menu-inner`.
+   Panel open/close height is driven in px by gallery-menu.js. */
 .gallery-bar__brand.gallery-bar__brand--open {
   background: rgba(250, 248, 245, 0.96);
   backdrop-filter: blur(11.2px);
   -webkit-backdrop-filter: blur(11.2px);
-  border-radius: 20px;
-  /* Same vertical rhythm as between menu links */
-  gap: var(--space-3);
+  border-radius: 14px;
 }
 
 .gallery-bar__brand:not(.gallery-bar__brand--open) .gallery-bar__menu-content {
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  grid-template-rows: 0fr;
+  height: 0;
   opacity: 0;
   pointer-events: none;
-  /* Snap after JS finishes collapse (see gallery-menu.js); avoids fighting the panel transition. */
+  /* Snap after JS finishes collapse (see gallery-menu.js). */
   transition: none;
 }
 
@@ -950,27 +989,26 @@ a.page-center-title:hover {
 }
 
 .gallery-bar__menu-content {
-  display: grid;
-  grid-template-rows: 0fr;
+  display: block;
+  height: 0;
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
   min-height: 0;
   width: 100%;
   transition:
-    grid-template-rows var(--gallery-menu-dur) var(--gallery-menu-ease),
+    height var(--gallery-menu-dur) var(--gallery-menu-ease),
     opacity var(--gallery-menu-dur) var(--gallery-menu-ease);
 }
 
 .gallery-bar__brand--open .gallery-bar__menu-content {
-  grid-template-rows: 1fr;
+  height: auto;
   opacity: 1;
   pointer-events: auto;
 }
 
-/* Closing: reverse the open transition while bar stays column-layout (see gallery-menu.js). */
+/* Closing: height → 0 is set inline by gallery-menu.js; class drives opacity. */
 .gallery-bar__brand--open .gallery-bar__menu-content.gallery-bar__menu-content--collapse {
-  grid-template-rows: 0fr;
   opacity: 0;
   pointer-events: none;
 }
@@ -982,10 +1020,12 @@ a.page-center-title:hover {
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-3);
+  padding-top: 0;
+  box-sizing: border-box;
 }
 
-.gallery-bar__brand--open .gallery-bar__menu-content.gallery-bar__menu-content--collapse .gallery-bar__menu-inner {
-  gap: 0;
+.gallery-bar__brand--open .gallery-bar__menu-inner {
+  padding-top: var(--space-3);
 }
 
 .gallery-bar__menu-link {
@@ -2868,6 +2908,20 @@ body.page-home .home-bio-row .home-intro {
   }
 }
 
+/* User scrub offset layer — sits outside the CSS marquee so idle flow keeps running. */
+.gallery-flow-scrub {
+  height: 100%;
+  width: max-content;
+  transform: translate3d(var(--flow-scrub-x, 0px), 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.gallery-row.gallery-row--scrubbing {
+  cursor: grabbing;
+  touch-action: pan-x;
+}
+
 .gallery-flow-track {
   display: flex;
   flex-direction: row;
@@ -2911,6 +2965,11 @@ body.page-home .home-bio-row .home-intro {
   display: none;
 }
 
+.gallery-row.gallery-row--manual-scroll .gallery-flow-scrub {
+  transform: none !important;
+  will-change: auto;
+}
+
 .gallery-row.gallery-row--manual-scroll .gallery-flow-track,
 .gallery-row.gallery-row--manual-scroll .gallery-flow-track.flow-marquee-active {
   animation: none !important;
@@ -2929,6 +2988,8 @@ body.page-home .home-bio-row .home-intro {
   cursor: pointer;
   /* Opaque fill so hover border/radius compositing never flashes the peach field. */
   background: #000000;
+  border: none;
+  outline: none;
 }
 
 .gallery-row .gallery-flow-track .media-item.media-item--no-lightbox {
@@ -3330,8 +3391,8 @@ body.page-full-gallery .portfolio-date-grid {
   gap: calc(var(--portfolio-section-gap, 16px) * 0.8);
 }
 
-body.page-full-gallery .portfolio-date-extra-inner > .portfolio-date-grid + .portfolio-date-grid,
-body.page-full-gallery .portfolio-date-rows > .portfolio-date-grid + .portfolio-date-grid {
+/* Rows already use flex `gap`; only block-layout extra grids need margin. */
+body.page-full-gallery .portfolio-date-extra-inner > .portfolio-date-grid + .portfolio-date-grid {
   margin-top: calc(var(--portfolio-section-gap, 16px) * 0.8);
 }
 
@@ -3393,6 +3454,17 @@ body.page-full-gallery .full-gallery-folder-nav {
     max-height: calc(100dvh - 128px - env(safe-area-inset-top, 0px) - 2.5rem);
     overflow: visible;
     pointer-events: none;
+    /* Appear only once the peach→black gallery fade has finished. */
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.55s var(--ease-out),
+      visibility 0.55s var(--ease-out);
+  }
+
+  body.page-full-gallery.is-gallery-dark .full-gallery-folder-nav:not([hidden]) {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* The index outgrows the gutter once there are enough shows, and a fixed
@@ -3743,9 +3815,7 @@ body.page-full-gallery .portfolio-date-toggle--expanded .portfolio-date-toggle__
   grid-template-columns: minmax(0, 1fr);
 }
 
-.portfolio-date-preview-grid + .portfolio-date-preview-grid {
-  margin-top: var(--portfolio-section-gap, 16px);
-}
+/* Preview grids live in `.portfolio-date-rows` (flex gap) — no extra margin. */
 
 /* Closed preview: one slot holds two shots stacked (Ezra 5 over 6).
    Safari ignores non-!important inline heights against `.full-gallery-tile { height: auto !important }`,
@@ -3803,8 +3873,7 @@ body.page-full-gallery .portfolio-grid .portfolio-date-preview-stack > .full-gal
   display: block;
 }
 
-.portfolio-date-extra-inner > .portfolio-date-grid + .portfolio-date-grid,
-.portfolio-date-rows > .portfolio-date-grid + .portfolio-date-grid {
+.portfolio-date-extra-inner > .portfolio-date-grid + .portfolio-date-grid {
   margin-top: var(--portfolio-section-gap, 16px);
 }
 
@@ -4411,28 +4480,28 @@ body.page-home .page--onepage .onepage-section--contact .contact__card > * {
   }
 }
 
-/* Home contact on mint field: navy type + Instagram, white inquiry CTA. */
+/* Home contact on salmon field: black type + Instagram, black inquiry CTA. */
 body.page-home .page--onepage .onepage-section--contact .contact__heading,
 body.page-home .page--onepage .onepage-section--contact .contact__intro,
 body.page-home .page--onepage .onepage-section--contact .contact__label,
 body.page-home .page--onepage .onepage-section--contact .contact__label-note,
 body.page-home .page--onepage .onepage-section--contact .contact__intro-link {
-  color: #07164a;
+  color: #000000;
   text-shadow: none;
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__social {
-  border-top-color: rgba(7, 22, 74, 0.18);
+  border-top-color: rgba(0, 0, 0, 0.18);
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__instagram {
-  color: #07164a;
-  border-color: rgba(7, 22, 74, 0.35);
+  color: #000000;
+  border-color: rgba(0, 0, 0, 0.35);
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__instagram:hover {
   color: var(--contact-field);
-  background: #07164a;
+  background: #000000;
   box-shadow: var(--shadow-sm);
   opacity: 1;
 }
@@ -4440,17 +4509,17 @@ body.page-home .page--onepage .onepage-section--contact .contact__instagram:hove
 body.page-home .page--onepage .onepage-section--contact .contact__submit {
   color: #ffffff;
   --cta-wipe-fill: linear-gradient(#ffffff, #ffffff);
-  background-color: #1d3545;
-  border-color: #1d3545;
+  background-color: #000000;
+  border-color: #000000;
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__submit:hover,
 body.page-home .page--onepage .onepage-section--contact .contact__submit:focus-visible {
-  color: #1d3545;
+  color: #000000;
 }
 
 body.page-home .page--onepage .onepage-section--contact .contact__submit:disabled:hover {
-  background: #1d3545;
+  background: #000000;
   color: #ffffff;
 }
 
@@ -4951,16 +5020,13 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
   }
 
   /* Tighter vertical rhythm for stacked nav links on small screens */
-  .gallery-bar__brand.gallery-bar__brand--open {
-    gap: var(--space-1);
-    background: rgba(250, 248, 245, 0.96);
-    backdrop-filter: blur(11.2px);
-    -webkit-backdrop-filter: blur(11.2px);
+  .gallery-bar__brand--open .gallery-bar__menu-inner {
+    padding-top: var(--space-1);
   }
 
   /*
-   * Mobile: same frost/exclusion stack as desktop; only the pill offset changes
-   * for the shorter header.
+   * Mobile: same clear frost + difference type as desktop; only the pill
+   * offset changes for the shorter header.
    */
   body.page-home .gallery-bar__brand,
   body.page-full-gallery .gallery-bar__brand,
@@ -5182,7 +5248,7 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
   body.page-home .page--onepage .onepage-section--contact .contact__heading,
   body.page-home .page--onepage .onepage-section--contact .contact__intro,
   body.page-home .page--onepage .onepage-section--contact .contact__label {
-    color: #07164a;
+    color: #000000;
     text-shadow: none;
   }
 
@@ -5402,7 +5468,7 @@ body.page-home .page--onepage .onepage-section--contact .contact__submit:disable
     line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #1d3545;
+    color: #000000;
     opacity: 1 !important;
     text-align: center;
     white-space: nowrap;

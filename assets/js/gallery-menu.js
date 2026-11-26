@@ -1,7 +1,6 @@
 /**
- * Gallery header pill menu: smooth open/close. Close runs the open animation in
- * reverse while the bar stays column-layout, then removes --open (avoids tall
- * empty flex line when switching to row mid-transition).
+ * Gallery header pill menu: smooth open/close via measured pixel heights
+ * (avoids janky grid 0fr / competing gap animations).
  */
 window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
   const opts = options || {};
@@ -18,6 +17,12 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       toggleMenu() {},
     };
   }
+
+  // Avoid double-binding if setup runs more than once (open then immediate close).
+  if (menuContainer.dataset.galleryMenuBound === "1" && menuContainer._galleryMenuApi) {
+    return menuContainer._galleryMenuApi;
+  }
+  menuContainer.dataset.galleryMenuBound = "1";
 
   const COLLAPSE_CLASS = "gallery-bar__menu-content--collapse";
   const OPEN_CLASS = "gallery-bar__brand--open";
@@ -53,20 +58,17 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     const rect = menuContainer.getBoundingClientRect();
     const radiusRaw = getComputedStyle(menuContainer).borderRadius;
     const radiusPx = Number.parseFloat(radiusRaw) || 0;
-    // Inset the difference/exclusion plate so its anti-aliased rim sits inside the frost
-    // and doesn't show as a bright 1px fringe after mix-blend.
-    const plateInset = 1;
+    const top = Math.round(rect.top);
+    const left = Math.round(rect.left);
+    const width = Math.max(0, Math.round(rect.width));
+    const height = Math.max(0, Math.round(rect.height));
 
     for (const el of overlayEls) {
-      const inset = el.classList.contains("gallery-bar__plate") ? plateInset : 0;
-      const width = Math.max(0, rect.width - inset * 2);
-      const height = Math.max(0, rect.height - inset * 2);
-      const radius = Math.max(0, radiusPx - inset);
-      el.style.top = `${rect.top + inset}px`;
-      el.style.left = `${rect.left + inset}px`;
+      el.style.top = `${top}px`;
+      el.style.left = `${left}px`;
       el.style.width = `${width}px`;
       el.style.height = `${height}px`;
-      el.style.borderRadius = `${radius}px`;
+      el.style.borderRadius = `${radiusPx}px`;
       el.classList.add("is-ready");
     }
   }
@@ -92,6 +94,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
 
   let collapseTimer = null;
   let collapseOnEnd = null;
+  let openOnEnd = null;
 
   function clearCollapseSchedule() {
     if (collapseTimer !== null) {
@@ -104,19 +107,60 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     }
   }
 
+  function clearOpenSchedule() {
+    if (openOnEnd) {
+      menuContent.removeEventListener("transitionend", openOnEnd);
+      openOnEnd = null;
+    }
+  }
+
+  function clearPanelHeight() {
+    menuContent.style.height = "";
+  }
+
+  /**
+   * Keep the panel open after the px tween. Switching px → auto while `height`
+   * is transitionable makes browsers animate toward 0 (looks like instant close).
+   */
+  function unlockPanelHeight() {
+    menuContent.style.transition = "none";
+    menuContent.style.height = "auto";
+    void menuContent.offsetHeight;
+    menuContent.style.transition = "";
+  }
+
+  function measurePanelHeight() {
+    // scrollHeight works even while height is 0 (overflow hidden).
+    return Math.max(0, Math.ceil(menuContent.scrollHeight));
+  }
+
   function applyClosedUi() {
     clearCollapseSchedule();
+    clearOpenSchedule();
     menuContent.classList.remove(COLLAPSE_CLASS);
     menuContainer.classList.remove(OPEN_CLASS);
+    clearPanelHeight();
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
     menuContent.setAttribute("aria-hidden", "true");
-    scheduleOverlaySync(420);
+    scheduleOverlaySync(120);
   }
 
   function finishCollapseIfNeeded() {
     if (!menuContent.classList.contains(COLLAPSE_CLASS)) return;
     applyClosedUi();
+  }
+
+  function animatePanelTo(targetHeight, onDone) {
+    clearOpenSchedule();
+    openOnEnd = (e) => {
+      if (e.target !== menuContent || e.propertyName !== "height") return;
+      menuContent.removeEventListener("transitionend", openOnEnd);
+      openOnEnd = null;
+      onDone?.();
+    };
+    menuContent.addEventListener("transitionend", openOnEnd);
+    menuContent.style.height = `${Math.max(0, Math.round(targetHeight))}px`;
   }
 
   /** @param {{ instant?: boolean }} [options] Use `{ instant: true }` from in-page hash nav to skip the panel animation. */
@@ -126,6 +170,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
 
     if (instant) {
       clearCollapseSchedule();
+      clearOpenSchedule();
       menuContent.classList.remove(COLLAPSE_CLASS);
       applyClosedUi();
       return;
@@ -136,6 +181,12 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       applyClosedUi();
       return;
     }
+
+    clearOpenSchedule();
+    const fromH = Math.round(menuContent.getBoundingClientRect().height);
+    menuContent.style.height = `${fromH}px`;
+    void menuContent.offsetHeight;
+
     menuContent.classList.add(COLLAPSE_CLASS);
     menuTrigger.setAttribute("aria-expanded", "false");
     menuTrigger.setAttribute("aria-label", "Open menu");
@@ -143,7 +194,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     scheduleOverlaySync(480);
 
     collapseOnEnd = (e) => {
-      if (e.target !== menuContent || e.propertyName !== "grid-template-rows") return;
+      if (e.target !== menuContent || e.propertyName !== "height") return;
       menuContent.removeEventListener("transitionend", collapseOnEnd);
       collapseOnEnd = null;
       if (collapseTimer !== null) {
@@ -153,6 +204,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
       finishCollapseIfNeeded();
     };
     menuContent.addEventListener("transitionend", collapseOnEnd);
+    menuContent.style.height = "0px";
 
     collapseTimer = window.setTimeout(() => {
       collapseTimer = null;
@@ -166,23 +218,57 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
 
   function openMenu() {
     clearCollapseSchedule();
+    clearOpenSchedule();
     menuContent.classList.remove(COLLAPSE_CLASS);
     menuContainer.classList.add(OPEN_CLASS);
     menuTrigger.setAttribute("aria-expanded", "true");
     menuTrigger.setAttribute("aria-label", "Close menu");
     menuContent.setAttribute("aria-hidden", "false");
-    scheduleOverlaySync(420);
+
+    if (prefersReducedMotion()) {
+      unlockPanelHeight();
+      scheduleOverlaySync(120);
+      return;
+    }
+
+    // Lock closed before measuring so `height: auto` on --open doesn't flash open.
+    menuContent.style.height = "0px";
+    const target = measurePanelHeight();
+    void menuContent.offsetHeight;
+    scheduleOverlaySync(480);
+    animatePanelTo(target, () => {
+      if (
+        menuContainer.classList.contains(OPEN_CLASS) &&
+        !menuContent.classList.contains(COLLAPSE_CLASS)
+      ) {
+        unlockPanelHeight();
+      }
+      scheduleOverlaySync(80);
+    });
   }
 
   function toggleMenu() {
     if (menuContent.classList.contains(COLLAPSE_CLASS)) {
+      // Reverse a mid-close back to open.
       clearCollapseSchedule();
+      const current = Math.round(menuContent.getBoundingClientRect().height);
       menuContent.classList.remove(COLLAPSE_CLASS);
       menuContainer.classList.add(OPEN_CLASS);
       menuTrigger.setAttribute("aria-expanded", "true");
       menuTrigger.setAttribute("aria-label", "Close menu");
       menuContent.setAttribute("aria-hidden", "false");
-      scheduleOverlaySync(420);
+      menuContent.style.height = `${current}px`;
+      void menuContent.offsetHeight;
+      const target = measurePanelHeight();
+      scheduleOverlaySync(480);
+      animatePanelTo(target, () => {
+        if (
+          menuContainer.classList.contains(OPEN_CLASS) &&
+          !menuContent.classList.contains(COLLAPSE_CLASS)
+        ) {
+          unlockPanelHeight();
+        }
+      });
       return;
     }
     if (menuContainer.classList.contains(OPEN_CLASS)) {
@@ -225,5 +311,7 @@ window.setupGalleryBarMenu = function setupGalleryBarMenu(options) {
     }
   }
 
-  return { closeMenu, openMenu, toggleMenu };
+  const api = { closeMenu, openMenu, toggleMenu };
+  menuContainer._galleryMenuApi = api;
+  return api;
 };
