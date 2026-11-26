@@ -325,6 +325,8 @@ const FULL_GALLERY_EZRA_COLLECTIVE_THE_CONCERT_HALL = {
    * Closed preview (desktop/laptop): 01 | [05/06 stack], then 07|08.
    * Mobile also shows 04 as a spread under that. Later shots expand-only.
    */
+  /* Rates / bio slideshow: shot 09. */
+  ratesBioCycleSource: "ezra-collective-the-concert-hall-09.webp",
   previewSources: [
     "ezra-collective-the-concert-hall-01.webp",
     "ezra-collective-the-concert-hall-05.webp",
@@ -374,6 +376,8 @@ const FULL_GALLERY_LADY_MARGE_X_BASHT_LEES_PALACE = {
   order: -4.25,
   title: "Lady Marge x Basht @ Lee's Palace",
   preserveSourceOrder: true,
+  /* Folder lead stays out of Rates; shot 04 is added as a spaced extra. */
+  ratesBioCycle: false,
   /* Shot 1 leads the closed preview as a full-width row. */
   previewSpreadSources: ["lady-marge-x-basht-lees-palace-01.webp"],
   /* Last shot gets its own full-width row when the folder expands. */
@@ -414,6 +418,8 @@ const FULL_GALLERY_DANIELA_ANDRADE_MOD_CLUB = {
   previewCount: 3,
   /* Shot that sat last in the paired layout leads as a full-width preview row. */
   previewSpreadSources: ["daniela-andrade-mod-club-16.webp"],
+  /* Rates / bio slideshow: third image in the folder (16, 01, then 02). */
+  ratesBioCycleSource: "daniela-andrade-mod-club-02.webp",
   sources: [
     "daniela-andrade-mod-club-16.webp",
     "daniela-andrade-mod-club-01.webp",
@@ -444,6 +450,7 @@ const FULL_GALLERY_CONCRETE_BREAKS_STANDARD_TIME = {
   id: "concrete-breaks-standard-time",
   order: -1.9,
   title: "Concrete Breaks @ Standard Time",
+  ratesBioCycle: false,
   sources: [
     "concrete-breaks-standard-time-01.webp",
     "concrete-breaks-standard-time-02.webp",
@@ -523,6 +530,8 @@ const FULL_GALLERY_LISTENING_ROOM = {
   id: "listening-room-longboat",
   order: -2,
   title: "Listening Room @ Longboat Hall",
+  /* Rates / bio slideshow: 6th tile in the paired grid layout. */
+  ratesBioCycleSource: "listening-room-longboat-hall-06.webp",
   /* Home flow: use shot 4 instead of the folder cover (01). */
   homeFlowSources: [
     "listening-room-longboat-hall-04.webp",
@@ -558,8 +567,8 @@ const FULL_GALLERY_BIG_SPECIAL_THE_GARRISON = {
   id: "big-special-the-garrison",
   order: -1.95,
   title: "Big Special @ The Garrison",
-  /* Rates / bio slideshow: third image in the folder grid (portrait 05). */
-  ratesBioCycleSource: "big-special-the-garrison-05.webp",
+  /* Rates / bio slideshow: 7th tile in the paired grid layout (file 09, not 07). */
+  ratesBioCycleSource: "big-special-the-garrison-09.webp",
   /* Keep Big Special in the full gallery, but out of the home flow. */
   homeFlowLeads: 0,
   sources: [
@@ -608,6 +617,7 @@ const FULL_GALLERY_SUPERSTAR_CRUSH_DINAS = {
   id: "superstar-crush-dinas",
   order: -1.875,
   title: "Superstar Crush @ Dina's Tavern",
+  ratesBioCycle: false,
   sources: [
     "superstar-crush-dinas-tavern-01.webp",
     "superstar-crush-dinas-tavern-02.webp",
@@ -706,6 +716,8 @@ const FULL_GALLERY_MICO_HARD_LUCK = {
   id: "mico-hard-luck",
   order: -3,
   title: "MICO @ Hard Luck",
+  /* Rates / bio slideshow: 2nd tile in the folder grid. */
+  ratesBioCycleSource: "mico-hard-luck-02.webp",
   sources: [
     "mico-hard-luck-01.webp",
     "mico-hard-luck-02.webp",
@@ -1990,6 +2002,51 @@ function getAllFlowImagePaths() {
 
 const HOME_PAGE_BG_PATH = "home-hero-backdrop.webp";
 
+/**
+ * Extra Rates slideshow stills (must be declared before beginSiteBoot — boot pins
+ * these via getRatesBioCyclePaths()).
+ */
+const RATES_BIO_CYCLE_EXTRA_SOURCES = [
+  "arlo-parks-history-23.webp",
+  "ezra-collective-the-concert-hall-16.webp",
+  "lady-marge-x-basht-lees-palace-04.webp",
+];
+const RATES_BIO_CYCLE_EXTRA_SEED = 20261126;
+
+function ratesBioPathFolderKey(path) {
+  return String(path || "").replace(/-\d+\.webp$/i, "");
+}
+
+/**
+ * Insert bonus stills into the Rates cycle at stable pseudo-random indices,
+ * keeping space from same-folder neighbors when possible.
+ */
+function insertRatesBioCycleExtras(paths, extras, seed = RATES_BIO_CYCLE_EXTRA_SEED) {
+  const out = paths.slice();
+  const rand = mulberry32(seed >>> 0);
+  for (const extra of extras) {
+    if (typeof extra !== "string" || !extra) continue;
+    if (out.includes(extra)) continue;
+    const key = ratesBioPathFolderKey(extra);
+    const spaced = [];
+    for (let i = 0; i <= out.length; i++) {
+      const prev = out[i - 1];
+      const next = out[i];
+      const touches =
+        (prev && ratesBioPathFolderKey(prev) === key) ||
+        (next && ratesBioPathFolderKey(next) === key);
+      if (!touches) spaced.push(i);
+    }
+    const pool =
+      spaced.length > 0
+        ? spaced
+        : Array.from({ length: out.length + 1 }, (_, i) => i);
+    const at = pool[Math.floor(rand() * pool.length)] ?? out.length;
+    out.splice(at, 0, extra);
+  }
+  return out;
+}
+
 function getBootImagePaths() {
   if (document.body?.classList.contains("page-full-gallery")) {
     return getFullGalleryBootImagePaths();
@@ -2095,6 +2152,7 @@ function assignPinnedImageAttributes(img, assetPath) {
   img.alt = getPhotoAltText(assetPath);
   img.loading = "eager";
   img.decoding = "sync";
+  img.draggable = false;
   img.setAttribute("fetchpriority", "high");
   img.classList.add("priority-render-img");
   img.dataset.assetPath = assetPath;
@@ -2109,6 +2167,7 @@ function assignFlowImageAttributes(img, assetPath, { priority = false } = {}) {
   img.alt = getPhotoAltText(assetPath);
   img.loading = "lazy";
   img.decoding = "async";
+  img.draggable = false;
   img.dataset.assetPath = assetPath;
   img.src = getPinnedImageSrc(assetPath);
 }
@@ -3170,26 +3229,41 @@ function wrapFlowOffset(x, widthPx) {
 }
 
 /**
- * Map a scrub offset to a translate in (-W, 0].
+ * Map a scrub offset to a translate in [-W, 0).
  * The track is [segment|segment] and the marquee already moves in [-W, 0]; a
  * positive outer translate opens empty space on the left. The phase-equivalent
  * negative translate keeps the loop filled while matching the same photos.
+ *
+ * Phase 0 maps to -W (visually identical to 0) so the first step away from rest
+ * stays continuous — `phase === 0 ? 0 : phase - W` jumped by nearly W and made
+ * the first fling feel reversed.
  */
 function flowScrubTranslateX(offsetPx, widthPx) {
   const W = Number(widthPx) || 0;
   if (!(W > 0)) return 0;
   const phase = wrapFlowOffset(offsetPx, W); // [0, W)
-  return phase === 0 ? 0 : phase - W; // (-W, 0]
+  return phase - W; // [-W, 0)
 }
 
-/** Apply the user scrub layer without touching the CSS marquee on the track. */
+/**
+ * Apply the user scrub layer without touching the CSS marquee on the track.
+ * Keep `scrubOffsetPx` as a continuous raw value (for fling velocity). Only the
+ * CSS translate is wrapped — rewriting storage to [0, W) made the first
+ * leftward drag sample jump to ~W and coast the wrong way.
+ */
 function applyFlowScrub(rowState) {
   const scrub = rowState?.scrubElement;
   if (!scrub) return;
   const W = rowState.segmentWidthPx || 0;
-  const phase = W > 0 ? wrapFlowOffset(rowState.scrubOffsetPx || 0, W) : 0;
-  rowState.scrubOffsetPx = phase;
-  scrub.style.setProperty("--flow-scrub-x", `${flowScrubTranslateX(phase, W)}px`);
+  const raw = Number(rowState.scrubOffsetPx) || 0;
+  // Bound storage so long sessions don't grow without limit.
+  if (W > 0 && Math.abs(raw) > W * 8) {
+    rowState.scrubOffsetPx = wrapFlowOffset(raw, W);
+  }
+  scrub.style.setProperty(
+    "--flow-scrub-x",
+    `${flowScrubTranslateX(rowState.scrubOffsetPx || 0, W)}px`
+  );
 }
 
 /** Viewport-pixel deltas → layout px under root page-scale zoom. */
@@ -3216,9 +3290,9 @@ function startFlowScrubCoast(rowState, velocityPxPerMs, stillActive) {
   if (!rowState || typeof stillActive !== "function") return;
   if (!Number.isFinite(velocityPxPerMs)) return;
 
-  const MAX_V = 3.2; // px/ms
+  const MAX_V = 3.2 * 0.8; // px/ms (20% softer than the first coast pass)
   const MIN_V = 0.045;
-  let v = Math.max(-MAX_V, Math.min(MAX_V, velocityPxPerMs));
+  let v = Math.max(-MAX_V, Math.min(MAX_V, velocityPxPerMs * 0.8));
   if (Math.abs(v) < MIN_V) return;
 
   let lastT = performance.now();
@@ -3363,7 +3437,7 @@ function attachFlowRowScrub(rowState) {
       if (event.cancelable) event.preventDefault();
       // Content follows the pointer (rightward drag → positive translate).
       // Slight touch gain so a short flick throws farther on phones.
-      const gain = isTouchLike() ? 1.2 : 1;
+      const gain = isTouchLike() ? 1.2 * 0.8 : 1;
       rowState.scrubOffsetPx =
         originScrub + flowScrubDeltaToLayoutPx(dx) * gain;
       applyFlowScrub(rowState);
@@ -3407,7 +3481,7 @@ function attachFlowRowScrub(rowState) {
       axis = null;
       scrubbing = false;
       velocitySamples = [{ t: performance.now(), scrub: originScrub }];
-      // Window listeners keep the drag alive if the finger leaves the row.
+      // Window listeners keep the drag alive if the pointer leaves the row.
       startWindowListeners();
     },
     { passive: true }
@@ -6367,12 +6441,24 @@ function setupRatesReveal() {
   }
 }
 
-/** Lead image from each of the top N gallery folders (Rates / bio slideshow). */
-function getRatesBioCyclePaths(limit = 8) {
+/** Swap two paths in the Rates cycle by first-match predicates. */
+function swapRatesBioCycleEntries(paths, matchA, matchB) {
+  const i = paths.findIndex(matchA);
+  const j = paths.findIndex(matchB);
+  if (i < 0 || j < 0 || i === j) return paths;
+  const out = paths.slice();
+  const tmp = out[i];
+  out[i] = out[j];
+  out[j] = tmp;
+  return out;
+}
+
+/** Lead image from each eligible gallery folder (Rates / bio slideshow). */
+function getRatesBioCyclePaths(limit = Infinity) {
   const folderLeads = [...FULL_GALLERY_PINNED_SHOWS]
     .sort((a, b) => a.order - b.order)
     .filter((show) => show.ratesBioCycle !== false)
-    .slice(0, limit)
+    .slice(0, Number.isFinite(limit) ? limit : undefined)
     .map((show) => {
       if (typeof show.ratesBioCycleSource === "string" && show.ratesBioCycleSource) {
         return show.ratesBioCycleSource;
@@ -6380,7 +6466,16 @@ function getRatesBioCyclePaths(limit = 8) {
       return show.sources?.[0];
     })
     .filter((path) => typeof path === "string" && path.length > 0);
-  return dedupeFlowItems(folderLeads);
+  const paths = dedupeFlowItems(folderLeads);
+  // Drop the last two folder leads so the cycle stays a bit shorter.
+  const trimmed = paths.length > 2 ? paths.slice(0, -2) : paths;
+  const withExtras = insertRatesBioCycleExtras(trimmed, RATES_BIO_CYCLE_EXTRA_SOURCES);
+  // Daniela ↔ first Basht still (folder lead or spaced extra, whichever appears first).
+  return swapRatesBioCycleEntries(
+    withExtras,
+    (path) => path.includes("lady-marge-x-basht"),
+    (path) => path.includes("daniela-andrade")
+  );
 }
 
 const RATES_BIO_CYCLE_DESKTOP_QUERY = "(min-width: 1024px)";
@@ -7007,6 +7102,14 @@ function initSharedPageUi() {
   lightboxVideo = document.querySelector(".lightbox__video");
   setupLightboxPointerNav();
   setupLightboxHistory();
+
+  // Laptop/desktop: block native image drag ghosts (CSS covers most; this is backup).
+  document.addEventListener("dragstart", (event) => {
+    const t = event.target;
+    if (t && (t.tagName === "IMG" || t.closest?.("img, .media-item"))) {
+      event.preventDefault();
+    }
+  });
 
   window.addEventListener("keydown", (event) => {
     if (lightbox?.getAttribute("data-state") !== "open") return;

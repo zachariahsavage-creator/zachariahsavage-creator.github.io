@@ -3165,6 +3165,14 @@ body.page-full-gallery .site-boot-gate::after {
   filter: grayscale(0%);
 }
 
+/* Laptop/desktop: kill native image-drag ghosts that can be pulled off-page. */
+@media (hover: hover) and (pointer: fine) {
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
+
 .media-item video {
   pointer-events: none;
 }
