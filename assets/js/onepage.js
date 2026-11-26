@@ -3198,6 +3198,50 @@ function flowScrubDeltaToLayoutPx(deltaViewportPx) {
   return deltaViewportPx / scale;
 }
 
+/** Stop any in-flight scrub momentum on a flow row. */
+function stopFlowScrubCoast(rowState) {
+  if (!rowState) return;
+  if (rowState.scrubCoastRaf) {
+    cancelAnimationFrame(rowState.scrubCoastRaf);
+    rowState.scrubCoastRaf = 0;
+  }
+}
+
+/**
+ * After a touch fling, keep scrubbing with decaying velocity so the strip
+ * coasts instead of stopping dead under the finger.
+ */
+function startFlowScrubCoast(rowState, velocityPxPerMs, stillActive) {
+  stopFlowScrubCoast(rowState);
+  if (!rowState || typeof stillActive !== "function") return;
+  if (!Number.isFinite(velocityPxPerMs)) return;
+
+  const MAX_V = 3.2; // px/ms
+  const MIN_V = 0.045;
+  let v = Math.max(-MAX_V, Math.min(MAX_V, velocityPxPerMs));
+  if (Math.abs(v) < MIN_V) return;
+
+  let lastT = performance.now();
+  const tick = (now) => {
+    if (!stillActive()) {
+      rowState.scrubCoastRaf = 0;
+      return;
+    }
+    const dt = Math.min(34, Math.max(0, now - lastT));
+    lastT = now;
+    // ~frame-rate-stable friction (feels like a short native fling).
+    v *= Math.pow(0.962, dt / 16.67);
+    rowState.scrubOffsetPx = (rowState.scrubOffsetPx || 0) + v * dt;
+    applyFlowScrub(rowState);
+    if (Math.abs(v) < MIN_V) {
+      rowState.scrubCoastRaf = 0;
+      return;
+    }
+    rowState.scrubCoastRaf = requestAnimationFrame(tick);
+  };
+  rowState.scrubCoastRaf = requestAnimationFrame(tick);
+}
+
 /**
  * Drag / swipe / trackpad scrub on a flow row. Marquee keeps running underneath;
  * vertical page scroll wins until the gesture locks to horizontal.
@@ -3221,12 +3265,32 @@ function attachFlowRowScrub(rowState) {
   let axis = null;
   let scrubbing = false;
   let windowListening = false;
+  /** @type {{ t: number, scrub: number }[]} */
+  let velocitySamples = [];
 
   const canScrub = () =>
     !row.classList.contains("gallery-row--manual-scroll") &&
-    rowState.segmentWidthPx > 0;
+    rowState.segmentWidthPx > 0 &&
+    row.isConnected;
 
   const isTouchLike = () => pointerType === "touch" || pointerType === "pen";
+
+  const recordScrubSample = () => {
+    const t = performance.now();
+    velocitySamples.push({ t, scrub: rowState.scrubOffsetPx || 0 });
+    while (velocitySamples.length > 1 && t - velocitySamples[0].t > 120) {
+      velocitySamples.shift();
+    }
+  };
+
+  const releaseVelocityPxPerMs = () => {
+    if (velocitySamples.length < 2) return 0;
+    const first = velocitySamples[0];
+    const last = velocitySamples[velocitySamples.length - 1];
+    const dt = last.t - first.t;
+    if (!(dt > 8)) return 0;
+    return (last.scrub - first.scrub) / dt;
+  };
 
   const onWindowPointerMove = (event) => {
     handlePointerMove(event);
@@ -3298,8 +3362,12 @@ function attachFlowRowScrub(rowState) {
     if (axis === "x") {
       if (event.cancelable) event.preventDefault();
       // Content follows the pointer (rightward drag → positive translate).
-      rowState.scrubOffsetPx = originScrub + flowScrubDeltaToLayoutPx(dx);
+      // Slight touch gain so a short flick throws farther on phones.
+      const gain = isTouchLike() ? 1.2 : 1;
+      rowState.scrubOffsetPx =
+        originScrub + flowScrubDeltaToLayoutPx(dx) * gain;
       applyFlowScrub(rowState);
+      recordScrubSample();
       lastClientY = event.clientY;
       return;
     }
@@ -3315,7 +3383,11 @@ function attachFlowRowScrub(rowState) {
 
   const endScrub = (event) => {
     if (pointerId === null || event.pointerId !== pointerId) return;
-    clearScrubGesture(scrubbing);
+    const wasScrubbing = scrubbing;
+    const shouldCoast = wasScrubbing && isTouchLike();
+    const velocity = shouldCoast ? releaseVelocityPxPerMs() : 0;
+    clearScrubGesture(wasScrubbing);
+    if (shouldCoast) startFlowScrubCoast(rowState, velocity, canScrub);
   };
 
   row.addEventListener(
@@ -3325,6 +3397,7 @@ function attachFlowRowScrub(rowState) {
       if (event.pointerType === "mouse" && event.button !== 0) return;
       if (!canScrub()) return;
 
+      stopFlowScrubCoast(rowState);
       pointerId = event.pointerId;
       pointerType = event.pointerType || "";
       startX = event.clientX;
@@ -3333,6 +3406,7 @@ function attachFlowRowScrub(rowState) {
       originScrub = rowState.scrubOffsetPx || 0;
       axis = null;
       scrubbing = false;
+      velocitySamples = [{ t: performance.now(), scrub: originScrub }];
       // Window listeners keep the drag alive if the finger leaves the row.
       startWindowListeners();
     },
@@ -3357,6 +3431,7 @@ function attachFlowRowScrub(rowState) {
       if (Math.abs(dx) < 0.5) return;
       if (!event.shiftKey && Math.abs(dx) <= Math.abs(dy)) return;
 
+      stopFlowScrubCoast(rowState);
       if (event.cancelable) event.preventDefault();
       // Match native overflow: positive deltaX → content moves left.
       rowState.scrubOffsetPx =
@@ -3379,6 +3454,7 @@ function readTrackTranslateX(track) {
 }
 
 function enableFlowManualScroll(rowState) {
+  stopFlowScrubCoast(rowState);
   rowState?.rowElement?.classList.add("gallery-row--manual-scroll");
   if (rowState?.scrubElement) {
     rowState.scrubOffsetPx = 0;
@@ -5810,10 +5886,16 @@ function setupFullGalleryScrollTheme() {
   const ARLO_FOLDER = "arlo-parks-history";
   /** Fade completes by this fraction through the Arlo preview block. */
   const COMPLETE_AT = 0.75;
-  /** No pull-forward — keeps the page top fully peach. */
-  const EARLY_PX = 0;
-  /** Short scroll distance for a rapid peach→black ramp. */
-  const DURATION_SCALE = 0.2;
+  /**
+   * Negative = push the ramp later (page stays peach longer).
+   * ~8in at 96css-px/in — desktop/laptop only.
+   */
+  const EARLY_PX_DESKTOP = -768;
+  const EARLY_PX_MOBILE = 0;
+  /** Desktop: short scroll for a rapid peach→black ramp. */
+  const DURATION_SCALE_DESKTOP = 0.2;
+  /** Mobile: slower than desktop (3× then trimmed by ¼ twice). */
+  const DURATION_SCALE_MOBILE = DURATION_SCALE_DESKTOP * 3 * 0.75 * 0.75;
   let ticking = false;
   let dark = false;
 
@@ -5861,9 +5943,12 @@ function setupFullGalleryScrollTheme() {
       return;
     }
     const refY = getFixedHeaderScrollOffset();
+    const mobile = isFlowMobileLayout();
+    const earlyPx = mobile ? EARLY_PX_MOBILE : EARLY_PX_DESKTOP;
+    const durationScale = mobile ? DURATION_SCALE_MOBILE : DURATION_SCALE_DESKTOP;
     const t =
-      (refY - preview.top + EARLY_PX) /
-      (preview.height * COMPLETE_AT * DURATION_SCALE);
+      (refY - preview.top + earlyPx) /
+      (preview.height * COMPLETE_AT * durationScale);
     applyTheme(t);
   }
 
