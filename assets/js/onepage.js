@@ -3201,6 +3201,10 @@ function flowScrubDeltaToLayoutPx(deltaViewportPx) {
 /**
  * Drag / swipe / trackpad scrub on a flow row. Marquee keeps running underneath;
  * vertical page scroll wins until the gesture locks to horizontal.
+ *
+ * Touch (esp. Android Chrome): `touch-action: none` on the row so the browser
+ * cannot steal the gesture with pointercancel. Horizontal lock scrubs; vertical
+ * lock scrolls the page from JS. Desktop keeps native `pan-y`.
  */
 function attachFlowRowScrub(rowState) {
   const row = rowState?.rowElement;
@@ -3208,25 +3212,111 @@ function attachFlowRowScrub(rowState) {
   rowState.scrubAttached = true;
 
   let pointerId = null;
+  let pointerType = "";
   let startX = 0;
   let startY = 0;
+  let lastClientY = 0;
   let originScrub = 0;
-  let locked = false;
+  /** @type {null | "x" | "y"} */
+  let axis = null;
   let scrubbing = false;
+  let windowListening = false;
+
+  const canScrub = () =>
+    !row.classList.contains("gallery-row--manual-scroll") &&
+    rowState.segmentWidthPx > 0;
+
+  const isTouchLike = () => pointerType === "touch" || pointerType === "pen";
+
+  const onWindowPointerMove = (event) => {
+    handlePointerMove(event);
+  };
+
+  const onWindowPointerEnd = (event) => {
+    endScrub(event);
+  };
+
+  const stopWindowListeners = () => {
+    if (!windowListening) return;
+    windowListening = false;
+    window.removeEventListener("pointermove", onWindowPointerMove);
+    window.removeEventListener("pointerup", onWindowPointerEnd);
+    window.removeEventListener("pointercancel", onWindowPointerEnd);
+  };
+
+  const startWindowListeners = () => {
+    if (windowListening) return;
+    windowListening = true;
+    window.addEventListener("pointermove", onWindowPointerMove, { passive: false });
+    window.addEventListener("pointerup", onWindowPointerEnd, { passive: true });
+    window.addEventListener("pointercancel", onWindowPointerEnd, { passive: true });
+  };
 
   const clearScrubGesture = (wasScrubbing = false) => {
     if (wasScrubbing || scrubbing) {
       flowScrubBlockClicksUntil = Date.now() + 450;
     }
+    stopWindowListeners();
     pointerId = null;
-    locked = false;
+    pointerType = "";
+    axis = null;
     scrubbing = false;
     row.classList.remove("gallery-row--scrubbing");
   };
 
-  const canScrub = () =>
-    !row.classList.contains("gallery-row--manual-scroll") &&
-    rowState.segmentWidthPx > 0;
+  const handlePointerMove = (event) => {
+    if (pointerId === null || event.pointerId !== pointerId) return;
+    if (!canScrub()) {
+      clearScrubGesture();
+      return;
+    }
+
+    const dx = event.clientX - startX;
+    const dyFromStart = event.clientY - startY;
+
+    if (!axis) {
+      if (Math.hypot(dx, dyFromStart) < TILE_TAP_SLOP_PX) {
+        lastClientY = event.clientY;
+        return;
+      }
+      // Touch: bias toward horizontal so a slightly diagonal finger drag still scrubs.
+      const horizontalBias = isTouchLike() ? 0.75 : 1;
+      if (Math.abs(dx) > Math.abs(dyFromStart) * horizontalBias) {
+        axis = "x";
+        scrubbing = true;
+        row.classList.add("gallery-row--scrubbing");
+      } else {
+        axis = "y";
+        // Desktop pan-y: drop our gesture and let the browser scroll.
+        if (!isTouchLike()) {
+          clearScrubGesture();
+          return;
+        }
+      }
+    }
+
+    if (axis === "x") {
+      if (event.cancelable) event.preventDefault();
+      // Content follows the pointer (rightward drag → positive translate).
+      rowState.scrubOffsetPx = originScrub + flowScrubDeltaToLayoutPx(dx);
+      applyFlowScrub(rowState);
+      lastClientY = event.clientY;
+      return;
+    }
+
+    if (axis === "y" && isTouchLike()) {
+      // touch-action:none — drive page scroll ourselves so vertical still works.
+      if (event.cancelable) event.preventDefault();
+      const step = event.clientY - lastClientY;
+      lastClientY = event.clientY;
+      if (step !== 0) setPageScrollTop(getPageScrollTop() - step);
+    }
+  };
+
+  const endScrub = (event) => {
+    if (pointerId === null || event.pointerId !== pointerId) return;
+    clearScrubGesture(scrubbing);
+  };
 
   row.addEventListener(
     "pointerdown",
@@ -3236,78 +3326,22 @@ function attachFlowRowScrub(rowState) {
       if (!canScrub()) return;
 
       pointerId = event.pointerId;
+      pointerType = event.pointerType || "";
       startX = event.clientX;
       startY = event.clientY;
+      lastClientY = event.clientY;
       originScrub = rowState.scrubOffsetPx || 0;
-      locked = false;
+      axis = null;
       scrubbing = false;
+      // Window listeners keep the drag alive if the finger leaves the row.
+      startWindowListeners();
     },
     { passive: true }
   );
 
-  row.addEventListener(
-    "pointermove",
-    (event) => {
-      if (pointerId === null || event.pointerId !== pointerId) return;
-      if (!canScrub()) {
-        clearScrubGesture();
-        return;
-      }
-
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-
-      if (!locked) {
-        if (Math.hypot(dx, dy) < TILE_TAP_SLOP_PX) return;
-        // Vertical page scroll wins unless the gesture is clearly horizontal.
-        // Touch: allow a slightly earlier lock so the finger drag feels responsive.
-        const horizontalBias = event.pointerType === "touch" ? 0.85 : 1;
-        if (Math.abs(dx) <= Math.abs(dy) * horizontalBias) {
-          clearScrubGesture();
-          return;
-        }
-        locked = true;
-        scrubbing = true;
-        row.classList.add("gallery-row--scrubbing");
-        try {
-          row.setPointerCapture(pointerId);
-        } catch (_err) {
-          /* ignore */
-        }
-      }
-
-      if (!scrubbing) return;
-      if (event.cancelable) event.preventDefault();
-
-      // Content follows the pointer (rightward drag → positive translate).
-      rowState.scrubOffsetPx = originScrub + flowScrubDeltaToLayoutPx(dx);
-      applyFlowScrub(rowState);
-    },
-    { passive: false }
-  );
-
-  const endScrub = (event) => {
-    if (pointerId === null || event.pointerId !== pointerId) return;
-    const wasScrubbing = scrubbing;
-    if (row.hasPointerCapture?.(pointerId)) {
-      try {
-        row.releasePointerCapture(pointerId);
-      } catch (_err) {
-        /* ignore */
-      }
-    }
-    clearScrubGesture(wasScrubbing);
-  };
-
+  row.addEventListener("pointermove", handlePointerMove, { passive: false });
   row.addEventListener("pointerup", endScrub, { passive: true });
   row.addEventListener("pointercancel", endScrub, { passive: true });
-  row.addEventListener(
-    "lostpointercapture",
-    () => {
-      clearScrubGesture(true);
-    },
-    { passive: true }
-  );
 
   // Laptop trackpads scrub with two-finger sideways scroll (wheel deltaX), not click-drag.
   row.addEventListener(

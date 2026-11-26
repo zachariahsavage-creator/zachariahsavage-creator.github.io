@@ -2864,7 +2864,7 @@ body.page-home .home-bio-row .home-intro {
   contain: none;
   transform: translateZ(0);
   content-visibility: visible;
-  /* Vertical page scroll stays native; horizontal pans go to JS flow scrub. */
+  /* Desktop: vertical page scroll stays native; horizontal pans go to JS scrub. */
   touch-action: pan-y;
 }
 
@@ -2874,6 +2874,12 @@ body.page-home .home-bio-row .home-intro {
     contain: none;
     /* Phones and touch tablets use 2:3 tiles. A short laptop must not land here. */
     height: calc(var(--flow-item-width, 200px) * 1.5);
+    /*
+     * Android Chrome fires pointercancel as soon as it claims a pan-y scroll, which
+     * kills horizontal scrub after a few pixels. Own the gesture here; vertical
+     * locks scroll the page from JS (see attachFlowRowScrub).
+     */
+    touch-action: none;
   }
 
   .page-home .gallery,
@@ -2924,8 +2930,7 @@ body.page-home .home-bio-row .home-intro {
 
 .gallery-row.gallery-row--scrubbing {
   cursor: grabbing;
-  /* Fully claim the gesture once horizontal scrub locks in. */
-  touch-action: none;
+  /* Keep pan-y — flipping to `none` mid-gesture cancels the touch on iOS. */
 }
 
 .gallery-flow-track {
